@@ -1,13 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 
 @TeleOp(name = "PowerSurgeTeleOp")
-@Disabled
 public class PowerSurgeTeleOp extends OpMode {
 
     public static final double DEADZONE = 0.15;
@@ -59,9 +57,9 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void Drive(double DZForwardButton, double DZSidewaysButton, double DZSpinningButton) {
-        BackRight.setPower(-DZSidewaysButton - DZForwardButton + DZSpinningButton);
-        BackLeft.setPower(-DZSidewaysButton + DZForwardButton + DZSpinningButton);
-        FrontRight.setPower(DZSidewaysButton - DZForwardButton + DZSpinningButton);
-        FrontLeft.setPower(DZSidewaysButton + DZForwardButton + DZSpinningButton);
+        BackRight.setPower(-DZSidewaysButton - DZForwardButton - DZSpinningButton);
+        BackLeft.setPower(-DZSidewaysButton + DZForwardButton - DZSpinningButton);
+        FrontRight.setPower(DZSidewaysButton - DZForwardButton - DZSpinningButton);
+        FrontLeft.setPower(DZSidewaysButton + DZForwardButton - DZSpinningButton);
     }
 }
