@@ -62,4 +62,12 @@ public class PowerSurgeTeleOp extends OpMode {
         FrontRight.setPower(DZSidewaysButton - DZForwardButton - DZSpinningButton);
         FrontLeft.setPower(DZSidewaysButton + DZForwardButton - DZSpinningButton);
     }
+
+    public void AutoDrive(double RobotXCoordinate, double RobotYCoordinate, double TargetXCoordinate, double TargetYCoordinate) {
+        BackRight.setPower(-(RobotYCoordinate - TargetYCoordinate) / -(RobotXCoordinate - TargetXCoordinate));
+        BackLeft.setPower((RobotYCoordinate - TargetYCoordinate) / -(RobotXCoordinate - TargetXCoordinate));
+        FrontRight.setPower(-(RobotYCoordinate - TargetYCoordinate) / (RobotXCoordinate - TargetXCoordinate));
+        FrontLeft.setPower((RobotYCoordinate - TargetYCoordinate) / (RobotXCoordinate - TargetXCoordinate));
+    }
+
 }
