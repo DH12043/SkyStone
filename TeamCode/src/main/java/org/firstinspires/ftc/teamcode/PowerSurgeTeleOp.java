@@ -18,11 +18,13 @@ public class PowerSurgeTeleOp extends OpMode {
     @Override
     public void init() {
         initializeDriveTrain();
+        initializeIntakeMechanism();
     }
 
     @Override
     public void loop() {
         CheckDriveTrain();
+        checkIntakeMechanism();
     }
 
     //
@@ -63,11 +65,42 @@ public class PowerSurgeTeleOp extends OpMode {
         FrontLeft.setPower(DZSidewaysButton + DZForwardButton - DZSpinningButton);
     }
 
-    public void AutoDrive(double RobotXCoordinate, double RobotYCoordinate, double TargetXCoordinate, double TargetYCoordinate) {
-        BackRight.setPower(-(RobotYCoordinate - TargetYCoordinate) / -(RobotXCoordinate - TargetXCoordinate));
-        BackLeft.setPower((RobotYCoordinate - TargetYCoordinate) / -(RobotXCoordinate - TargetXCoordinate));
-        FrontRight.setPower(-(RobotYCoordinate - TargetYCoordinate) / (RobotXCoordinate - TargetXCoordinate));
-        FrontLeft.setPower((RobotYCoordinate - TargetYCoordinate) / (RobotXCoordinate - TargetXCoordinate));
+    public void initializeIntakeMechanism() {
+        IntakeMotor = hardwareMap.dcMotor.get("Intake");
     }
 
+    public void checkIntakeMechanism() {
+        intakeButton = gamepad2.dpad_up;
+        outputButton = gamepad2.dpad_down;
+
+        intake(intakeButton);
+    }
+
+    public void intake(boolean intakeButton) {
+        if (intakeButton) {
+            if (firstPressDpadUp) {
+                if (intakeState == 1) {
+                    intakeState = 0;
+                }
+                else {
+                    intakeState = 1;
+                }
+                firstPressDpadUp = false;
+            }
+        }
+        else {
+            firstPressDpadUp = true;
+        }
+        if (outputButton) {
+            IntakeMotor.setPower(-1);
+        }
+        else {
+            if (intakeState == 1) {
+                IntakeMotor.setPower(1);
+            }
+            else if (intakeState == 0) {
+                IntakeMotor.setPower(0);
+            }
+        }
+    }
 }
