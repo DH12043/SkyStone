@@ -14,6 +14,12 @@ public class PowerSurgeTeleOp extends OpMode {
     private DcMotor FrontLeft;
     private DcMotor BackRight;
     private DcMotor BackLeft;
+    private DcMotor IntakeMotor;
+
+    private int intakeState = 1;
+    private boolean outputButton;
+    private boolean intakeButton;
+    private boolean firstPressDpadUp = true;
 
     @Override
     public void init() {
