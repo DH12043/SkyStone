@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Robot.Drivetrain.Odometry;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ReadWriteFile;
@@ -7,7 +7,7 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.io.File;
 
-public class OdometryGlobalCoordinatePosition implements Runnable{
+class OdometryGlobalCoordinatePosition implements Runnable{
     //Odometry wheels
     private DcMotor verticalEncoderLeft, verticalEncoderRight, horizontalEncoder;
 
