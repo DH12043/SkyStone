@@ -16,22 +16,67 @@ public class PowerSurgeTeleOp extends OpMode {
     private DcMotor BackLeft;
     private DcMotor IntakeMotor;
 
+    private int foundationatorState = 0;
     private int intakeState = 1;
     private boolean outputButton;
     private boolean intakeButton;
     private boolean firstPressDpadUp = true;
+    private boolean foundationatorFirstPress = true;
 
     @Override
     public void init() {
+        initializeFoundationator();
         initializeDriveTrain();
         initializeIntakeMechanism();
     }
 
     @Override
     public void loop() {
-        CheckDriveTrain();
+        checkFoundationator();
+        checkDriveTrain();
         checkIntakeMechanism();
     }
+
+    //
+    // FOUNDATIONATOR
+    //
+
+    public void initializeFoundationator() {
+        LeftServo = hardwareMap.dcMotor.get("LeftServo");
+        RightServo = hardwareMap.dcMotor.get("RightServo");
+    }
+
+    public void checkFoundationator() {
+        boolean foundationatorToggle = gamepad1.right_bumper;
+
+        if (foundationatorToggle == true) {
+            if (foundationatorFirstPress == true) {
+                if (foundationatorState == 1) {
+                    servosDown();
+                    foundationatorState = 0;
+                }
+                else {
+                    servosUp();
+                    foundationatorState = 1;
+                }
+                foundationatorFirstPress = false;
+            }
+        }
+        else {
+            foundationatorFirstPress = true;
+        }
+    }
+
+    public void servosDown() {
+        LeftServo = (.6);
+        RightServo = (.4);
+    }
+
+    public void servosUp() {
+        LeftServo = (1);
+        RightServo = (0);
+    }
+
 
     //
     // DRIVE TRAIN
@@ -44,7 +89,7 @@ public class PowerSurgeTeleOp extends OpMode {
         BackLeft = hardwareMap.dcMotor.get("BackLeft");
     }
 
-    public void CheckDriveTrain() {
+    public void checkDriveTrain() {
         double forwardButton = gamepad1.left_stick_y;
         double sidewaysButton = gamepad1.left_stick_x;
         double spinningButton = gamepad1.right_stick_x;

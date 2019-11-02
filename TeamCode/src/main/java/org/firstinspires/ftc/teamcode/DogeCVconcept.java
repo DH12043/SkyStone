@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
-import OpMode;
+//import OpMode;
 
-public class DogeCVconcept extends OpMode {
+public class DogeCVconcept /* extends OpMode */ {
 }
