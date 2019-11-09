@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 
 @TeleOp(name = "PowerSurgeTeleOp")
@@ -15,6 +16,9 @@ public class PowerSurgeTeleOp extends OpMode {
     private DcMotor BackRight;
     private DcMotor BackLeft;
     private DcMotor IntakeMotor;
+    private DcMotor LiftMotor;
+    private Servo LeftServo;
+    private Servo RightServo;
 
     private int foundationatorState = 0;
     private int intakeState = 1;
@@ -25,6 +29,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void init() {
+        initializeVerticalLift();
         initializeFoundationator();
         initializeDriveTrain();
         initializeIntakeMechanism();
@@ -32,9 +37,21 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        checkVerticalLift();
         checkFoundationator();
         checkDriveTrain();
         checkIntakeMechanism();
+    }
+
+    //
+    // VERTICAL LIFT
+    //
+
+    public void initializeVerticalLift() {
+        LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
+    }
+
+    public void checkVerticalLift() {
     }
 
     //
@@ -42,8 +59,8 @@ public class PowerSurgeTeleOp extends OpMode {
     //
 
     public void initializeFoundationator() {
-        LeftServo = hardwareMap.dcMotor.get("LeftServo");
-        RightServo = hardwareMap.dcMotor.get("RightServo");
+        LeftServo = hardwareMap.servo.get("LeftServo");
+        RightServo = hardwareMap.servo.get("RightServo");
     }
 
     public void checkFoundationator() {
@@ -68,15 +85,14 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void servosDown() {
-        LeftServo = (.6);
-        RightServo = (.4);
+        LeftServo.setPosition(.6);
+        RightServo.setPosition(.4);
     }
 
     public void servosUp() {
-        LeftServo = (1);
-        RightServo = (0);
+        LeftServo.setPosition(1);
+        RightServo.setPosition(0);
     }
-
 
     //
     // DRIVE TRAIN
