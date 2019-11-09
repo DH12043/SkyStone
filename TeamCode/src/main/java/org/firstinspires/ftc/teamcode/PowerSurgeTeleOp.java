@@ -92,6 +92,8 @@ public class PowerSurgeTeleOp extends OpMode {
     public void servosUp() {
         LeftServo.setPosition(1);
         RightServo.setPosition(0);
+        LeftServo.setPosition(1.0);
+        RightServo.setPosition(0.0);
     }
 
     //

@@ -8,15 +8,15 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 public class CheckLoopTiming extends OpMode {
 
     private double _lastCurrentTime;
-    
+
     @Override
     public void init () {
         _lastCurrentTime = getRuntime();
     }
-    
+
     @Override
     public void loop() {
-        
+
         double currentTime = this.getRuntime();
         double diff = currentTime - _lastCurrentTime;
         telemetry.addData("Milliseconds Per Loop","LoopValue %.2f", diff);
