@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 
-@TeleOp(name = "PowerSurgeTeleOp")
+@TeleOp(name = "CheckLoopTiming")
 public class CheckLoopTiming extends OpMode {
 
     private double _lastCurrentTime;
