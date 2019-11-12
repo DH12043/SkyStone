@@ -10,6 +10,7 @@ public class GiantWaffle extends OpMode {
     private Servo _lFoundationator;
     private Servo _rFoundationator;
     private boolean _lastWaffleState = false;
+    private boolean _isWaffleStateRaised = false;
 
     @Override
     public void init() {
@@ -19,6 +20,11 @@ public class GiantWaffle extends OpMode {
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
+//        try {
+//            wait(1000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
     }
 
@@ -29,22 +35,28 @@ public class GiantWaffle extends OpMode {
             return;
         }
         else if(_lastWaffleState == false && currentWaffleState == true){
-            raiseFoundationator ();
-        }
-        else{
-            lowerFoundationator();
+            if(_isWaffleStateRaised == true) {
+                lowerFoundationator();
+            } else {
+                raiseFoundationator();
+            }
         }
 
+        _lastWaffleState = currentWaffleState;
     }
 
     private void raiseFoundationator() {
-        _lFoundationator.setPosition(.25);
-        _rFoundationator.setPosition(.25);
+        _lFoundationator.setPosition(0);
+        _rFoundationator.setPosition(.27);
+        _isWaffleStateRaised = true;
+        telemetry.addData("Raising Foundationator", "");
     }
 
     private void lowerFoundationator() {
-        _lFoundationator.setPosition(0);
+        _lFoundationator.setPosition(.27);
         _rFoundationator.setPosition(0);
+        _isWaffleStateRaised = false;
+        telemetry.addData("Lowering Foundationator", "");
 
     }
 }
