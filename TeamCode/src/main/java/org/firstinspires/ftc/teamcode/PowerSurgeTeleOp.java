@@ -97,7 +97,7 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void checkFoundationator() {
-        boolean foundationatorToggle = gamepad1.right_bumper;
+        boolean foundationatorToggle = gamepad1.x;
 
         if (foundationatorToggle == true) {
             if (foundationatorFirstPress == true) {
