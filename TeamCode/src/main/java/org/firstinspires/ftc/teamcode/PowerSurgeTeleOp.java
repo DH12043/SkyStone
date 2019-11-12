@@ -26,6 +26,14 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean intakeButton;
     private boolean firstPressDpadUp = true;
     private boolean foundationatorFirstPress = true;
+    static final double countsPerMotor          = 1120 ;
+    static final double gearReduction           = 1.0 ;
+    static final double wheelDiameter           = 4.0 ;
+    static final double countsPerInch           = (countsPerMotor * gearReduction) /
+            (wheelDiameter * Math.PI);
+    static final double spinInchesPerDegrees    = (15.375 * Math.PI) / 360;
+    static final double rotateDegrees           = (30.75 * Math.PI) / 360;
+    static final double spinCountsPerDegree     = (countsPerInch * spinInchesPerDegrees);
 
     @Override
     public void init() {
@@ -49,9 +57,34 @@ public class PowerSurgeTeleOp extends OpMode {
 
     public void initializeVerticalLift() {
         LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
+        LiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        LiftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        LiftMotor.setDirection(DcMotor.Direction.FORWARD);
+        LiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public void checkVerticalLift() {
+        boolean LiftUpButton = gamepad1.right_bumper;
+        boolean LiftDownButton = gamepad1.left_bumper;
+
+        if (LiftMotor.getCurrentPosition() > (LiftMotor.getTargetPosition() + 100) && LiftMotor.getCurrentPosition() < (LiftMotor.getTargetPosition() + 500)) {
+            LiftMotor.setPower(.25);
+        }
+        else if (LiftMotor.getCurrentPosition() < (LiftMotor.getTargetPosition() - 100) && LiftMotor.getCurrentPosition() > (LiftMotor.getTargetPosition() - 500)) {
+            LiftMotor.setPower(-.25);
+        }
+        else if (LiftUpButton == true) {
+            LiftMotor.setTargetPosition((int)(LiftMotor.getCurrentPosition() + (4 * countsPerInch)));
+            LiftMotor.setPower(.5);
+        }
+        else if (LiftDownButton == true) {
+            LiftMotor.setTargetPosition((int)(LiftMotor.getCurrentPosition() + (-4 * countsPerInch)));
+            LiftMotor.setPower(-.5);
+        }
+        else if (LiftMotor.getCurrentPosition() == LiftMotor.getTargetPosition()) {
+            LiftMotor.setPower(0);
+        }
     }
 
     //

@@ -1,13 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 
-@TeleOp(name = "CheckLoopTiming")
-public class CheckLoopTiming extends OpMode {
+abstract class CheckLoopTiming extends OpMode {
 
-    private double _lastCurrentTime;
+    protected double _lastCurrentTime;
 
     @Override
     public void init () {
