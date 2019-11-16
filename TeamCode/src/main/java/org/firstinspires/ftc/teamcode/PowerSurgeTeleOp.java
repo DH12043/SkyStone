@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 
@@ -17,15 +18,14 @@ public class PowerSurgeTeleOp extends OpMode {
     private DcMotor BackLeft;
     private DcMotor IntakeMotor;
     private DcMotor LiftMotor;
-    private Servo LeftServo;
-    private Servo RightServo;
+    private Servo _lFoundationator;
+    private Servo _rFoundationator;
 
-    private int foundationatorState = 0;
     private int intakeState = 1;
     private boolean outputButton;
     private boolean intakeButton;
     private boolean firstPressDpadUp = true;
-    private boolean foundationatorFirstPress = true;
+    private boolean _lastWaffleState = false;
     static final double countsPerMotor          = 1120 ;
     static final double gearReduction           = 1.0 ;
     static final double wheelDiameter           = 4.0 ;
@@ -37,18 +37,18 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void init() {
-        initializeVerticalLift();
+       // initializeVerticalLift();
         initializeFoundationator();
         initializeDriveTrain();
-        initializeIntakeMechanism();
+       // initializeIntakeMechanism();
     }
 
     @Override
     public void loop() {
-        checkVerticalLift();
+       // checkVerticalLift();
         checkFoundationator();
         checkDriveTrain();
-        checkIntakeMechanism();
+       // checkIntakeMechanism();
     }
 
     //
@@ -92,41 +92,37 @@ public class PowerSurgeTeleOp extends OpMode {
     //
 
     public void initializeFoundationator() {
-        LeftServo = hardwareMap.servo.get("LeftServo");
-        RightServo = hardwareMap.servo.get("RightServo");
+        _lFoundationator = hardwareMap.servo.get("Left Foundationator");
+        _rFoundationator = hardwareMap.servo.get("Right Foundationator");
+
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
     }
 
     public void checkFoundationator() {
-        boolean foundationatorToggle = gamepad1.x;
+        boolean currentWaffleState = gamepad1.a;
 
-        if (foundationatorToggle == true) {
-            if (foundationatorFirstPress == true) {
-                if (foundationatorState == 1) {
-                    servosDown();
-                    foundationatorState = 0;
-                }
-                else {
-                    servosUp();
-                    foundationatorState = 1;
-                }
-                foundationatorFirstPress = false;
-            }
+        if (_lastWaffleState == currentWaffleState){
+            return;
         }
-        else {
-            foundationatorFirstPress = true;
+        else if(_lastWaffleState == false && currentWaffleState == true){
+            raiseFoundationator ();
         }
+        else{
+            lowerFoundationator();
+        }
+
     }
 
-    public void servosDown() {
-        LeftServo.setPosition(.6);
-        RightServo.setPosition(.4);
+    private void raiseFoundationator() {
+        _lFoundationator.setPosition(.25);
+        _rFoundationator.setPosition(.25);
     }
 
-    public void servosUp() {
-        LeftServo.setPosition(1);
-        RightServo.setPosition(0);
-        LeftServo.setPosition(1.0);
-        RightServo.setPosition(0.0);
+    private void lowerFoundationator() {
+        _lFoundationator.setPosition(0);
+        _rFoundationator.setPosition(0);
+
     }
 
     //
@@ -145,6 +141,9 @@ public class PowerSurgeTeleOp extends OpMode {
         double sidewaysButton = gamepad1.left_stick_x;
         double spinningButton = gamepad1.right_stick_x;
 
+        BackRight.setDirection(DcMotor.Direction.REVERSE);
+        BackLeft.setDirection(DcMotor.Direction.REVERSE);
+
         forwardButton = DeadModifier(forwardButton);
         sidewaysButton = DeadModifier(sidewaysButton);
         spinningButton = DeadModifier(spinningButton);
@@ -161,10 +160,10 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void Drive(double DZForwardButton, double DZSidewaysButton, double DZSpinningButton) {
-        BackRight.setPower(-DZSidewaysButton - DZForwardButton - DZSpinningButton);
-        BackLeft.setPower(-DZSidewaysButton + DZForwardButton - DZSpinningButton);
-        FrontRight.setPower(DZSidewaysButton - DZForwardButton - DZSpinningButton);
-        FrontLeft.setPower(DZSidewaysButton + DZForwardButton - DZSpinningButton);
+        BackRight.setPower(DZSidewaysButton - DZForwardButton + DZSpinningButton);
+        BackLeft.setPower(DZSidewaysButton + DZForwardButton + DZSpinningButton);
+        FrontRight.setPower(-DZSidewaysButton - DZForwardButton + DZSpinningButton);
+        FrontLeft.setPower(-DZSidewaysButton + DZForwardButton + DZSpinningButton);
     }
 
     public void initializeIntakeMechanism() {
