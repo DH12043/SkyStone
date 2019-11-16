@@ -18,14 +18,15 @@ public class PowerSurgeTeleOp extends OpMode {
     private DcMotor BackLeft;
     private DcMotor IntakeMotor;
     private DcMotor LiftMotor;
-    private Servo _lFoundationator;
-    private Servo _rFoundationator;
+    private Servo lFoundationator;
+    private Servo rFoundationator;
 
     private int intakeState = 1;
     private boolean outputButton;
     private boolean intakeButton;
     private boolean firstPressDpadUp = true;
-    private boolean _lastWaffleState = false;
+    private boolean lastWaffleState = false;
+    private boolean isWaffleStateRaised = false;
     static final double countsPerMotor          = 1120 ;
     static final double gearReduction           = 1.0 ;
     static final double wheelDiameter           = 4.0 ;
@@ -92,37 +93,38 @@ public class PowerSurgeTeleOp extends OpMode {
     //
 
     public void initializeFoundationator() {
-        _lFoundationator = hardwareMap.servo.get("Left Foundationator");
-        _rFoundationator = hardwareMap.servo.get("Right Foundationator");
-
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
+        lFoundationator = hardwareMap.servo.get("Left Foundationator");
+        rFoundationator = hardwareMap.servo.get("Right Foundationator");
     }
 
     public void checkFoundationator() {
         boolean currentWaffleState = gamepad1.a;
 
-        if (_lastWaffleState == currentWaffleState){
+        if (lastWaffleState == currentWaffleState){
             return;
         }
-        else if(_lastWaffleState == false && currentWaffleState == true){
-            raiseFoundationator ();
+        else if(lastWaffleState == false && currentWaffleState == true){
+            if(isWaffleStateRaised == true) {
+                lowerFoundationator();
+            } else {
+                raiseFoundationator();
+            }
         }
-        else{
-            lowerFoundationator();
-        }
-
+        lastWaffleState = currentWaffleState;
     }
 
     private void raiseFoundationator() {
-        _lFoundationator.setPosition(.25);
-        _rFoundationator.setPosition(.25);
+        lFoundationator.setPosition(0);
+        rFoundationator.setPosition(.27);
+        isWaffleStateRaised = true;
+        telemetry.addData("Raising Foundationator", "");
     }
 
     private void lowerFoundationator() {
-        _lFoundationator.setPosition(0);
-        _rFoundationator.setPosition(0);
-
+        lFoundationator.setPosition(.27);
+        rFoundationator.setPosition(0);
+        isWaffleStateRaised = false;
+        telemetry.addData("Lowering Foundationator", "");
     }
 
     //
