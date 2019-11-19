@@ -27,7 +27,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean firstPressDpadUp = true;
     private boolean lastWaffleState = false;
     private boolean isWaffleStateRaised = false;
-    static final double countsPerMotor          = 1120 ;
+    static final double countsPerMotor          = 10000 ;
     static final double gearReduction           = 1.0 ;
     static final double wheelDiameter           = 4.0 ;
     static final double countsPerInch           = (countsPerMotor * gearReduction) /
@@ -69,10 +69,10 @@ public class PowerSurgeTeleOp extends OpMode {
         boolean LiftUpButton = gamepad1.right_bumper;
         boolean LiftDownButton = gamepad1.left_bumper;
 
-        if (LiftMotor.getCurrentPosition() > (LiftMotor.getTargetPosition() + 100) && LiftMotor.getCurrentPosition() < (LiftMotor.getTargetPosition() + 500)) {
+        if (LiftMotor.getCurrentPosition() > (LiftMotor.getTargetPosition() + 500) && LiftMotor.getCurrentPosition() < (LiftMotor.getTargetPosition() + 2000)) {
             LiftMotor.setPower(.25);
         }
-        else if (LiftMotor.getCurrentPosition() < (LiftMotor.getTargetPosition() - 100) && LiftMotor.getCurrentPosition() > (LiftMotor.getTargetPosition() - 500)) {
+        else if (LiftMotor.getCurrentPosition() < (LiftMotor.getTargetPosition() - 500) && LiftMotor.getCurrentPosition() > (LiftMotor.getTargetPosition() - 2000)) {
             LiftMotor.setPower(-.25);
         }
         else if (LiftUpButton == true) {
