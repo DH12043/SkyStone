@@ -27,7 +27,7 @@ public class AutoREDPrimary extends LinearOpMode {
         BackLeft = hardwareMap.dcMotor.get("BackLeft");
         IntakeMotor = hardwareMap.dcMotor.get("Intake");
         LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
-        lFoundationator = hardwareMap.servo.get("Left Foundationator";
+        lFoundationator = hardwareMap.servo.get("Left Foundationator");
         rFoundationator = hardwareMap.servo.get("Right Foundationator");
 
 
@@ -37,7 +37,7 @@ public class AutoREDPrimary extends LinearOpMode {
 
         DriveToSkystone();
 
-        DriveToFoundation();
+        DriveToFoundation();            // DH's Thing
 
         MoveFoundation();
 
@@ -48,19 +48,39 @@ public class AutoREDPrimary extends LinearOpMode {
 
     }
 
-    private void DriveToSkystone() {
+    private void DriveToSkystone(/*double RobotXCoordinate, double RobotYCoordinate, double TargetXCoordinate, double TargetYCoordinate*/) {
+/*        FrontRight.setPower((-TargetXCoordinate - TargetYCoordinate) + (RobotXCoordinate - RobotYCoordinate));
+        FrontLeft.setPower((-TargetXCoordinate + TargetYCoordinate) + (RobotXCoordinate - RobotYCoordinate));
+        BackRight.setPower((TargetXCoordinate - TargetYCoordinate) + (RobotXCoordinate - RobotYCoordinate));
+        BackLeft.setPower((TargetXCoordinate + TargetYCoordinate) + (RobotXCoordinate - RobotYCoordinate));
+*/    }
+
+    private void DriveToFoundation() {  // DH's Thing
 
     }
 
-    private void DriveToFoundation() {
+    private void MoveFoundation(/*double MovingTime*/) {
+/*        while (MovingTime <= 10) {
+            FrontRight.setPower(-1);
+            FrontLeft.setPower(-1);
+            BackRight.setPower(-1);
+            BackLeft.setPower(-1);
 
-    }
+            MovingTime = MovingTime + .5;
+        }
+        while ((MovingTime <= 40) && (MovingTime > 10)) {
+            FrontRight.setPower(-.7);
+            FrontLeft.setPower(.7);
+            BackRight.setPower(1);
+            BackLeft.setPower(-1);
 
-    private void MoveFoundation() {
-
-    }
+            MovingTime = MovingTime + .5;
+        }
+*/    }
 
     private void Park() {
+
+        FrontRight.setPower(1);
 
     }
 }

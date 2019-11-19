@@ -38,18 +38,18 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void init() {
-       // initializeVerticalLift();
-        initializeFoundationator();
-        initializeDriveTrain();
-        initializeIntakeMechanism();
+        initializeVerticalLift();
+       // initializeFoundationator();
+       // initializeDriveTrain();
+       // initializeIntakeMechanism();
     }
 
     @Override
     public void loop() {
-       // checkVerticalLift();
-        checkFoundationator();
-        checkDriveTrain();
-        checkIntakeMechanism();
+        checkVerticalLift();
+       // checkFoundationator();
+       // checkDriveTrain();
+       // checkIntakeMechanism();
     }
 
     //
@@ -162,10 +162,10 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void Drive(double DZForwardButton, double DZSidewaysButton, double DZSpinningButton) {
-        BackRight.setPower(DZSidewaysButton - DZForwardButton + DZSpinningButton);
-        BackLeft.setPower(DZSidewaysButton + DZForwardButton + DZSpinningButton);
         FrontRight.setPower(-DZSidewaysButton - DZForwardButton + DZSpinningButton);
         FrontLeft.setPower(-DZSidewaysButton + DZForwardButton + DZSpinningButton);
+        BackRight.setPower(DZSidewaysButton - DZForwardButton + DZSpinningButton);
+        BackLeft.setPower(DZSidewaysButton + DZForwardButton + DZSpinningButton);
     }
 
     public void initializeIntakeMechanism() {
