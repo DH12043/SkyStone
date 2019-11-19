@@ -41,7 +41,7 @@ public class PowerSurgeTeleOp extends OpMode {
        // initializeVerticalLift();
         initializeFoundationator();
         initializeDriveTrain();
-       // initializeIntakeMechanism();
+        initializeIntakeMechanism();
     }
 
     @Override
@@ -49,7 +49,7 @@ public class PowerSurgeTeleOp extends OpMode {
        // checkVerticalLift();
         checkFoundationator();
         checkDriveTrain();
-       // checkIntakeMechanism();
+        checkIntakeMechanism();
     }
 
     //
@@ -76,11 +76,11 @@ public class PowerSurgeTeleOp extends OpMode {
             LiftMotor.setPower(-.25);
         }
         else if (LiftUpButton == true) {
-            LiftMotor.setTargetPosition((int)(LiftMotor.getCurrentPosition() + (4 * countsPerInch)));
+            LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (4 * countsPerInch)));
             LiftMotor.setPower(.5);
         }
         else if (LiftDownButton == true) {
-            LiftMotor.setTargetPosition((int)(LiftMotor.getCurrentPosition() + (-4 * countsPerInch)));
+            LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (-4 * countsPerInch)));
             LiftMotor.setPower(-.5);
         }
         else if (LiftMotor.getCurrentPosition() == LiftMotor.getTargetPosition()) {

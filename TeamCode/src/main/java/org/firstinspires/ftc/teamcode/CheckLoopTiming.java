@@ -17,7 +17,7 @@ abstract class CheckLoopTiming extends OpMode {
 
         double currentTime = System.nanoTime();
         double diff = currentTime - _lastCurrentTime;
-        telemetry.addData("Milliseconds Per Loop","LoopValue/1000000 %32f", diff);
+        telemetry.addData("Milliseconds Per Loop","LoopValue/1000000 %7f", diff);
         _lastCurrentTime = currentTime;
     }
 }
