@@ -2,12 +2,11 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous (name= "AutoREDPrimary", group= "None")
-public class AutoREDPrimary extends SkystoneVuforiaSample {
+public class AutoREDPrimary extends SkystoneVuforiaNew {
 
     private DcMotor FrontRight;
     private DcMotor FrontLeft;
@@ -19,8 +18,8 @@ public class AutoREDPrimary extends SkystoneVuforiaSample {
     private Servo rFoundationator;
 
     @Override
-    public void runOpMode() {
-
+    public void init() {
+        super.init();
         FrontRight = hardwareMap.dcMotor.get("FrontRight");
         FrontLeft = hardwareMap.dcMotor.get("FrontLeft");
         BackRight = hardwareMap.dcMotor.get("BackRight");
@@ -29,23 +28,24 @@ public class AutoREDPrimary extends SkystoneVuforiaSample {
 //        LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
         lFoundationator = hardwareMap.servo.get("Left Foundationator");
         rFoundationator = hardwareMap.servo.get("Right Foundationator");
+    }
 
+    @Override
+    public void start() {
 
-//        waitForStart();
-//
-//        LocateSkystone();
-//
-//        if (positionSkystone == "Left") {
-//          DriveToSkystoneLeft();
-//        }
-//        else if (positionSkystone == "Center") {
-//          DriveToSkystoneCenter();
-//        }
-//        else if (positionSkystione == "Right") {
-//          DriveToSkystoneRight();
-//        }
-//
-//        DriveToFoundation();            // DH's Thing
+        LocateSkystone();
+
+        if (positionSkystone == "Left") {
+          DriveToSkystoneLeft();
+        }
+        else if (positionSkystone == "Center") {
+          DriveToSkystoneCenter();
+        }
+        else if (positionSkystone == "Right") {
+          DriveToSkystoneRight();
+        }
+
+        DriveToFoundation();            // DH's Thing
 
         MoveFoundation();
 
@@ -60,7 +60,7 @@ public class AutoREDPrimary extends SkystoneVuforiaSample {
 
     }
 
-    private void DriveToSkystoneMiddle() {
+    private void DriveToSkystoneCenter() {
 
     }
 

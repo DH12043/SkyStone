@@ -23,7 +23,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.FRONT;
 
 @TeleOp(name = "New Test Vuforia")
-public class SkystoneVuforiaNew extends OpMode {
+public abstract class SkystoneVuforiaNew extends OpMode {
 
     // IMPORTANT:  For Phone Camera, set 1) the camera source and 2) the orientation, based on how your phone is mounted:
     // 1) Camera Source.  Valid choices are:  BACK (behind screen) or FRONT (selfie side)
@@ -61,7 +61,7 @@ public class SkystoneVuforiaNew extends OpMode {
     private float phoneYRotate = 0;
     private float phoneZRotate = 0;
 
-    private String positionSkystone = "";
+    public String positionSkystone = "";
     private VuforiaTrackables targetsSkyStone;
     private List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
 
@@ -234,6 +234,7 @@ public class SkystoneVuforiaNew extends OpMode {
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
 
     }
+
     @Override
     public void init_loop() {
 
@@ -245,7 +246,7 @@ public class SkystoneVuforiaNew extends OpMode {
         targetsSkyStone.activate();
         targetVisible = false;
 
-        if(listener.isVisible()) {
+        if (listener.isVisible()) {
             telemetry.addData("Visible Target", stoneTrackable.getName());
             targetVisible = true;
 
@@ -279,19 +280,16 @@ public class SkystoneVuforiaNew extends OpMode {
 
             if (yPosition >= 1.5) {
                 positionSkystone = "Right";
-            }
-            else if (yPosition <= 1.5 && yPosition >= -1.5) {
+            } else if (yPosition <= 1.5 && yPosition >= -1.5) {
                 positionSkystone = "Center";
-            }
-            else if (yPosition <= -1.5) {
+            } else if (yPosition <= -1.5) {
                 positionSkystone = "Left";
             }
 
             // express the rotation of the robot in degrees.
             Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
             telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
-        }
-        else {
+        } else {
             telemetry.addData("Visible Target", "none");
         }
 
@@ -300,7 +298,9 @@ public class SkystoneVuforiaNew extends OpMode {
         telemetry.addData("Version", "1.5");
         telemetry.update();
     }
-    @Override public void loop () {
+
+    @Override
+    public void loop() {
         telemetry.addData("Skystone Position", positionSkystone);
     }
 }
