@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous (name= "AutoREDPrimary", group= "None")
-public class AutoREDPrimary extends LinearOpMode {
+public class AutoREDPrimary extends SkystoneVuforiaSample {
 
     private DcMotor FrontRight;
     private DcMotor FrontLeft;
@@ -25,19 +25,27 @@ public class AutoREDPrimary extends LinearOpMode {
         FrontLeft = hardwareMap.dcMotor.get("FrontLeft");
         BackRight = hardwareMap.dcMotor.get("BackRight");
         BackLeft = hardwareMap.dcMotor.get("BackLeft");
-        IntakeMotor = hardwareMap.dcMotor.get("Intake");
-        LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
+//        IntakeMotor = hardwareMap.dcMotor.get("Intake");
+//        LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
         lFoundationator = hardwareMap.servo.get("Left Foundationator");
         rFoundationator = hardwareMap.servo.get("Right Foundationator");
 
 
-        waitForStart();
-
-        LocateSkystone();               // DH's Thing
-
-        DriveToSkystone();
-
-        DriveToFoundation();            // DH's Thing
+//        waitForStart();
+//
+//        LocateSkystone();
+//
+//        if (positionSkystone == "Left") {
+//          DriveToSkystoneLeft();
+//        }
+//        else if (positionSkystone == "Center") {
+//          DriveToSkystoneCenter();
+//        }
+//        else if (positionSkystione == "Right") {
+//          DriveToSkystoneRight();
+//        }
+//
+//        DriveToFoundation();            // DH's Thing
 
         MoveFoundation();
 
@@ -48,39 +56,45 @@ public class AutoREDPrimary extends LinearOpMode {
 
     }
 
-    private void DriveToSkystone(/*double RobotXCoordinate, double RobotYCoordinate, double TargetXCoordinate, double TargetYCoordinate*/) {
-/*        FrontRight.setPower((-TargetXCoordinate - TargetYCoordinate) + (RobotXCoordinate - RobotYCoordinate));
-        FrontLeft.setPower((-TargetXCoordinate + TargetYCoordinate) + (RobotXCoordinate - RobotYCoordinate));
-        BackRight.setPower((TargetXCoordinate - TargetYCoordinate) + (RobotXCoordinate - RobotYCoordinate));
-        BackLeft.setPower((TargetXCoordinate + TargetYCoordinate) + (RobotXCoordinate - RobotYCoordinate));
-*/    }
+    private void DriveToSkystoneLeft() {
+
+    }
+
+    private void DriveToSkystoneMiddle() {
+
+    }
+
+    private void DriveToSkystoneRight() {
+
+    }
 
     private void DriveToFoundation() {  // DH's Thing
 
     }
 
-    private void MoveFoundation(/*double MovingTime*/) {
-/*        while (MovingTime <= 10) {
+    private void MoveFoundation() {
+        double startTime = getRuntime();
+        while (startTime <= (getRuntime() + 3)) {
             FrontRight.setPower(-1);
             FrontLeft.setPower(-1);
             BackRight.setPower(-1);
             BackLeft.setPower(-1);
-
-            MovingTime = MovingTime + .5;
         }
-        while ((MovingTime <= 40) && (MovingTime > 10)) {
+        while (startTime <= (getRuntime() - 10)) {
             FrontRight.setPower(-.7);
             FrontLeft.setPower(.7);
             BackRight.setPower(1);
             BackLeft.setPower(-1);
-
-            MovingTime = MovingTime + .5;
         }
-*/    }
+    }
 
     private void Park() {
-
-        FrontRight.setPower(1);
-
+        double startTime = getRuntime();
+        while (startTime <= (getRuntime() - 3)) {
+            FrontRight.setPower(-1);
+            FrontLeft.setPower(-1);
+            BackRight.setPower(-1);
+            BackLeft.setPower(-1);
+        }
     }
 }
