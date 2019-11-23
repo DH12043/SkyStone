@@ -22,8 +22,8 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.FRONT;
 
-@TeleOp(name = "Test Vuforia")
-public class SkystoneVuforiaSample extends OpMode {
+@TeleOp(name = "New Test Vuforia")
+public class SkystoneVuforiaNew extends OpMode {
 
     // IMPORTANT:  For Phone Camera, set 1) the camera source and 2) the orientation, based on how your phone is mounted:
     // 1) Camera Source.  Valid choices are:  BACK (behind screen) or FRONT (selfie side)
@@ -72,7 +72,7 @@ public class SkystoneVuforiaSample extends OpMode {
     OpenGLMatrix robotFromCamera;
     VuforiaLocalizer.Parameters parameters;
 
-    public SkystoneVuforiaSample() {
+    public SkystoneVuforiaNew() {
         super();
 
         msStuckDetectInitLoop = 20000;
@@ -122,7 +122,7 @@ public class SkystoneVuforiaSample extends OpMode {
 
         allTrackables.addAll(targetsSkyStone);
 
-         /**
+        /**
          * In order for localization to work, we need to tell the system where each target is on the field, and
          * where the phone resides on the robot.  These specifications are in the form of <em>transformation matrices.</em>
          * Transformation matrices are a central, important concept in the math here involved in localization.
@@ -233,14 +233,9 @@ public class SkystoneVuforiaSample extends OpMode {
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
 
-        }
+    }
     @Override
     public void init_loop() {
-
-        /**  Let all the trackable listeners know where the phone is.  */
-//        for (VuforiaTrackable trackable : allTrackables) {
-//            ((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
-//        }
 
         VuforiaTrackable stoneTrackable = targetsSkyStone.get(0);
         VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) stoneTrackable.getListener();
@@ -248,22 +243,7 @@ public class SkystoneVuforiaSample extends OpMode {
 
 
         targetsSkyStone.activate();
-
-        // check all the trackable targets to see which one (if any) is visible.
         targetVisible = false;
-//        for (VuforiaTrackable trackable : allTrackables) {
-//            if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
-//                telemetry.addData("Visible Target", trackable.getName());
-//                targetVisible = true;
-//
-//                OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
-//                if (robotLocationTransform != null) {
-//                    lastLocation = robotLocationTransform;
-//                    telemetry.addData("# of times changed: %d", ++numberOfTimesUpdated);
-//                }
-//                break;
-//            }
-//        }
 
         if(listener.isVisible()) {
             telemetry.addData("Visible Target", stoneTrackable.getName());
@@ -287,14 +267,24 @@ public class SkystoneVuforiaSample extends OpMode {
             yPosition = translation.get(1) / mmPerInch;
             zPosition = translation.get(2) / mmPerInch;
 
-            if (yPosition <= 2 && yPosition >= 0 && xPosition <= -23 && xPosition >= -27 && zPosition >= 1 && zPosition <= 5) {
+            /*if (yPosition >= 1.5 && xPosition <= -25 && xPosition >= -35 && zPosition >= 0 && zPosition <= 15) {
                 positionSkystone = "Right";
             }
-            else if (yPosition <= 0 && yPosition >= -3 && xPosition <= -23 && xPosition >= -27 && zPosition >= 1 && zPosition <= 5) {
+            else if (yPosition <= 1.5 && yPosition >= -1.5 && xPosition <= -25 && xPosition >= -35 && zPosition >= 0 && zPosition <= 15) {
                 positionSkystone = "Center";
             }
-            else {
-                positionSkystone = "Left_InView";
+            else if (yPosition <= -1.5 && xPosition <= -25 && xPosition >= -35 && zPosition >= 0 && zPosition <= 15) {
+                positionSkystone = "Left";
+            }*/
+
+            if (yPosition >= 1.5) {
+                positionSkystone = "Right";
+            }
+            else if (yPosition <= 1.5 && yPosition >= -1.5) {
+                positionSkystone = "Center";
+            }
+            else if (yPosition <= -1.5) {
+                positionSkystone = "Left";
             }
 
             // express the rotation of the robot in degrees.
@@ -303,13 +293,11 @@ public class SkystoneVuforiaSample extends OpMode {
         }
         else {
             telemetry.addData("Visible Target", "none");
-            positionSkystone = "Left";
         }
 
         lastLocation = null;
-
         telemetry.addData("Skystone Position", positionSkystone);
-        telemetry.addData("Version", "1.4");
+        telemetry.addData("Version", "1.5");
         telemetry.update();
     }
     @Override public void loop () {
