@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 @Autonomous (name= "AutoREDPrimary", group= "None")
 public class AutoREDPrimary extends SkystoneVuforiaNew {
 
+    private int SkystoneXPosition;
+    private int SkystoneYPosition;
     private DcMotor FrontRight;
     private DcMotor FrontLeft;
     private DcMotor BackRight;
@@ -16,6 +18,9 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
     private DcMotor LiftMotor;
     private Servo lFoundationator;
     private Servo rFoundationator;
+
+    private static final int FoundationXPosition = 48;
+    private static final int FoundationYPosition = 107;
 
     @Override
     public void init() {
@@ -28,21 +33,31 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
 //        LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
         lFoundationator = hardwareMap.servo.get("Left Foundationator");
         rFoundationator = hardwareMap.servo.get("Right Foundationator");
+        RobotXPosition = (9);
+        RobotYPosition = (36);
     }
 
     @Override
     public void start() {
 
-        LocateSkystone();
-
         if (positionSkystone == "Left") {
-          DriveToSkystoneLeft();
+            SkystoneXPosition = (38);
+            SkystoneYPosition = (44);
+            DriveToSkystoneLeft();
         }
         else if (positionSkystone == "Center") {
-          DriveToSkystoneCenter();
+            SkystoneXPosition = (38);
+            SkystoneYPosition = (36);
+            DriveToSkystoneCenter();
         }
         else if (positionSkystone == "Right") {
-          DriveToSkystoneRight();
+            SkystoneXPosition = (38);
+            SkystoneYPosition = (32);
+            DriveToSkystoneRight();
+        }
+        else {
+            telemetry.addData("Skystone Location Error", "");
+            telemetry.update();
         }
 
         DriveToFoundation();            // DH's Thing
@@ -52,24 +67,40 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
         Park();
     }
 
-    private void LocateSkystone() {     // DH's Thing
-
-    }
-
     private void DriveToSkystoneLeft() {
-
+        while((RobotXPosition < SkystoneXPosition) || (RobotYPosition < SkystoneYPosition)) {
+            FrontRight.setPower(Math.sqrt(-((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+            FrontLeft.setPower(Math.sqrt(-((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+            FrontRight.setPower(Math.sqrt(((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+            FrontRight.setPower(Math.sqrt(((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+        }
     }
 
     private void DriveToSkystoneCenter() {
-
+        while(RobotXPosition < SkystoneXPosition) {
+            FrontRight.setPower(Math.sqrt(-((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+            FrontLeft.setPower(Math.sqrt(-((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+            FrontRight.setPower(Math.sqrt(((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+            FrontRight.setPower(Math.sqrt(((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+        }
     }
 
     private void DriveToSkystoneRight() {
-
+        while((RobotXPosition < SkystoneXPosition) && (RobotYPosition > SkystoneYPosition)) {
+            FrontRight.setPower(Math.sqrt(-((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+            FrontLeft.setPower(Math.sqrt(-((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+            FrontRight.setPower(Math.sqrt(((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+            FrontRight.setPower(Math.sqrt(((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+        }
     }
 
-    private void DriveToFoundation() {  // DH's Thing
-
+    private void DriveToFoundation() {
+        while((RobotXPosition < FoundationXPosition) && (RobotYPosition > FoundationYPosition)) {
+            FrontRight.setPower(Math.sqrt(-((FoundationXPosition - RobotXPosition) * (FoundationXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+            FrontLeft.setPower(Math.sqrt(-((FoundationXPosition - RobotXPosition) * (FoundationXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+            FrontRight.setPower(Math.sqrt(((FoundationXPosition - RobotXPosition) * (FoundationXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+            FrontRight.setPower(Math.sqrt(((FoundationXPosition - RobotXPosition) * (FoundationXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+        }
     }
 
     private void MoveFoundation() {

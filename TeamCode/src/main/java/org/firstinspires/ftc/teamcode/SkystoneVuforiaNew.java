@@ -61,7 +61,10 @@ public abstract class SkystoneVuforiaNew extends OpMode {
     private float phoneYRotate = 0;
     private float phoneZRotate = 0;
 
-    public String positionSkystone = "";
+    protected double RobotXPosition;
+    protected double RobotYPosition;
+    protected double RobotRotation;
+    protected String positionSkystone = "";
     private VuforiaTrackables targetsSkyStone;
     private List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
 
