@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -65,74 +64,85 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
         if (positionSkystone == "Left") {
             SkystoneXPosition = (38);
             SkystoneYPosition = (44);
-            DriveToSkystoneLeft();
+            driveToSkystonePosition(globalPositionUpdate);
         }
         else if (positionSkystone == "Center") {
             SkystoneXPosition = (38);
             SkystoneYPosition = (36);
-            DriveToSkystoneCenter();
+            driveToSkystonePosition(globalPositionUpdate);
         }
         else if (positionSkystone == "Right") {
             SkystoneXPosition = (38);
             SkystoneYPosition = (32);
-            DriveToSkystoneRight();
+            driveToSkystonePosition(globalPositionUpdate);
         }
         else {
             telemetry.addData("Skystone Location Error", "");
             telemetry.update();
         }
 
-        DriveToFoundation();            // DH's Thing
+        DriveToFoundation(globalPositionUpdate);            // DH's Thing
 
-        MoveFoundation();
+        MoveFoundation(globalPositionUpdate);
 
-        Park();
+        Park(globalPositionUpdate);
 
         globalPositionUpdate.stop();
     }
 
-    private void DriveToSkystoneLeft() {
-        while((RobotXPosition < SkystoneXPosition) || (RobotYPosition < SkystoneYPosition)) {
-            FrontRight.setPower(Math.sqrt(-((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
-            FrontLeft.setPower(Math.sqrt(-((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
-            BackRight.setPower(Math.sqrt(((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
-            BackLeft.setPower(Math.sqrt(((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+    private void driveToSkystonePosition(OdometryGlobalCoordinatePosition position) {
+        double distanceAway = getDistanceFromCoordinates(SkystoneXPosition, SkystoneYPosition, position);
+
+        while(distanceAway > 9.5) {
+            double deltaX = SkystoneXPosition - position.returnXCoordinate();
+            double deltaY = SkystoneYPosition - position.returnYCoordinate();
+
+            double[] motorSpeeds = calculateMotorSpeeds(deltaX, deltaY);
+
+            FrontRight.setPower(motorSpeeds[0]);
+            FrontLeft.setPower(motorSpeeds[1]);
+            BackRight.setPower(motorSpeeds[2]);
+            BackLeft.setPower(motorSpeeds[3]);
+
+            distanceAway = getDistanceFromCoordinates(SkystoneXPosition, SkystoneYPosition, position);
         }
-        RobotXPosition = SkystoneXPosition;
-        RobotYPosition = SkystoneYPosition;
     }
 
-    private void DriveToSkystoneCenter() {
-        while(RobotXPosition < SkystoneXPosition) {
-            FrontRight.setPower(Math.sqrt(-((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
-            FrontLeft.setPower(Math.sqrt(-((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
-            BackRight.setPower(Math.sqrt(((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
-            BackLeft.setPower(Math.sqrt(((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
-        }
-        RobotXPosition = SkystoneXPosition;
-        RobotYPosition = SkystoneYPosition;
+    double getDistanceFromCoordinates(double x, double y, OdometryGlobalCoordinatePosition position) {
+        double deltaX = x - position.returnXCoordinate();
+        double deltaY = y - position.returnYCoordinate();
+
+        return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     }
 
-    private void DriveToSkystoneRight() {
-        while((RobotXPosition < SkystoneXPosition) && (RobotYPosition > SkystoneYPosition)) {
-            FrontRight.setPower(Math.sqrt(-((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
-            FrontLeft.setPower(Math.sqrt(-((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
-            BackRight.setPower(Math.sqrt(((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
-            BackLeft.setPower(Math.sqrt(((SkystoneXPosition - RobotXPosition) * (SkystoneXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+    double[] calculateMotorSpeeds(double deltaX, double deltaY) {
+        double[] speeds = new double[4];
+        speeds[0] = deltaY + deltaX;    // front-right
+        speeds[1] = deltaY - deltaX;    // front-left
+        speeds[2] = deltaY - deltaX;    // back-right
+        speeds[3] = deltaY + deltaX;    // back-left
+
+        double maxSpeed = 0;
+        for(double speed : speeds) {
+            maxSpeed = Math.max(maxSpeed, Math.abs(speed));
         }
-        RobotXPosition = SkystoneXPosition;
-        RobotYPosition = SkystoneYPosition;
+
+        if(maxSpeed > 1.0) {
+            for(int i = 0; i < 4; ++i) {
+                speeds[i] /= maxSpeed;
+            }
+        }
+
+        return speeds;
     }
 
-    private void DriveToFoundation() {
-        while((RobotXPosition < FoundationXPosition) && (RobotYPosition > FoundationYPosition)) {
-            FrontRight.setPower(Math.sqrt(-((FoundationXPosition - RobotXPosition) * (FoundationXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
-            FrontLeft.setPower(Math.sqrt(-((FoundationXPosition - RobotXPosition) * (FoundationXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
-            BackRight.setPower(Math.sqrt(((FoundationXPosition - RobotXPosition) * (FoundationXPosition - RobotXPosition)) - ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
-            BackLeft.setPower(Math.sqrt(((FoundationXPosition - RobotXPosition) * (FoundationXPosition - RobotXPosition)) + ((SkystoneYPosition - RobotYPosition) * (SkystoneYPosition - RobotYPosition))));
+    private void DriveToFoundation(OdometryGlobalCoordinatePosition position) {
+        while((position.returnXCoordinate() < FoundationXPosition) && (position.returnYCoordinate() > FoundationYPosition)) {
+            FrontRight.setPower(Math.sqrt(-((FoundationXPosition - position.returnXCoordinate()) * (FoundationXPosition - position.returnXCoordinate())) - ((SkystoneYPosition - position.returnYCoordinate()) * (SkystoneYPosition - position.returnYCoordinate()))));
+            FrontLeft.setPower(Math.sqrt(-((FoundationXPosition - position.returnXCoordinate()) * (FoundationXPosition - position.returnXCoordinate())) + ((SkystoneYPosition - position.returnYCoordinate()) * (SkystoneYPosition - position.returnYCoordinate()))));
+            BackRight.setPower(Math.sqrt(((FoundationXPosition - position.returnXCoordinate()) * (FoundationXPosition - position.returnXCoordinate())) - ((SkystoneYPosition - position.returnYCoordinate()) * (SkystoneYPosition - position.returnYCoordinate()))));
+            BackLeft.setPower(Math.sqrt(((FoundationXPosition - position.returnXCoordinate()) * (FoundationXPosition - position.returnXCoordinate())) + ((SkystoneYPosition - position.returnYCoordinate()) * (SkystoneYPosition - position.returnYCoordinate()))));
         }
-        RobotXPosition = FoundationXPosition;
-        RobotYPosition = FoundationYPosition;
         while (RobotRotation < 90) {
             FrontRight.setPower(.5);
             FrontLeft.setPower(-.5);
@@ -141,21 +151,21 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
         }
     }
 
-    private void MoveFoundation() {
-        while((RobotXPosition < BuildSiteXPosition) && (RobotYPosition > BuildSiteYPosition)) {
-            FrontRight.setPower(Math.sqrt(-((BuildSiteXPosition - RobotXPosition) * (BuildSiteXPosition - RobotXPosition)) - ((BuildSiteYPosition - RobotYPosition) * (BuildSiteYPosition - RobotYPosition))));
-            FrontLeft.setPower(Math.sqrt(-((BuildSiteXPosition - RobotXPosition) * (BuildSiteXPosition - RobotXPosition)) + ((BuildSiteYPosition - RobotYPosition) * (BuildSiteYPosition - RobotYPosition))));
-            BackRight.setPower(Math.sqrt(((BuildSiteXPosition - RobotXPosition) * (BuildSiteXPosition - RobotXPosition)) - ((BuildSiteYPosition - RobotYPosition) * (BuildSiteYPosition - RobotYPosition))));
-            BackLeft.setPower(Math.sqrt(((BuildSiteXPosition - RobotXPosition) * (BuildSiteXPosition - RobotXPosition)) + ((BuildSiteYPosition - RobotYPosition) * (BuildSiteYPosition - RobotYPosition))));
+    private void MoveFoundation(OdometryGlobalCoordinatePosition position) {
+        while((position.returnXCoordinate() < BuildSiteXPosition) && (position.returnYCoordinate() > BuildSiteYPosition)) {
+            FrontRight.setPower(Math.sqrt(-((BuildSiteXPosition - position.returnXCoordinate()) * (BuildSiteXPosition - position.returnXCoordinate())) - ((BuildSiteYPosition - position.returnYCoordinate()) * (BuildSiteYPosition - position.returnYCoordinate()))));
+            FrontLeft.setPower(Math.sqrt(-((BuildSiteXPosition - position.returnXCoordinate()) * (BuildSiteXPosition - position.returnXCoordinate())) + ((BuildSiteYPosition - position.returnYCoordinate()) * (BuildSiteYPosition - position.returnYCoordinate()))));
+            BackRight.setPower(Math.sqrt(((BuildSiteXPosition - position.returnXCoordinate()) * (BuildSiteXPosition - position.returnXCoordinate())) - ((BuildSiteYPosition - position.returnYCoordinate()) * (BuildSiteYPosition - position.returnYCoordinate()))));
+            BackLeft.setPower(Math.sqrt(((BuildSiteXPosition - position.returnXCoordinate()) * (BuildSiteXPosition - position.returnXCoordinate())) + ((BuildSiteYPosition - position.returnYCoordinate()) * (BuildSiteYPosition - position.returnYCoordinate()))));
         }
     }
 
-    private void Park() {
-        while ((RobotXPosition < ParkLineXPosition) && (RobotYPosition > ParkLineYPosition)) {
-            FrontRight.setPower(Math.sqrt(-((ParkLineXPosition - RobotXPosition) * (ParkLineXPosition - RobotXPosition)) - ((ParkLineYPosition - RobotYPosition) * (ParkLineYPosition - RobotYPosition))));
-            FrontLeft.setPower(Math.sqrt(-((ParkLineXPosition - RobotXPosition) * (ParkLineXPosition - RobotXPosition)) + ((ParkLineYPosition - RobotYPosition) * (ParkLineYPosition - RobotYPosition))));
-            BackRight.setPower(Math.sqrt(((ParkLineXPosition - RobotXPosition) * (ParkLineXPosition - RobotXPosition)) - ((ParkLineYPosition - RobotYPosition) * (ParkLineYPosition - RobotYPosition))));
-            BackLeft.setPower(Math.sqrt(((ParkLineXPosition - RobotXPosition) * (ParkLineXPosition - RobotXPosition)) + ((ParkLineYPosition - RobotYPosition) * (ParkLineYPosition - RobotYPosition))));
+    private void Park(OdometryGlobalCoordinatePosition position) {
+        while ((position.returnXCoordinate() < ParkLineXPosition) && (position.returnYCoordinate() > ParkLineYPosition)) {
+            FrontRight.setPower(Math.sqrt(-((ParkLineXPosition - position.returnXCoordinate()) * (ParkLineXPosition - position.returnXCoordinate())) - ((ParkLineYPosition - position.returnYCoordinate()) * (ParkLineYPosition - position.returnYCoordinate()))));
+            FrontLeft.setPower(Math.sqrt(-((ParkLineXPosition - position.returnXCoordinate()) * (ParkLineXPosition - position.returnXCoordinate())) + ((ParkLineYPosition - position.returnYCoordinate()) * (ParkLineYPosition - position.returnYCoordinate()))));
+            BackRight.setPower(Math.sqrt(((ParkLineXPosition - position.returnXCoordinate()) * (ParkLineXPosition - position.returnXCoordinate())) - ((ParkLineYPosition - position.returnYCoordinate()) * (ParkLineYPosition - position.returnYCoordinate()))));
+            BackLeft.setPower(Math.sqrt(((ParkLineXPosition - position.returnXCoordinate()) * (ParkLineXPosition - position.returnXCoordinate())) + ((ParkLineYPosition - position.returnYCoordinate()) * (ParkLineYPosition - position.returnYCoordinate()))));
         }
     }
 }
