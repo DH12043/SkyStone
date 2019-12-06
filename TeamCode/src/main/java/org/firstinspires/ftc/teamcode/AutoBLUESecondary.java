@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous (name= "AutoBLUEPrimary", group= "None")
-public class AutoBLUEPrimary extends SkystoneVuforiaNew {
+@Autonomous (name= "AutoREDSecondary", group= "None")
+public class AutoREDSecondary extends SkystoneVuforiaNew {
 
 
     DcMotor verticalRight, verticalLeft, horizontal;
@@ -23,6 +23,8 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
 
 
     final double COUNTS_PER_INCH = 307.699557;                  //TODO CHANGE
+    private static final int PreSkystoneXPosition = 135;
+    private static final int PreSkystoneYPosition = 36;
     private static final int PreFoundationXPosition = 108;
     private static final int PreFoundationYPosition = 95;
     private static final int FoundationXPosition = 96;
@@ -50,7 +52,7 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
         verticalLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         horizontal.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RobotXPosition = (135);
-        RobotYPosition = (36);
+        RobotYPosition = (96);
         RobotRotation = (0);
     }
 
@@ -62,6 +64,12 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
         OdometryGlobalCoordinatePosition globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 75);
         Thread positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
+
+        DriveToFoundation(globalPositionUpdate);
+
+        MoveFoundation(globalPositionUpdate);
+
+        PickUpSkystone(globalPositionUpdate);
 
         if (positionSkystone == "Left") {
             SkystoneXPosition = (106);
@@ -82,10 +90,6 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
             telemetry.addData("Skystone Location Error", "");
             telemetry.update();
         }
-
-        DriveToFoundation(globalPositionUpdate);
-
-        MoveFoundation(globalPositionUpdate);
 
         Park(globalPositionUpdate);
 
@@ -134,6 +138,7 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
                 speeds[i] /= maxSpeed;
             }
         }
+
         return speeds;
     }
 
@@ -145,10 +150,10 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
             BackLeft.setPower(Math.sqrt(((PreFoundationXPosition - position.returnXCoordinate()) * (PreFoundationXPosition - position.returnXCoordinate())) + ((PreFoundationYPosition - position.returnYCoordinate()) * (PreFoundationYPosition - position.returnYCoordinate()))));
         }
         while (RobotRotation < 90) {
-            FrontRight.setPower(-.5);
-            FrontLeft.setPower(.5);
-            BackRight.setPower(-.5);
-            BackLeft.setPower(.5);
+            FrontRight.setPower(.5);
+            FrontLeft.setPower(-.5);
+            BackRight.setPower(.5);
+            BackLeft.setPower(-.5);
         }
         while((position.returnXCoordinate() < FoundationXPosition) && (position.returnYCoordinate() > FoundationYPosition)) {
             FrontRight.setPower(Math.sqrt(-((FoundationXPosition - position.returnXCoordinate()) * (FoundationXPosition - position.returnXCoordinate())) - ((FoundationYPosition - position.returnYCoordinate()) * (FoundationYPosition - position.returnYCoordinate()))));
@@ -171,6 +176,15 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
 
         lFoundationator.setPosition(0);
         rFoundationator.setPosition(.27);
+    }
+
+    private void PickUpSkystone(OdometryGlobalCoordinatePosition position) {
+        while(position.returnYCoordinate() < PreSkystoneYPosition) {
+            FrontRight.setPower(Math.sqrt(-((PreSkystoneYPosition - position.returnYCoordinate()) * (PreSkystoneYPosition - position.returnYCoordinate()))));
+            FrontLeft.setPower(Math.sqrt(((PreSkystoneYPosition - position.returnYCoordinate()) * (PreSkystoneYPosition - position.returnYCoordinate()))));
+            BackRight.setPower(Math.sqrt(-((PreSkystoneYPosition - position.returnYCoordinate()) * (PreSkystoneYPosition - position.returnYCoordinate()))));
+            BackLeft.setPower(Math.sqrt(((PreSkystoneYPosition - position.returnYCoordinate()) * (PreSkystoneYPosition - position.returnYCoordinate()))));
+        }
     }
 
     private void Park(OdometryGlobalCoordinatePosition position) {
