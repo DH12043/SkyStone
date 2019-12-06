@@ -69,22 +69,23 @@ public class PowerSurgeTeleOp extends OpMode {
         boolean LiftUpButton = gamepad1.right_bumper;
         boolean LiftDownButton = gamepad1.left_bumper;
 
-        if (LiftMotor.getCurrentPosition() > (LiftMotor.getTargetPosition() + 500) && LiftMotor.getCurrentPosition() < (LiftMotor.getTargetPosition() + 2000)) {
-            LiftMotor.setPower(.25);
-        }
-        else if (LiftMotor.getCurrentPosition() < (LiftMotor.getTargetPosition() - 500) && LiftMotor.getCurrentPosition() > (LiftMotor.getTargetPosition() - 2000)) {
-            LiftMotor.setPower(-.25);
-        }
-        else if (LiftUpButton == true) {
+        telemetry.addData("LiftMotor","LiftMotor.getCurrentPosition() - LiftMotor.getTargetPosition()");
+
+        if (LiftUpButton == true) {
             LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (4 * countsPerInch)));
-            LiftMotor.setPower(.5);
         }
         else if (LiftDownButton == true) {
             LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (-4 * countsPerInch)));
-            LiftMotor.setPower(-.5);
         }
         else if (LiftMotor.getCurrentPosition() == LiftMotor.getTargetPosition()) {
             LiftMotor.setPower(0);
+        }
+
+        if (LiftMotor.getTargetPosition() > LiftMotor.getCurrentPosition()) {
+            LiftMotor.setPower(.5);
+        }
+        else if (LiftMotor.getTargetPosition() < LiftMotor.getCurrentPosition()) {
+            LiftMotor.setPower(-.5);
         }
     }
 

@@ -23,6 +23,8 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
 
 
     final double COUNTS_PER_INCH = 307.699557;                  //TODO CHANGE
+    private static final int PreFoundationXPosition = 36;
+    private static final int PreFoundationYPosition = 95;
     private static final int FoundationXPosition = 48;
     private static final int FoundationYPosition = 107;
     private static final int BuildSiteXPosition = 9;
@@ -81,7 +83,7 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
             telemetry.update();
         }
 
-        DriveToFoundation(globalPositionUpdate);            // DH's Thing
+        DriveToFoundation(globalPositionUpdate);
 
         MoveFoundation(globalPositionUpdate);
 
@@ -137,11 +139,11 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
     }
 
     private void DriveToFoundation(OdometryGlobalCoordinatePosition position) {
-        while((position.returnXCoordinate() < FoundationXPosition) && (position.returnYCoordinate() > FoundationYPosition)) {
-            FrontRight.setPower(Math.sqrt(-((FoundationXPosition - position.returnXCoordinate()) * (FoundationXPosition - position.returnXCoordinate())) - ((SkystoneYPosition - position.returnYCoordinate()) * (SkystoneYPosition - position.returnYCoordinate()))));
-            FrontLeft.setPower(Math.sqrt(-((FoundationXPosition - position.returnXCoordinate()) * (FoundationXPosition - position.returnXCoordinate())) + ((SkystoneYPosition - position.returnYCoordinate()) * (SkystoneYPosition - position.returnYCoordinate()))));
-            BackRight.setPower(Math.sqrt(((FoundationXPosition - position.returnXCoordinate()) * (FoundationXPosition - position.returnXCoordinate())) - ((SkystoneYPosition - position.returnYCoordinate()) * (SkystoneYPosition - position.returnYCoordinate()))));
-            BackLeft.setPower(Math.sqrt(((FoundationXPosition - position.returnXCoordinate()) * (FoundationXPosition - position.returnXCoordinate())) + ((SkystoneYPosition - position.returnYCoordinate()) * (SkystoneYPosition - position.returnYCoordinate()))));
+        while((position.returnXCoordinate() < PreFoundationXPosition) && (position.returnYCoordinate() > PreFoundationYPosition)) {
+            FrontRight.setPower(Math.sqrt(-((PreFoundationXPosition - position.returnXCoordinate()) * (PreFoundationXPosition - position.returnXCoordinate())) - ((PreFoundationYPosition - position.returnYCoordinate()) * (PreFoundationYPosition - position.returnYCoordinate()))));
+            FrontLeft.setPower(Math.sqrt(-((PreFoundationXPosition - position.returnXCoordinate()) * (PreFoundationXPosition - position.returnXCoordinate())) + ((PreFoundationYPosition - position.returnYCoordinate()) * (PreFoundationYPosition - position.returnYCoordinate()))));
+            BackRight.setPower(Math.sqrt(((PreFoundationXPosition - position.returnXCoordinate()) * (PreFoundationXPosition - position.returnXCoordinate())) - ((PreFoundationYPosition - position.returnYCoordinate()) * (PreFoundationYPosition - position.returnYCoordinate()))));
+            BackLeft.setPower(Math.sqrt(((PreFoundationXPosition - position.returnXCoordinate()) * (PreFoundationXPosition - position.returnXCoordinate())) + ((PreFoundationYPosition - position.returnYCoordinate()) * (PreFoundationYPosition - position.returnYCoordinate()))));
         }
         while (RobotRotation < 90) {
             FrontRight.setPower(.5);
@@ -149,6 +151,15 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
             BackRight.setPower(.5);
             BackLeft.setPower(-.5);
         }
+        while((position.returnXCoordinate() < FoundationXPosition) && (position.returnYCoordinate() > FoundationYPosition)) {
+            FrontRight.setPower(Math.sqrt(-((FoundationXPosition - position.returnXCoordinate()) * (FoundationXPosition - position.returnXCoordinate())) - ((FoundationYPosition - position.returnYCoordinate()) * (FoundationYPosition - position.returnYCoordinate()))));
+            FrontLeft.setPower(Math.sqrt(-((FoundationXPosition - position.returnXCoordinate()) * (FoundationXPosition - position.returnXCoordinate())) + ((FoundationYPosition - position.returnYCoordinate()) * (FoundationYPosition - position.returnYCoordinate()))));
+            BackRight.setPower(Math.sqrt(((FoundationXPosition - position.returnXCoordinate()) * (FoundationXPosition - position.returnXCoordinate())) - ((FoundationYPosition - position.returnYCoordinate()) * (FoundationYPosition - position.returnYCoordinate()))));
+            BackLeft.setPower(Math.sqrt(((FoundationXPosition - position.returnXCoordinate()) * (FoundationXPosition - position.returnXCoordinate())) + ((FoundationYPosition - position.returnYCoordinate()) * (FoundationYPosition - position.returnYCoordinate()))));
+        }
+
+        lFoundationator.setPosition(.27);
+        rFoundationator.setPosition(0);
     }
 
     private void MoveFoundation(OdometryGlobalCoordinatePosition position) {
@@ -158,6 +169,9 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
             BackRight.setPower(Math.sqrt(((BuildSiteXPosition - position.returnXCoordinate()) * (BuildSiteXPosition - position.returnXCoordinate())) - ((BuildSiteYPosition - position.returnYCoordinate()) * (BuildSiteYPosition - position.returnYCoordinate()))));
             BackLeft.setPower(Math.sqrt(((BuildSiteXPosition - position.returnXCoordinate()) * (BuildSiteXPosition - position.returnXCoordinate())) + ((BuildSiteYPosition - position.returnYCoordinate()) * (BuildSiteYPosition - position.returnYCoordinate()))));
         }
+
+        lFoundationator.setPosition(0);
+        rFoundationator.setPosition(.27);
     }
 
     private void Park(OdometryGlobalCoordinatePosition position) {
