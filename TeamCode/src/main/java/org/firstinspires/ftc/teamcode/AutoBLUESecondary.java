@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous (name= "AutoREDSecondary", group= "None")
+@Autonomous (name= "AutoBLUESecondary", group= "None")
 public class AutoBLUESecondary extends SkystoneVuforiaNew {
 
 
@@ -75,16 +75,19 @@ public class AutoBLUESecondary extends SkystoneVuforiaNew {
             SkystoneXPosition = (106);
             SkystoneYPosition = (44);
             driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
         else if (positionSkystone == "Center") {
             SkystoneXPosition = (106);
             SkystoneYPosition = (36);
             driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
         else if (positionSkystone == "Right") {
             SkystoneXPosition = (106);
             SkystoneYPosition = (32);
             driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
         else {
             telemetry.addData("Skystone Location Error", "");

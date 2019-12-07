@@ -72,19 +72,22 @@ public class AutoREDSecondary extends SkystoneVuforiaNew {
         PickUpSkystone(globalPositionUpdate);
 
         if (positionSkystone == "Left") {
-            SkystoneXPosition = (38);
+            SkystoneXPosition = (106);
             SkystoneYPosition = (44);
             driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
         else if (positionSkystone == "Center") {
-            SkystoneXPosition = (38);
+            SkystoneXPosition = (106);
             SkystoneYPosition = (36);
             driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
         else if (positionSkystone == "Right") {
-            SkystoneXPosition = (38);
+            SkystoneXPosition = (106);
             SkystoneYPosition = (32);
             driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
         else {
             telemetry.addData("Skystone Location Error", "");
@@ -196,3 +199,4 @@ public class AutoREDSecondary extends SkystoneVuforiaNew {
         }
     }
 }
+
