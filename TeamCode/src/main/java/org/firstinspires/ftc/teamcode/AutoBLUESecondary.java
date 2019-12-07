@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous (name= "AutoREDSecondary", group= "None")
-public class AutoREDSecondary extends SkystoneVuforiaNew {
+public class AutoBLUESecondary extends SkystoneVuforiaNew {
 
 
     DcMotor verticalRight, verticalLeft, horizontal;

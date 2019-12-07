@@ -67,16 +67,19 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
             SkystoneXPosition = (106);
             SkystoneYPosition = (44);
             driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
         else if (positionSkystone == "Center") {
             SkystoneXPosition = (106);
             SkystoneYPosition = (36);
             driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
         else if (positionSkystone == "Right") {
             SkystoneXPosition = (106);
             SkystoneYPosition = (32);
             driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
         else {
             telemetry.addData("Skystone Location Error", "");
