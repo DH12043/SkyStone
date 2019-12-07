@@ -64,17 +64,17 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
         positionThread.start();
 
         if (positionSkystone == "Left") {
-            SkystoneXPosition = (38);
+            SkystoneXPosition = (106);
             SkystoneYPosition = (44);
             driveToSkystonePosition(globalPositionUpdate);
         }
         else if (positionSkystone == "Center") {
-            SkystoneXPosition = (38);
+            SkystoneXPosition = (106);
             SkystoneYPosition = (36);
             driveToSkystonePosition(globalPositionUpdate);
         }
         else if (positionSkystone == "Right") {
-            SkystoneXPosition = (38);
+            SkystoneXPosition = (106);
             SkystoneYPosition = (32);
             driveToSkystonePosition(globalPositionUpdate);
         }

@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous (name= "AutoREDSecondary", group= "None")
-public class AutoREDSecondary extends SkystoneVuforiaNew {
+@Autonomous (name= "AutoREDTertiary", group= "None")
+public class AutoREDTertiary extends SkystoneVuforiaNew {
 
 
     DcMotor verticalRight, verticalLeft, horizontal;
@@ -71,30 +71,30 @@ public class AutoREDSecondary extends SkystoneVuforiaNew {
 
         MoveFoundation(globalPositionUpdate);
 
-        PickUpSkystone(globalPositionUpdate);
-
-        if (positionSkystone == "Left") {
-            SkystoneXPosition = (38);
-            SkystoneYPosition = (44);
-            driveToSkystonePosition(globalPositionUpdate);
-            IntakeMotor.setPower(1);
-        }
-        else if (positionSkystone == "Center") {
-            SkystoneXPosition = (38);
-            SkystoneYPosition = (36);
-            driveToSkystonePosition(globalPositionUpdate);
-            IntakeMotor.setPower(1);
-        }
-        else if (positionSkystone == "Right") {
-            SkystoneXPosition = (38);
-            SkystoneYPosition = (32);
-            driveToSkystonePosition(globalPositionUpdate);
-            IntakeMotor.setPower(1);
-        }
-        else {
-            telemetry.addData("Skystone Location Error", "");
-            telemetry.update();
-        }
+//        PickUpSkystone(globalPositionUpdate);
+//
+//        if (positionSkystone == "Left") {
+//            SkystoneXPosition = (106);
+//            SkystoneYPosition = (44);
+//            driveToSkystonePosition(globalPositionUpdate);
+//            IntakeMotor.setPower(1);
+//        }
+//        else if (positionSkystone == "Center") {
+//            SkystoneXPosition = (106);
+//            SkystoneYPosition = (36);
+//            driveToSkystonePosition(globalPositionUpdate);
+//            IntakeMotor.setPower(1);
+//        }
+//        else if (positionSkystone == "Right") {
+//            SkystoneXPosition = (106);
+//            SkystoneYPosition = (32);
+//            driveToSkystonePosition(globalPositionUpdate);
+//            IntakeMotor.setPower(1);
+//        }
+//        else {
+//            telemetry.addData("Skystone Location Error", "");
+//            telemetry.update();
+//        }
 
         Park(globalPositionUpdate);
 

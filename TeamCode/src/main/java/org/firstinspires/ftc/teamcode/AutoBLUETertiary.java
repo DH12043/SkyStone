@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous (name= "AutoREDSecondary", group= "None")
-public class AutoREDSecondary extends SkystoneVuforiaNew {
+@Autonomous (name= "AutoBLUETertiary", group= "None")
+public class AutoBLUETertiary extends SkystoneVuforiaNew {
 
 
     DcMotor verticalRight, verticalLeft, horizontal;
@@ -23,15 +23,15 @@ public class AutoREDSecondary extends SkystoneVuforiaNew {
 
 
     final double COUNTS_PER_INCH = 307.699557;                  //TODO CHANGE
-    private static final int PreSkystoneXPosition = 9;
+    private static final int PreSkystoneXPosition = 135;
     private static final int PreSkystoneYPosition = 36;
-    private static final int PreFoundationXPosition = 36;
+    private static final int PreFoundationXPosition = 108;
     private static final int PreFoundationYPosition = 95;
-    private static final int FoundationXPosition = 48;
+    private static final int FoundationXPosition = 96;
     private static final int FoundationYPosition = 107;
-    private static final int BuildSiteXPosition = 9;
+    private static final int BuildSiteXPosition = 135;
     private static final int BuildSiteYPosition = 111;
-    private static final int ParkLineXPosition = 9;
+    private static final int ParkLineXPosition = 135;
     private static final int ParkLineYPosition = 72;
 
     @Override
@@ -51,7 +51,7 @@ public class AutoREDSecondary extends SkystoneVuforiaNew {
         verticalRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         verticalLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         horizontal.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        RobotXPosition = (9);
+        RobotXPosition = (135);
         RobotYPosition = (96);
         RobotRotation = (0);
     }
@@ -71,30 +71,30 @@ public class AutoREDSecondary extends SkystoneVuforiaNew {
 
         MoveFoundation(globalPositionUpdate);
 
-        PickUpSkystone(globalPositionUpdate);
-
-        if (positionSkystone == "Left") {
-            SkystoneXPosition = (38);
-            SkystoneYPosition = (44);
-            driveToSkystonePosition(globalPositionUpdate);
-            IntakeMotor.setPower(1);
-        }
-        else if (positionSkystone == "Center") {
-            SkystoneXPosition = (38);
-            SkystoneYPosition = (36);
-            driveToSkystonePosition(globalPositionUpdate);
-            IntakeMotor.setPower(1);
-        }
-        else if (positionSkystone == "Right") {
-            SkystoneXPosition = (38);
-            SkystoneYPosition = (32);
-            driveToSkystonePosition(globalPositionUpdate);
-            IntakeMotor.setPower(1);
-        }
-        else {
-            telemetry.addData("Skystone Location Error", "");
-            telemetry.update();
-        }
+//        PickUpSkystone(globalPositionUpdate);
+//
+//        if (positionSkystone == "Left") {
+//            SkystoneXPosition = (106);
+//            SkystoneYPosition = (44);
+//            driveToSkystonePosition(globalPositionUpdate);
+//            IntakeMotor.setPower(1);
+//        }
+//        else if (positionSkystone == "Center") {
+//            SkystoneXPosition = (106);
+//            SkystoneYPosition = (36);
+//            driveToSkystonePosition(globalPositionUpdate);
+//            IntakeMotor.setPower(1);
+//        }
+//        else if (positionSkystone == "Right") {
+//            SkystoneXPosition = (106);
+//            SkystoneYPosition = (32);
+//            driveToSkystonePosition(globalPositionUpdate);
+//            IntakeMotor.setPower(1);
+//        }
+//        else {
+//            telemetry.addData("Skystone Location Error", "");
+//            telemetry.update();
+//        }
 
         Park(globalPositionUpdate);
 
