@@ -27,9 +27,9 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean firstPressDpadUp = true;
     private boolean lastWaffleState = false;
     private boolean isWaffleStateRaised = false;
-    static final double countsPerMotor          = 10000 ;
-    static final double gearReduction           = 1.0 ;
-    static final double wheelDiameter           = 4.0 ;
+    static final double countsPerMotor          = 10000 ;                           //TODO Change
+    static final double gearReduction           = 1.0 ;                             //TODO Change
+    static final double wheelDiameter           = 4.0 ;                             //TODO Change
     static final double countsPerInch           = (countsPerMotor * gearReduction) /
             (wheelDiameter * Math.PI);
     static final double spinInchesPerDegrees    = (15.375 * Math.PI) / 360;
@@ -39,17 +39,17 @@ public class PowerSurgeTeleOp extends OpMode {
     @Override
     public void init() {
         initializeVerticalLift();
-       // initializeFoundationator();
-       // initializeDriveTrain();
-       // initializeIntakeMechanism();
+//        initializeFoundationator();
+//        initializeDriveTrain();
+//        initializeIntakeMechanism();
     }
 
     @Override
     public void loop() {
         checkVerticalLift();
-       // checkFoundationator();
-       // checkDriveTrain();
-       // checkIntakeMechanism();
+//        checkFoundationator();
+//        checkDriveTrain();
+//        checkIntakeMechanism();
     }
 
     //
@@ -69,21 +69,26 @@ public class PowerSurgeTeleOp extends OpMode {
         boolean LiftUpButton = gamepad1.right_bumper;
         boolean LiftDownButton = gamepad1.left_bumper;
 
-        if (LiftMotor.getCurrentPosition() > (LiftMotor.getTargetPosition() + 500) && LiftMotor.getCurrentPosition() < (LiftMotor.getTargetPosition() + 2000)) {
-            LiftMotor.setPower(.25);
-        }
-        else if (LiftMotor.getCurrentPosition() < (LiftMotor.getTargetPosition() - 500) && LiftMotor.getCurrentPosition() > (LiftMotor.getTargetPosition() - 2000)) {
-            LiftMotor.setPower(-.25);
-        }
-        else if (LiftUpButton == true) {
+        telemetry.addData("LiftMotor","LiftMotor.getCurrentPosition() - LiftMotor.getTargetPosition()");
+
+        //setting the Target position if we press the right bumper
+        if (LiftUpButton == true) {
             LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (4 * countsPerInch)));
-            LiftMotor.setPower(.5);
         }
+        //setting the Target position if we press the left Bumper
         else if (LiftDownButton == true) {
             LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (-4 * countsPerInch)));
+        }
+        //setting the motor to .5 if we are lower than our Target Position
+        if (LiftMotor.getTargetPosition() > (LiftMotor.getCurrentPosition())) {
+            LiftMotor.setPower(.5);
+        }
+        //setting our power to -.5 if we are higher than our Target Position
+        else if (LiftMotor.getTargetPosition() < (LiftMotor.getCurrentPosition())) {
             LiftMotor.setPower(-.5);
         }
-        else if (LiftMotor.getCurrentPosition() == LiftMotor.getTargetPosition()) {
+        //setting the motor to brake if we are at our Target Position
+        else {
             LiftMotor.setPower(0);
         }
     }
@@ -167,6 +172,10 @@ public class PowerSurgeTeleOp extends OpMode {
         BackRight.setPower(DZSidewaysButton - DZForwardButton + DZSpinningButton);
         BackLeft.setPower(DZSidewaysButton + DZForwardButton + DZSpinningButton);
     }
+
+    //
+    // INTAKE
+    //
 
     public void initializeIntakeMechanism() {
         IntakeMotor = hardwareMap.dcMotor.get("Intake");
