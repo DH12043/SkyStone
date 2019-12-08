@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 
@@ -21,7 +20,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private Servo lFoundationator;
     private Servo rFoundationator;
 
-    private int intakeState = 1;
+    private int intakeState = 0;
     private boolean outputButton;
     private boolean intakeButton;
     private boolean firstPressDpadUp = true;
@@ -39,17 +38,17 @@ public class PowerSurgeTeleOp extends OpMode {
     @Override
     public void init() {
         initializeVerticalLift();
-//        initializeFoundationator();
-//        initializeDriveTrain();
-//        initializeIntakeMechanism();
+        initializeFoundationator();
+        initializeDriveTrain();
+        initializeIntakeMechanism();
     }
 
     @Override
     public void loop() {
         checkVerticalLift();
-//        checkFoundationator();
-//        checkDriveTrain();
-//        checkIntakeMechanism();
+        checkFoundationator();
+        checkDriveTrain();
+        checkIntakeMechanism();
     }
 
     //
@@ -59,7 +58,8 @@ public class PowerSurgeTeleOp extends OpMode {
     public void initializeVerticalLift() {
         LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
         LiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        LiftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LiftMotor.setPower(0);
+        LiftMotor.setTargetPosition(0);
         LiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         LiftMotor.setDirection(DcMotor.Direction.FORWARD);
         LiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -98,8 +98,8 @@ public class PowerSurgeTeleOp extends OpMode {
     //
 
     public void initializeFoundationator() {
-        lFoundationator = hardwareMap.servo.get("Left Foundationator");
-        rFoundationator = hardwareMap.servo.get("Right Foundationator");
+        lFoundationator = hardwareMap.servo.get("lFoundationator");
+        rFoundationator = hardwareMap.servo.get("rFoundationator");
     }
 
     public void checkFoundationator() {
@@ -141,6 +141,10 @@ public class PowerSurgeTeleOp extends OpMode {
         FrontLeft = hardwareMap.dcMotor.get("FrontLeft");
         BackRight = hardwareMap.dcMotor.get("BackRight");
         BackLeft = hardwareMap.dcMotor.get("BackLeft");
+        FrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        FrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        BackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        BackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public void checkDriveTrain() {
@@ -178,12 +182,12 @@ public class PowerSurgeTeleOp extends OpMode {
     //
 
     public void initializeIntakeMechanism() {
-        IntakeMotor = hardwareMap.dcMotor.get("Intake");
+        IntakeMotor = hardwareMap.dcMotor.get("IntakeMotor");
     }
 
     public void checkIntakeMechanism() {
-        intakeButton = gamepad2.dpad_up;
-        outputButton = gamepad2.dpad_down;
+        intakeButton = gamepad1.dpad_up;
+        outputButton = gamepad1.dpad_down;
 
         intake(intakeButton);
     }
