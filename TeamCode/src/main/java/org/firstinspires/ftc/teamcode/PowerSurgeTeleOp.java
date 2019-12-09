@@ -171,6 +171,7 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void Drive(double DZForwardButton, double DZSidewaysButton, double DZSpinningButton) {
+        DZSpinningButton = -DZSpinningButton;
         FrontRight.setPower(-DZSidewaysButton - DZForwardButton + DZSpinningButton);
         FrontLeft.setPower(-DZSidewaysButton + DZForwardButton + DZSpinningButton);
         BackRight.setPower(DZSidewaysButton - DZForwardButton + DZSpinningButton);

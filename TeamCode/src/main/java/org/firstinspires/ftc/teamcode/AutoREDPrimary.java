@@ -22,7 +22,7 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
     private Servo rFoundationator;
 
 
-    final double COUNTS_PER_INCH = 307.699557;                  //TODO CHANGE
+    final double COUNTS_PER_INCH = 307.699557;
     private static final int PreFoundationXPosition = 36;
     private static final int PreFoundationYPosition = 95;
     private static final int FoundationXPosition = 48;
@@ -39,10 +39,10 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
         FrontLeft = hardwareMap.dcMotor.get("FrontLeft");
         BackRight = hardwareMap.dcMotor.get("BackRight");
         BackLeft = hardwareMap.dcMotor.get("BackLeft");
-//        IntakeMotor = hardwareMap.dcMotor.get("Intake");
-//        LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
-        lFoundationator = hardwareMap.servo.get("Left Foundationator");
-        rFoundationator = hardwareMap.servo.get("Right Foundationator");
+        IntakeMotor = hardwareMap.dcMotor.get("IntakeMotor");
+        LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
+        lFoundationator = hardwareMap.servo.get("lFoundationator");
+        rFoundationator = hardwareMap.servo.get("rFoundationator");
         verticalLeft = hardwareMap.dcMotor.get("verticalLeftEncoderName");
         verticalRight = hardwareMap.dcMotor.get("verticalRightEncoderName");
         horizontal = hardwareMap.dcMotor.get("horizontalEncoderName");
@@ -56,7 +56,6 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
 
     @Override
     public void start() {
-
 
         //Create and start GlobalCoordinatePosition thread to constantly update the global coordinate positions\
         OdometryGlobalCoordinatePosition globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 75);
