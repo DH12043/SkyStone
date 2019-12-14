@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class AutoBLUEPrimary extends SkystoneVuforiaNew {
 
 
-    DcMotor verticalEncoderRight, verticalEncoderLeft, horizontalEncoder;
+    DcMotor verticalRight, verticalLeft, horizontal;
 
     private int SkystoneXPosition;
     private int SkystoneYPosition;
@@ -39,13 +39,16 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
         FrontLeft = hardwareMap.dcMotor.get("FrontLeft");
         BackRight = hardwareMap.dcMotor.get("BackRight");
         BackLeft = hardwareMap.dcMotor.get("BackLeft");
-//        IntakeMotor = hardwareMap.dcMotor.get("Intake");
-//        LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
-        lFoundationator = hardwareMap.servo.get("Left Foundationator");
-        rFoundationator = hardwareMap.servo.get("Right Foundationator");
-        this.verticalEncoderLeft = verticalEncoderLeft;
-        this.verticalEncoderRight = verticalEncoderRight;
-        this.horizontalEncoder = horizontalEncoder;
+        IntakeMotor = hardwareMap.dcMotor.get("IntakeMotor");
+        LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
+        lFoundationator = hardwareMap.servo.get("lFoundationator");
+        rFoundationator = hardwareMap.servo.get("rFoundationator");
+        verticalLeft = hardwareMap.dcMotor.get("verticalLeftEncoderName");
+        verticalRight = hardwareMap.dcMotor.get("verticalRightEncoderName");
+        horizontal = hardwareMap.dcMotor.get("horizontalEncoderName");
+        verticalRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        verticalLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        horizontal.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RobotXPosition = (135);
         RobotYPosition = (36);
         RobotRotation = (0);
@@ -56,7 +59,7 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
 
 
         //Create and start GlobalCoordinatePosition thread to constantly update the global coordinate positions\
-        OdometryGlobalCoordinatePosition globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalEncoderLeft, verticalEncoderRight, horizontalEncoder, COUNTS_PER_INCH, 75);
+        OdometryGlobalCoordinatePosition globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 75);
         Thread positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
 

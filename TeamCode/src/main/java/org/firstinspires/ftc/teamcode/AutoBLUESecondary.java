@@ -94,6 +94,10 @@ public class AutoBLUESecondary extends SkystoneVuforiaNew {
         else {
             telemetry.addData("Skystone Location Error", "");
             telemetry.update();
+            SkystoneXPosition = (106);
+            SkystoneYPosition = (44);
+            driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
 
         Park(globalPositionUpdate);
