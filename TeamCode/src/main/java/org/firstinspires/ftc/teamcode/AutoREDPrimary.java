@@ -10,6 +10,10 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
 
     DcMotor verticalRight, verticalLeft, horizontal;
 
+    String verticalLeftEncoderName = "FrontLeft";
+    String verticalRightEncoderName = "BackRight";
+    String horizontalEncoderName = "BackLeft";
+
     private int SkystoneXPosition;
     private int SkystoneYPosition;
     private DcMotor FrontRight;
@@ -43,9 +47,9 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
         LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
         lFoundationator = hardwareMap.servo.get("lFoundationator");
         rFoundationator = hardwareMap.servo.get("rFoundationator");
-        verticalLeft = hardwareMap.dcMotor.get("verticalLeftEncoderName");
-        verticalRight = hardwareMap.dcMotor.get("verticalRightEncoderName");
-        horizontal = hardwareMap.dcMotor.get("horizontalEncoderName");
+        verticalLeft = hardwareMap.dcMotor.get(verticalLeftEncoderName);
+        verticalRight = hardwareMap.dcMotor.get(verticalRightEncoderName);
+        horizontal = hardwareMap.dcMotor.get(horizontalEncoderName);
         verticalRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         verticalLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         horizontal.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
