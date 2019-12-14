@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class AutoBLUEPrimary extends SkystoneVuforiaNew {
 
 
-    DcMotor verticalRight, verticalLeft, horizontal;
+    DcMotor verticalEncoderRight, verticalEncoderLeft, horizontalEncoder;
 
     private int SkystoneXPosition;
     private int SkystoneYPosition;
@@ -43,12 +43,9 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
 //        LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
         lFoundationator = hardwareMap.servo.get("Left Foundationator");
         rFoundationator = hardwareMap.servo.get("Right Foundationator");
-        verticalLeft = hardwareMap.dcMotor.get("verticalLeftEncoderName");
-        verticalRight = hardwareMap.dcMotor.get("verticalRightEncoderName");
-        horizontal = hardwareMap.dcMotor.get("horizontalEncoderName");
-        verticalRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        verticalLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        horizontal.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.verticalEncoderLeft = verticalEncoderLeft;
+        this.verticalEncoderRight = verticalEncoderRight;
+        this.horizontalEncoder = horizontalEncoder;
         RobotXPosition = (135);
         RobotYPosition = (36);
         RobotRotation = (0);
@@ -59,7 +56,7 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
 
 
         //Create and start GlobalCoordinatePosition thread to constantly update the global coordinate positions\
-        OdometryGlobalCoordinatePosition globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 75);
+        OdometryGlobalCoordinatePosition globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalEncoderLeft, verticalEncoderRight, horizontalEncoder, COUNTS_PER_INCH, 75);
         Thread positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
 
@@ -67,20 +64,27 @@ public class AutoBLUEPrimary extends SkystoneVuforiaNew {
             SkystoneXPosition = (106);
             SkystoneYPosition = (44);
             driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
         else if (positionSkystone == "Center") {
             SkystoneXPosition = (106);
             SkystoneYPosition = (36);
             driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
         else if (positionSkystone == "Right") {
             SkystoneXPosition = (106);
             SkystoneYPosition = (32);
             driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
         else {
-            telemetry.addData("Skystone Location Error", "");
+            telemetry.addData("SKYSTONE LOCATION ERROR", "Center");
             telemetry.update();
+            SkystoneXPosition = (106);
+            SkystoneYPosition = (36);
+            driveToSkystonePosition(globalPositionUpdate);
+            IntakeMotor.setPower(1);
         }
 
         DriveToFoundation(globalPositionUpdate);
