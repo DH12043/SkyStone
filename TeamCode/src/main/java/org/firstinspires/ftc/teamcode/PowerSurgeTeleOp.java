@@ -2,8 +2,11 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 @TeleOp(name = "PowerSurgeTeleOp")
@@ -19,6 +22,11 @@ public class PowerSurgeTeleOp extends OpMode {
     private DcMotor LiftMotor;
     private Servo lFoundationator;
     private Servo rFoundationator;
+    private Servo OrientationServoLeft;
+    private Servo OrientationServoRight;
+    private CRServo IntakeAssistServo;
+
+    private ModernRoboticsI2cRangeSensor OrientationSensor;
 
     private int intakeState = 0;
     private boolean outputButton;
@@ -35,12 +43,38 @@ public class PowerSurgeTeleOp extends OpMode {
     static final double rotateDegrees           = (30.75 * Math.PI) / 360;
     static final double spinCountsPerDegree     = (countsPerInch * spinInchesPerDegrees);
 
+    private String stoneOrientation = "empty";
+    private String lCurrentPosition = "lDisengage";
+    private String rCurrentPosition = "rDisengage";
+    private double orientDistance = 0;
+    private double lDisengage = .5;
+    private double rDisengage = 1;
+    private double lEngage = 1;
+    private double rEngage = .5;
+    private boolean readyToGrab = false;
+    private boolean manualReset = false;
+    private boolean stoneFullyInStraightener = false;
+    private boolean straightenerBusy = false;
+    private boolean firstRightRun = true;
+    private double startRightTime = 0;
+    private double currentRightTime = 0;
+    private double actualRightTime = 0;
+    private double lastActualRightTime = 0;
+    private double rightOrientCheck = 1;
+    private boolean firstLeftRun = true;
+    private double startLeftTime = 0;
+    private double currentLeftTime = 0;
+    private double actualLeftTime = 0;
+    private double lastActualLeftTime = 0;
+    private double targetTime = .5;
+
     @Override
     public void init() {
         initializeVerticalLift();
         initializeFoundationator();
         initializeDriveTrain();
         initializeIntakeMechanism();
+        initializeStraightener();
     }
 
     @Override
@@ -49,6 +83,7 @@ public class PowerSurgeTeleOp extends OpMode {
         checkFoundationator();
         checkDriveTrain();
         checkIntakeMechanism();
+        checkStraightener();
     }
 
     //
@@ -184,6 +219,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     public void initializeIntakeMechanism() {
         IntakeMotor = hardwareMap.dcMotor.get("IntakeMotor");
+        IntakeAssistServo = hardwareMap.crservo.get("IntakeAssistServo");
     }
 
     public void checkIntakeMechanism() {
@@ -210,14 +246,121 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         if (outputButton) {
             IntakeMotor.setPower(-1);
+            IntakeAssistServo.setPower(1);
         }
         else {
             if (intakeState == 1) {
                 IntakeMotor.setPower(1);
+                IntakeAssistServo.setPower(-1);
             }
             else if (intakeState == 0) {
                 IntakeMotor.setPower(0);
+                IntakeAssistServo.setPower(0);
             }
+        }
+    }
+
+    //
+    // Straightener
+    //
+
+    public void initializeStraightener() {
+        OrientationSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "OrientationSensor");
+        OrientationServoLeft = hardwareMap.get(Servo.class, "OrientationServoLeft");
+        OrientationServoRight = hardwareMap.get(Servo.class, "OrientationServoRight");
+    }
+
+    public void checkStraightener() {
+        stoneFullyInStraightener = gamepad1.b;
+        orientStone();
+        manualOverride();
+    }
+
+    private void senseOrientation() {
+        orientDistance = OrientationSensor.getDistance(DistanceUnit.INCH);
+        telemetry.addData("sensor distance", orientDistance);
+
+        // StoneOrientation is assigned relative to the side of the robot that the studs of the stone
+        // are on when looking at the robot from the back.
+        // this is true for the servos as well; left and right are assigned relative to the back
+        if(!straightenerBusy) {
+            if (orientDistance > .25 && orientDistance <= .75) {
+                stoneOrientation = "left";
+            } else if (orientDistance > .75 && orientDistance <= 2.3) {
+                stoneOrientation = "center";
+            } else if (orientDistance > 4) {
+                stoneOrientation = "empty";
+            } else {
+                stoneOrientation = "right";
+            }
+            telemetry.addData("orientPosition:  ", stoneOrientation);
+        }
+    }
+
+    private void orientStone() {
+        senseOrientation();
+
+        if (stoneFullyInStraightener) {
+            if (stoneOrientation.equals("right")) {
+                runLeftServo();
+            }
+
+            if (stoneOrientation.equals("left")) {
+                runRightServo();
+            }
+
+            if (stoneOrientation.equals("center")) {
+                readyToGrab = true;
+            }
+            else {
+                readyToGrab = false;
+            }
+        }
+    }
+
+    private void manualOverride() {
+        if (gamepad2.right_bumper) {
+            manualReset = true;
+        }
+    }
+
+    private void runRightServo() {
+        if(firstRightRun && !straightenerBusy) {
+            OrientationServoRight.setPosition(rEngage);
+            startRightTime = getRuntime();
+            firstRightRun = false;
+            straightenerBusy = true;
+        }
+        currentRightTime = getRuntime();
+        actualRightTime = (currentRightTime-startRightTime);
+        telemetry.addData("actualRightTime", actualRightTime);
+        telemetry.addData("target time", targetTime);
+
+        if(actualRightTime > targetTime) {
+            OrientationServoRight.setPosition(rDisengage);
+            telemetry.addData("is ready for return", "yes");
+            firstRightRun = true;
+            straightenerBusy = false;
+        }
+    }
+
+    private void runLeftServo() {
+        if(firstLeftRun && !straightenerBusy) {
+            OrientationServoLeft.setPosition(lEngage);
+            startLeftTime = getRuntime();
+            firstLeftRun = false;
+            straightenerBusy = true;
+        }
+        currentLeftTime = getRuntime();
+        actualLeftTime = (currentLeftTime-startLeftTime);
+        telemetry.addData("actualLeftTime", actualLeftTime);
+        telemetry.addData("target time", targetTime);
+
+        if(actualLeftTime > targetTime) {
+            OrientationServoLeft.setPosition(lDisengage);
+            telemetry.addData("is ready for return", "yes");
+            firstLeftRun = true;
+            straightenerBusy = false;
         }
     }
 }
