@@ -32,6 +32,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private static final int ParkLineYPosition = 72;
 
     OdometryGlobalCoordinatePosition globalPositionUpdate;
+    Thread positionThread;
 
     private DcMotor FrontRight;
     private DcMotor FrontLeft;
@@ -94,29 +95,33 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void init() {
+        telemetry.addData("Version Number", "12-12-19 940am");
         initializeVerticalLift();
         initializeFoundationator();
         initializeDriveTrain();
-        //initializeOdometry();
+        initializeOdometry();
         initializeIntakeMechanism();
         initializeStraightener();
-
+        telemetry.addData("Status", "Init Complete");
+        telemetry.update();
     }
 
     @Override
     public void start() {
-        //startOdometry();
+        startOdometry();
+        telemetry.addData("Status", "Odometry System has started");
+        telemetry.update();
     }
 
     @Override
     public void loop() {
         checkVerticalLift();
         checkFoundationator();
-        //checkOdometry();
+        checkOdometry();
         checkDriveTrain();
         checkIntakeMechanism();
         checkStraightener();
-
+        telemetry.update();
     }
 
     //
@@ -153,11 +158,11 @@ public class PowerSurgeTeleOp extends OpMode {
 
             telemetry.addData("LiftMotor","LiftMotor.getCurrentPosition() - LiftMotor.getTargetPosition()");
             //setting the Target position if we press the right bumper
-            if (LiftUpButton == true) {
+            if (LiftUpButton) {
                 LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (4 * countsPerInch)));
             }
             //setting the Target position if we press the left Bumper
-            else if (LiftDownButton == true) {
+            else if (LiftDownButton) {
                 LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (-4 * countsPerInch)));
             }
             //setting the motor to .5 if we are lower than our Target Position
@@ -196,8 +201,8 @@ public class PowerSurgeTeleOp extends OpMode {
         if (lastWaffleState == currentWaffleState){
             return;
         }
-        else if(lastWaffleState == false && currentWaffleState == true){
-            if(isWaffleStateRaised == true) {
+        else if(!lastWaffleState && currentWaffleState){
+            if(isWaffleStateRaised) {
                 lowerFoundationator();
             } else {
                 raiseFoundationator();
@@ -274,6 +279,7 @@ public class PowerSurgeTeleOp extends OpMode {
         verticalLeft = hardwareMap.dcMotor.get(verticalLeftEncoderName);
         verticalRight = hardwareMap.dcMotor.get(verticalRightEncoderName);
         horizontal = hardwareMap.dcMotor.get(horizontalEncoderName);
+
         verticalRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         verticalLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         horizontal.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -288,8 +294,8 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void startOdometry() {
-        OdometryGlobalCoordinatePosition globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 75);
-        Thread positionThread = new Thread(globalPositionUpdate);
+        globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 75);
+        positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
 
         globalPositionUpdate.reverseRightEncoder();
@@ -305,8 +311,7 @@ public class PowerSurgeTeleOp extends OpMode {
         telemetry.addData("Vertical Right Encoder", verticalRight.getCurrentPosition());
         telemetry.addData("Horizontal Encoder", horizontal.getCurrentPosition());
 
-        //telemetry.addData("Thread Active", positionThread.isAlive());
-        telemetry.update();
+        telemetry.addData("Thread Active", positionThread.isAlive());
     }
 
     double getDistanceFromCoordinates(double x, double y, OdometryGlobalCoordinatePosition position) {
