@@ -102,7 +102,7 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
         Park(globalPositionUpdate);
 
         globalPositionUpdate.stop();
-    }
+}
 
     double getDistanceFromCoordinates(double x, double y, OdometryGlobalCoordinatePosition position) {
         double deltaX = x - position.returnXCoordinate();

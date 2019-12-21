@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -13,6 +14,24 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class PowerSurgeTeleOp extends OpMode {
 
     public static final double DEADZONE = 0.15;
+
+    DcMotor verticalRight, verticalLeft, horizontal;
+
+    String verticalLeftEncoderName = "FrontLeft";
+    String verticalRightEncoderName = "BackRight";
+    String horizontalEncoderName = "BackLeft";
+
+    final double COUNTS_PER_INCH = 307.699557;
+    private static final int PreFoundationXPosition = 36;
+    private static final int PreFoundationYPosition = 95;
+    private static final int FoundationXPosition = 48;
+    private static final int FoundationYPosition = 107;
+    private static final int BuildSiteXPosition = 9;
+    private static final int BuildSiteYPosition = 111;
+    private static final int ParkLineXPosition = 9;
+    private static final int ParkLineYPosition = 72;
+
+    OdometryGlobalCoordinatePosition globalPositionUpdate;
 
     private DcMotor FrontRight;
     private DcMotor FrontLeft;
@@ -32,8 +51,13 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean outputButton;
     private boolean intakeButton;
     private boolean firstPressDpadUp = true;
+
+    private boolean liftEncoderState = true;
+    private boolean firstPressa = true;
+
     private boolean lastWaffleState = false;
     private boolean isWaffleStateRaised = false;
+
     static final double countsPerMotor          = 10000 ;                           //TODO Change
     static final double gearReduction           = 1.0 ;                             //TODO Change
     static final double wheelDiameter           = 4.0 ;                             //TODO Change
@@ -73,17 +97,26 @@ public class PowerSurgeTeleOp extends OpMode {
         initializeVerticalLift();
         initializeFoundationator();
         initializeDriveTrain();
+        //initializeOdometry();
         initializeIntakeMechanism();
         initializeStraightener();
+
+    }
+
+    @Override
+    public void start() {
+        //startOdometry();
     }
 
     @Override
     public void loop() {
         checkVerticalLift();
         checkFoundationator();
+        //checkOdometry();
         checkDriveTrain();
         checkIntakeMechanism();
         checkStraightener();
+
     }
 
     //
@@ -103,29 +136,49 @@ public class PowerSurgeTeleOp extends OpMode {
     public void checkVerticalLift() {
         boolean LiftUpButton = gamepad1.right_bumper;
         boolean LiftDownButton = gamepad1.left_bumper;
+        boolean LiftManualToggleButton = gamepad2.a;
 
-        telemetry.addData("LiftMotor","LiftMotor.getCurrentPosition() - LiftMotor.getTargetPosition()");
-
-        //setting the Target position if we press the right bumper
-        if (LiftUpButton == true) {
-            LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (4 * countsPerInch)));
+        if (LiftManualToggleButton) {
+            if (firstPressa) {
+                liftEncoderState =! liftEncoderState;
+                firstPressa = false;
+            }
         }
-        //setting the Target position if we press the left Bumper
-        else if (LiftDownButton == true) {
-            LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (-4 * countsPerInch)));
-        }
-        //setting the motor to .5 if we are lower than our Target Position
-        if (LiftMotor.getTargetPosition() > (LiftMotor.getCurrentPosition())) {
-            LiftMotor.setPower(.5);
-        }
-        //setting our power to -.5 if we are higher than our Target Position
-        else if (LiftMotor.getTargetPosition() < (LiftMotor.getCurrentPosition())) {
-            LiftMotor.setPower(-.5);
-        }
-        //setting the motor to brake if we are at our Target Position
         else {
-            LiftMotor.setPower(0);
+            firstPressa = true;
         }
+
+        if (liftEncoderState) {
+            LiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            telemetry.addData("LiftMotor","LiftMotor.getCurrentPosition() - LiftMotor.getTargetPosition()");
+            //setting the Target position if we press the right bumper
+            if (LiftUpButton == true) {
+                LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (4 * countsPerInch)));
+            }
+            //setting the Target position if we press the left Bumper
+            else if (LiftDownButton == true) {
+                LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (-4 * countsPerInch)));
+            }
+            //setting the motor to .5 if we are lower than our Target Position
+            if (LiftMotor.getTargetPosition() > (LiftMotor.getCurrentPosition())) {
+                LiftMotor.setPower(.5);
+            }
+            //setting our power to -.5 if we are higher than our Target Position
+            else if (LiftMotor.getTargetPosition() < (LiftMotor.getCurrentPosition())) {
+                LiftMotor.setPower(-.5);
+            }
+            //setting the motor to brake if we are at our Target Position
+            else {
+                LiftMotor.setPower(0);
+            }
+        }
+        else {
+            LiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            LiftMotor.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
+        }
+
+
     }
 
     //
@@ -211,6 +264,56 @@ public class PowerSurgeTeleOp extends OpMode {
         FrontLeft.setPower(-DZSidewaysButton + DZForwardButton + DZSpinningButton);
         BackRight.setPower(DZSidewaysButton - DZForwardButton + DZSpinningButton);
         BackLeft.setPower(DZSidewaysButton + DZForwardButton + DZSpinningButton);
+    }
+
+    //
+    // Odometry
+    //
+
+    public void initializeOdometry() {
+        verticalLeft = hardwareMap.dcMotor.get(verticalLeftEncoderName);
+        verticalRight = hardwareMap.dcMotor.get(verticalRightEncoderName);
+        horizontal = hardwareMap.dcMotor.get(horizontalEncoderName);
+        verticalRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        verticalLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        horizontal.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        verticalLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        verticalRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        horizontal.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        verticalRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        verticalLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        horizontal.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
+    public void startOdometry() {
+        OdometryGlobalCoordinatePosition globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 75);
+        Thread positionThread = new Thread(globalPositionUpdate);
+        positionThread.start();
+
+        globalPositionUpdate.reverseRightEncoder();
+    }
+
+    public void checkOdometry() {
+        //Display Global (x, y, theta) coordinates
+        telemetry.addData("X Position", globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
+        telemetry.addData("Y Position", globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
+        telemetry.addData("Orientation (Degrees)", globalPositionUpdate.returnOrientation());
+
+        telemetry.addData("Vertical Left Encoder", verticalLeft.getCurrentPosition());
+        telemetry.addData("Vertical Right Encoder", verticalRight.getCurrentPosition());
+        telemetry.addData("Horizontal Encoder", horizontal.getCurrentPosition());
+
+        //telemetry.addData("Thread Active", positionThread.isAlive());
+        telemetry.update();
+    }
+
+    double getDistanceFromCoordinates(double x, double y, OdometryGlobalCoordinatePosition position) {
+        double deltaX = x - position.returnXCoordinate();
+        double deltaY = y - position.returnYCoordinate();
+
+        return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     }
 
     //
