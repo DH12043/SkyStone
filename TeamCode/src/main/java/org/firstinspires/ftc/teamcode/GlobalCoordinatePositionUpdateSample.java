@@ -22,7 +22,7 @@ public class GlobalCoordinatePositionUpdateSample extends LinearOpMode {
     String verticalLeftEncoderName = "FrontLeft", verticalRightEncoderName = "BackRight", horizontalEncoderName = "BackLeft";
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode() {
 
         //Assign the hardware map to the odometry wheels
         verticalLeft = hardwareMap.dcMotor.get(verticalLeftEncoderName);
