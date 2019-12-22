@@ -45,6 +45,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private Servo OrientationServoLeft;
     private Servo OrientationServoRight;
     private CRServo IntakeAssistServo;
+    private Servo IntakeReleaseServo;
 
     private ModernRoboticsI2cRangeSensor OrientationSensor;
 
@@ -93,9 +94,12 @@ public class PowerSurgeTeleOp extends OpMode {
     private double lastActualLeftTime = 0;
     private double targetTime = .5;
 
+    private boolean firstPressb = true;
+    private int intakeReleaseState = 1;
+
     @Override
     public void init() {
-        telemetry.addData("Version Number", "12-12-19 940am");
+        telemetry.addData("Version Number", "12-12-19 940pm");
         initializeVerticalLift();
         initializeFoundationator();
         initializeDriveTrain();
@@ -182,8 +186,6 @@ public class PowerSurgeTeleOp extends OpMode {
             LiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             LiftMotor.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
         }
-
-
     }
 
     //
@@ -193,6 +195,8 @@ public class PowerSurgeTeleOp extends OpMode {
     public void initializeFoundationator() {
         lFoundationator = hardwareMap.servo.get("lFoundationator");
         rFoundationator = hardwareMap.servo.get("rFoundationator");
+        lFoundationator.setPosition(.5);
+        rFoundationator.setPosition(0);
     }
 
     public void checkFoundationator() {
@@ -213,13 +217,13 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private void raiseFoundationator() {
         lFoundationator.setPosition(0);
-        rFoundationator.setPosition(.27);
+        rFoundationator.setPosition(.5);
         isWaffleStateRaised = true;
         telemetry.addData("Raising Foundationator", "");
     }
 
     private void lowerFoundationator() {
-        lFoundationator.setPosition(.27);
+        lFoundationator.setPosition(.5);
         rFoundationator.setPosition(0);
         isWaffleStateRaised = false;
         telemetry.addData("Lowering Foundationator", "");
@@ -328,6 +332,10 @@ public class PowerSurgeTeleOp extends OpMode {
     public void initializeIntakeMechanism() {
         IntakeMotor = hardwareMap.dcMotor.get("IntakeMotor");
         IntakeAssistServo = hardwareMap.crservo.get("IntakeAssistServo");
+        IntakeReleaseServo = hardwareMap.servo.get("IntakeReleaseServo");
+        IntakeMotor.setPower(0);
+        IntakeAssistServo.setPower(0);
+        IntakeReleaseServo.setPosition(.6);
     }
 
     public void checkIntakeMechanism() {
@@ -335,6 +343,30 @@ public class PowerSurgeTeleOp extends OpMode {
         outputButton = gamepad1.dpad_down;
 
         intake(intakeButton);
+
+        if (gamepad2.b) {
+            if (firstPressb) {
+                if (intakeReleaseState == 1) {
+                    intakeReleaseState = 0;
+                }
+                else {
+                    intakeReleaseState = 1;
+                }
+                firstPressb = false;
+            }
+        }
+        else {
+            firstPressb = true;
+        }
+
+        if (intakeReleaseState == 0) {
+            IntakeReleaseServo.setPosition(.15);
+        }
+        else {
+            IntakeReleaseServo.setPosition(.6);
+        }
+
+
     }
 
     public void intake(boolean intakeButton) {
@@ -376,6 +408,8 @@ public class PowerSurgeTeleOp extends OpMode {
         OrientationSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "OrientationSensor");
         OrientationServoLeft = hardwareMap.get(Servo.class, "OrientationServoLeft");
         OrientationServoRight = hardwareMap.get(Servo.class, "OrientationServoRight");
+        OrientationServoLeft.setPosition(lDisengage);
+        OrientationServoRight.setPosition(rDisengage);
     }
 
     public void checkStraightener() {
