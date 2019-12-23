@@ -59,6 +59,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private boolean lastWaffleState = false;
     private boolean isWaffleStateRaised = false;
+    private double foundationatorPosition = .335;
 
     static final double countsPerMotor          = 10000 ;                           //TODO Change
     static final double gearReduction           = 1.0 ;                             //TODO Change
@@ -99,7 +100,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void init() {
-        telemetry.addData("Version Number", "12-12-19 940pm");
+        telemetry.addData("Version Number", "12-22-19 1016pm");
         initializeVerticalLift();
         initializeFoundationator();
         initializeDriveTrain();
@@ -145,7 +146,7 @@ public class PowerSurgeTeleOp extends OpMode {
     public void checkVerticalLift() {
         boolean LiftUpButton = gamepad1.right_bumper;
         boolean LiftDownButton = gamepad1.left_bumper;
-        boolean LiftManualToggleButton = gamepad2.a;
+        boolean LiftManualToggleButton = gamepad1.y;
 
         if (LiftManualToggleButton) {
             if (firstPressa) {
@@ -195,7 +196,7 @@ public class PowerSurgeTeleOp extends OpMode {
     public void initializeFoundationator() {
         lFoundationator = hardwareMap.servo.get("lFoundationator");
         rFoundationator = hardwareMap.servo.get("rFoundationator");
-        lFoundationator.setPosition(.5);
+        lFoundationator.setPosition(foundationatorPosition);
         rFoundationator.setPosition(0);
     }
 
@@ -217,13 +218,13 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private void raiseFoundationator() {
         lFoundationator.setPosition(0);
-        rFoundationator.setPosition(.5);
+        rFoundationator.setPosition(foundationatorPosition);
         isWaffleStateRaised = true;
         telemetry.addData("Raising Foundationator", "");
     }
 
     private void lowerFoundationator() {
-        lFoundationator.setPosition(.5);
+        lFoundationator.setPosition(foundationatorPosition);
         rFoundationator.setPosition(0);
         isWaffleStateRaised = false;
         telemetry.addData("Lowering Foundationator", "");
@@ -344,7 +345,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
         intake(intakeButton);
 
-        if (gamepad2.b) {
+        if (gamepad1.x) {
             if (firstPressb) {
                 if (intakeReleaseState == 1) {
                     intakeReleaseState = 0;
