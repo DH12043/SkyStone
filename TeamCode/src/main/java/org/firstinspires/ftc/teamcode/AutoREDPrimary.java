@@ -4,18 +4,29 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ReadWriteFile;
+
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
+import java.io.File;
 
 import static java.lang.Thread.sleep;
 
 @Autonomous (name= "AutoREDPrimary", group= "None")
 public class AutoREDPrimary extends SkystoneVuforiaNew {
 
-
     DcMotor verticalRight, verticalLeft, horizontal;
 
     String verticalLeftEncoderName = "FrontLeft";
     String verticalRightEncoderName = "BackRight";
     String horizontalEncoderName = "BackLeft";
+
+    private File startingXpositionFile = AppUtil.getInstance().getSettingsFile("startingXposition.txt");
+    private File startingYpositionFile = AppUtil.getInstance().getSettingsFile("startingYposition.txt");
+    private File startingθpositionFile = AppUtil.getInstance().getSettingsFile("startingθposition.txt");
+
+    Thread positionThread;
+    OdometryGlobalCoordinatePosition globalPositionUpdate;
 
     private int SkystoneXPosition;
     private int SkystoneYPosition;
@@ -38,6 +49,10 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
     private static int BuildSiteYPosition = 111;
     private static int ParkLineXPosition = 9;
     private static int ParkLineYPosition = 72;
+
+    private double CurrentRobotXPosition;
+    private double CurrentRobotYPosition;
+    private double CurrentRobotRotation;
 
     @Override
     public void init() {
@@ -77,11 +92,14 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
 
     @Override
     public void start() {
-
         //Create and start GlobalCoordinatePosition thread to constantly update the global coordinate positions\
-        OdometryGlobalCoordinatePosition globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 75);
-        Thread positionThread = new Thread(globalPositionUpdate);
+        globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 75);
+        positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
+
+        CurrentRobotXPosition = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + RobotXPosition;
+        CurrentRobotYPosition = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + RobotYPosition;
+        CurrentRobotRotation = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + RobotRotation;
 
         if (positionSkystone.equals("Left")) {
             SkystoneXPosition = (38);
@@ -123,8 +141,16 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
 //
 //        Park(globalPositionUpdate);
 
-        globalPositionUpdate.stop();
-}
+        globalPositionUpdate.stop(); //Maybe comment this out?
+    }
+
+    /*@Override
+    public void stop() {
+        OdometryGlobalCoordinatePosition position = null;
+        ReadWriteFile.writeFile(startingXpositionFile, String.valueOf(position.returnXCoordinate()));
+        ReadWriteFile.writeFile(startingYpositionFile, String.valueOf(position.returnYCoordinate()));
+        ReadWriteFile.writeFile(startingθpositionFile, String.valueOf(position.returnOrientation()));
+    }*/
 
     double getDistanceFromCoordinates(double x, double y, OdometryGlobalCoordinatePosition position) {
         double deltaX = x - position.returnXCoordinate();

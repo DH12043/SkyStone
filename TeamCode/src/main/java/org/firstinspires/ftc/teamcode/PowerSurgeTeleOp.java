@@ -8,6 +8,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
+import com.qualcomm.robotcore.util.ReadWriteFile;
+
+import java.io.File;
 
 
 @TeleOp(name = "PowerSurgeTeleOp")
@@ -20,6 +25,18 @@ public class PowerSurgeTeleOp extends OpMode {
     String verticalLeftEncoderName = "FrontLeft";
     String verticalRightEncoderName = "BackRight";
     String horizontalEncoderName = "BackLeft";
+
+    private double RobotXPosition;
+    private double RobotYPosition;
+    private double RobotRotation;
+
+    private double StartingXPosition;
+    private double StartingYPosition;
+    private double StartingRotation;
+
+    private File startingXpositionFile = AppUtil.getInstance().getSettingsFile("startingXposition.txt");
+    private File startingYpositionFile = AppUtil.getInstance().getSettingsFile("startingYposition.txt");
+    private File startingθpositionFile = AppUtil.getInstance().getSettingsFile("startingθposition.txt");
 
     final double COUNTS_PER_INCH = 307.699557;
     private static final int PreFoundationXPosition = 36;
@@ -130,6 +147,7 @@ public class PowerSurgeTeleOp extends OpMode {
     public void loop() {
         checkVerticalLift();
         checkFoundationator();
+        checkOdometry();
         checkDriveTrain();
         checkIntakeMechanism();
         checkStraightener();
@@ -235,20 +253,25 @@ public class PowerSurgeTeleOp extends OpMode {
             }
         }
         lastWaffleState = currentWaffleState;
+
+        if (isWaffleStateRaised) {
+            telemetry.addData("Foundationator is", "Raised");
+        }
+        else {
+            telemetry.addData("Foundationator is", "Lowered");
+        }
     }
 
     private void raiseFoundationator() {
         lFoundationator.setPosition(0);
         rFoundationator.setPosition(foundationatorPosition);
         isWaffleStateRaised = true;
-        telemetry.addData("Raising Foundationator", "");
     }
 
     private void lowerFoundationator() {
         lFoundationator.setPosition(foundationatorPosition);
         rFoundationator.setPosition(0);
         isWaffleStateRaised = false;
-        telemetry.addData("Lowering Foundationator", "");
     }
 
     //
@@ -349,6 +372,13 @@ public class PowerSurgeTeleOp extends OpMode {
         verticalRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         verticalLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         horizontal.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        //StartingXPosition = Double.parseDouble(ReadWriteFile.readFile(startingXpositionFile).trim());
+        //StartingYPosition = Double.parseDouble(ReadWriteFile.readFile(startingYpositionFile).trim());
+        //StartingRotation = Double.parseDouble(ReadWriteFile.readFile(startingθpositionFile).trim());
+        StartingXPosition = 0;
+        StartingYPosition = 0;
+        StartingRotation = 0;
     }
 
     public void startOdometry() {
@@ -360,10 +390,18 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void checkOdometry() {
+        RobotXPosition = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingXPosition;
+        RobotYPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + StartingYPosition;
+        RobotRotation = (globalPositionUpdate.returnOrientation()) + StartingRotation;
+
+        telemetry.addData("X", RobotXPosition);
+        telemetry.addData("Y", RobotYPosition);
+        telemetry.addData("θ", RobotRotation);
+
         //Display Global (x, y, theta) coordinates
         telemetry.addData("X Position", globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
         telemetry.addData("Y Position", globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
-        telemetry.addData("Orientation (Degrees)", globalPositionUpdate.returnOrientation());
+        telemetry.addData("θ (Degrees)", globalPositionUpdate.returnOrientation());
 
         telemetry.addData("Vertical Left Encoder", verticalLeft.getCurrentPosition());
         telemetry.addData("Vertical Right Encoder", verticalRight.getCurrentPosition());
