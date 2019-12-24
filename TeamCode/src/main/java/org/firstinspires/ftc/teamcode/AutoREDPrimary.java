@@ -11,9 +11,9 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
 
     DcMotor verticalRight, verticalLeft, horizontal;
 
-    String verticalLeftEncoderName = "FrontLeftEncoder";
-    String verticalRightEncoderName = "BackRightEncoder";
-    String horizontalEncoderName = "BackLeftEncoder";
+    String verticalLeftEncoderName = "FrontLeft";
+    String verticalRightEncoderName = "BackRight";
+    String horizontalEncoderName = "BackLeft";
 
     private int SkystoneXPosition;
     private int SkystoneYPosition;
@@ -40,14 +40,17 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
     @Override
     public void init() {
         super.init();
-        FrontRight = hardwareMap.dcMotor.get("FrontRightMotor");
-        FrontLeft = hardwareMap.dcMotor.get("FrontLeftMotor");
-        BackRight = hardwareMap.dcMotor.get("BackRightMotor");
-        BackLeft = hardwareMap.dcMotor.get("BackLeftMotor");
+        FrontRight = hardwareMap.dcMotor.get("FrontRight");
+        FrontLeft = hardwareMap.dcMotor.get("FrontLeft");
+        BackRight = hardwareMap.dcMotor.get("BackRight");
+        BackLeft = hardwareMap.dcMotor.get("BackLeft");
         FrontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         FrontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         BackRight.setDirection(DcMotorSimple.Direction.REVERSE);
         BackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        FrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        BackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        BackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         IntakeMotor = hardwareMap.dcMotor.get("IntakeMotor");
         LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
         lFoundationator = hardwareMap.servo.get("lFoundationator");
@@ -58,6 +61,12 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
         verticalRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         verticalLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         horizontal.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        verticalRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        verticalLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        horizontal.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        verticalLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        verticalRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        horizontal.setDirection(DcMotorSimple.Direction.REVERSE);
         RobotXPosition = (9);
         RobotYPosition = (36);
         RobotRotation = (0);
@@ -169,32 +178,50 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
     private void driveToSkystonePosition(OdometryGlobalCoordinatePosition position) {
         double distanceAway = getDistanceFromCoordinates(SkystoneXPosition, SkystoneYPosition, position);
 
-        while(distanceAway > 18.5) {
-            double deltaX = SkystoneXPosition - position.returnXCoordinate();
-            double deltaY = SkystoneYPosition - position.returnYCoordinate();
-
-            double[] motorSpeeds = calculateMotorSpeeds(deltaX, deltaY);
-
-            FrontRight.setPower(motorSpeeds[2]);
-            FrontLeft.setPower(motorSpeeds[1]);
-            BackRight.setPower(motorSpeeds[1]);
-            BackLeft.setPower(motorSpeeds[2]);
-
-            distanceAway = getDistanceFromCoordinates(SkystoneXPosition, SkystoneYPosition, position);
+        while (position.returnYCoordinate() < SkystoneYPosition) {
+            FrontRight.setPower(1);
+            FrontLeft.setPower(-1);
+            BackRight.setPower(-1);
+            BackLeft.setPower(1);
         }
-        while(distanceAway <= 11) {
-            double deltaX = SkystoneXPosition - position.returnXCoordinate();
-            double deltaY = SkystoneYPosition - position.returnYCoordinate();
-
-            double[] motorSpeeds = calculateMotorSpeeds(deltaX, deltaY);
-
-            FrontRight.setPower(motorSpeeds[2]);
-            FrontLeft.setPower(motorSpeeds[1]);
-            BackRight.setPower(motorSpeeds[1]);
-            BackLeft.setPower(motorSpeeds[2]);
-
-            distanceAway = getDistanceFromCoordinates(SkystoneXPosition, SkystoneYPosition, position);
+        while (position.returnYCoordinate() > SkystoneYPosition) {
+            FrontRight.setPower(-1);
+            FrontLeft.setPower(1);
+            BackRight.setPower(1);
+            BackLeft.setPower(-1);
         }
+        while(position.returnXCoordinate() > SkystoneXPosition + 10) {
+            FrontRight.setPower(1);
+            FrontLeft.setPower(1);
+            BackRight.setPower(1);
+            BackLeft.setPower(1);
+        }
+//        while(distanceAway > 18.5) {
+//            double deltaX = SkystoneXPosition - position.returnXCoordinate();
+//            double deltaY = SkystoneYPosition - position.returnYCoordinate();
+//
+//            double[] motorSpeeds = calculateMotorSpeeds(deltaX, deltaY);
+//
+//            FrontRight.setPower(motorSpeeds[2]);
+//            FrontLeft.setPower(motorSpeeds[1]);
+//            BackRight.setPower(motorSpeeds[1]);
+//            BackLeft.setPower(motorSpeeds[2]);
+//
+//            distanceAway = getDistanceFromCoordinates(SkystoneXPosition, SkystoneYPosition, position);
+//        }
+//        while(distanceAway <= 11) {
+//            double deltaX = SkystoneXPosition - position.returnXCoordinate();
+//            double deltaY = SkystoneYPosition - position.returnYCoordinate();
+//
+//            double[] motorSpeeds = calculateMotorSpeeds(deltaX, deltaY);
+//
+//            FrontRight.setPower(motorSpeeds[2]);
+//            FrontLeft.setPower(motorSpeeds[1]);
+//            BackRight.setPower(motorSpeeds[1]);
+//            BackLeft.setPower(motorSpeeds[2]);
+//
+//            distanceAway = getDistanceFromCoordinates(SkystoneXPosition, SkystoneYPosition, position);
+//        }
     }
 
     private void DriveToFoundation(OdometryGlobalCoordinatePosition position) {

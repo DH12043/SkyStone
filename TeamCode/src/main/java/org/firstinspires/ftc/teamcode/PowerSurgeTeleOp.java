@@ -31,6 +31,9 @@ public class PowerSurgeTeleOp extends OpMode {
     private static final int ParkLineXPosition = 9;
     private static final int ParkLineYPosition = 72;
 
+    private static final double GRABBERSERVOCLOSEDPOSITION = 0;
+    private static final double GRABBERSERVOOPENPOSITION = .5;
+
     OdometryGlobalCoordinatePosition globalPositionUpdate;
     Thread positionThread;
 
@@ -42,6 +45,9 @@ public class PowerSurgeTeleOp extends OpMode {
     private DcMotor LiftMotor;
     private Servo lFoundationator;
     private Servo rFoundationator;
+    private Servo GrabberServo;
+    private Servo OrientStoneServo;
+    private Servo MoveArmServo;
     private Servo OrientationServoLeft;
     private Servo OrientationServoRight;
     private CRServo IntakeAssistServo;
@@ -107,6 +113,7 @@ public class PowerSurgeTeleOp extends OpMode {
         initializeOdometry();
         initializeIntakeMechanism();
         initializeStraightener();
+        initializeGrabber();
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
     }
@@ -126,6 +133,12 @@ public class PowerSurgeTeleOp extends OpMode {
         checkDriveTrain();
         checkIntakeMechanism();
         checkStraightener();
+
+
+
+
+
+
         telemetry.update();
     }
 
@@ -228,6 +241,36 @@ public class PowerSurgeTeleOp extends OpMode {
         rFoundationator.setPosition(0);
         isWaffleStateRaised = false;
         telemetry.addData("Lowering Foundationator", "");
+    }
+
+    private void initializeGrabber() {
+        GrabberServo =  hardwareMap.servo.get("GrabberServo");
+        OrientStoneServo = hardwareMap.servo.get("OrientStoneServo");
+        MoveArmServo = hardwareMap.servo.get("MoveArmServo");
+    }
+
+    private void grabStoneFromStraightener() {
+        GrabberServo.setPosition(.5);
+        // close grabber servo
+        return;
+
+
+    }
+    //this.moveArmToScorePosition("horizontal");
+    private void moveArmToScorePosition(String orientation) {
+        if(orientation.contentEquals("long")) {
+        }
+        else if(orientation.contentEquals("wide")) {
+        }
+        // move arm to scoring position
+        // orient the grabber to prepare to place the stone
+        return;
+    }
+
+    private void releaseStoneFromGrabber() {
+        GrabberServo.setPosition(0);
+        // open grabber servo to release stone
+        return;
     }
 
     //
