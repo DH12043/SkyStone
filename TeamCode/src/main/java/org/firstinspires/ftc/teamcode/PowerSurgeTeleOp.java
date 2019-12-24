@@ -31,6 +31,9 @@ public class PowerSurgeTeleOp extends OpMode {
     private static final int ParkLineXPosition = 9;
     private static final int ParkLineYPosition = 72;
 
+    private static final double GRABBERSERVOCLOSEDPOSITION = 0;
+    private static final double GRABBERSERVOOPENPOSITION = .5;
+
     OdometryGlobalCoordinatePosition globalPositionUpdate;
     Thread positionThread;
 
@@ -42,6 +45,9 @@ public class PowerSurgeTeleOp extends OpMode {
     private DcMotor LiftMotor;
     private Servo lFoundationator;
     private Servo rFoundationator;
+    private Servo GrabberServo;
+    private Servo OrientStoneServo;
+    private Servo MoveArmServo;
     private Servo OrientationServoLeft;
     private Servo OrientationServoRight;
     private CRServo IntakeAssistServo;
@@ -101,13 +107,14 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void init() {
-        telemetry.addData("Version Number", "12-22-19 1016pm");
+        telemetry.addData("Version Number", "12-23-19 700pm");
         initializeVerticalLift();
 //        initializeFoundationator();
         initializeDriveTrain();
-//        initializeOdometry();
-        //initializeIntakeMechanism();
-        //initializeStraightener();
+        initializeOdometry();
+        initializeIntakeMechanism();
+        initializeStraightener();
+        initializeGrabber();
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
     }
@@ -124,9 +131,8 @@ public class PowerSurgeTeleOp extends OpMode {
         checkVerticalLift();
 //        checkFoundationator();
         checkDriveTrain();
-//        checkOdometry();
-        //checkIntakeMechanism();
-        //checkStraightener();
+        checkIntakeMechanism();
+        checkStraightener();
         telemetry.update();
     }
 
@@ -245,6 +251,36 @@ public class PowerSurgeTeleOp extends OpMode {
         telemetry.addData("Lowering Foundationator", "");
     }
 
+    private void initializeGrabber() {
+        GrabberServo =  hardwareMap.servo.get("GrabberServo");
+        OrientStoneServo = hardwareMap.servo.get("OrientStoneServo");
+        MoveArmServo = hardwareMap.servo.get("MoveArmServo");
+    }
+
+    private void grabStoneFromStraightener() {
+        GrabberServo.setPosition(.5);
+        // close grabber servo
+        return;
+
+
+    }
+    //this.moveArmToScorePosition("horizontal");
+    private void moveArmToScorePosition(String orientation) {
+        if(orientation.contentEquals("long")) {
+        }
+        else if(orientation.contentEquals("wide")) {
+        }
+        // move arm to scoring position
+        // orient the grabber to prepare to place the stone
+        return;
+    }
+
+    private void releaseStoneFromGrabber() {
+        GrabberServo.setPosition(0);
+        // open grabber servo to release stone
+        return;
+    }
+
     //
     // DRIVE TRAIN
     //
@@ -264,8 +300,7 @@ public class PowerSurgeTeleOp extends OpMode {
         double forwardButton = gamepad1.left_stick_y;
         double sidewaysButton = gamepad1.left_stick_x;
         double spinningButton = gamepad1.right_stick_x;
-
-        BackRight.setDirection(DcMotor.Direction.REVERSE);
+        
         BackLeft.setDirection(DcMotor.Direction.REVERSE);
 
         forwardButton = DeadModifier(forwardButton);
