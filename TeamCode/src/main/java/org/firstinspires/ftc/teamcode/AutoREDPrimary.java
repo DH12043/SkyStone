@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import static java.lang.Thread.sleep;
+
 @Autonomous (name= "AutoREDPrimary", group= "None")
 public class AutoREDPrimary extends SkystoneVuforiaNew {
 
@@ -44,11 +46,12 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
         FrontLeft = hardwareMap.dcMotor.get("FrontLeft");
         BackRight = hardwareMap.dcMotor.get("BackRight");
         BackLeft = hardwareMap.dcMotor.get("BackLeft");
-        FrontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+//        FrontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         FrontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         BackRight.setDirection(DcMotorSimple.Direction.REVERSE);
         BackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         FrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        FrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         IntakeMotor = hardwareMap.dcMotor.get("IntakeMotor");
@@ -80,22 +83,22 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
         Thread positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
 
-        if (positionSkystone == "Left") {
+        if (positionSkystone.equals("Left")) {
             SkystoneXPosition = (38);
             SkystoneYPosition = (44);
-            driveToSkystonePosition(globalPositionUpdate);
+//            driveToSkystonePosition(globalPositionUpdate);
             IntakeMotor.setPower(1);
         }
-        else if (positionSkystone == "Center") {
+        else if (positionSkystone.equals("Center")) {
             SkystoneXPosition = (38);
             SkystoneYPosition = (36);
-            driveToSkystonePosition(globalPositionUpdate);
+//            driveToSkystonePosition(globalPositionUpdate);
             IntakeMotor.setPower(1);
         }
-        else if (positionSkystone == "Right") {
+        else if (positionSkystone.equals("Right")) {
             SkystoneXPosition = (38);
             SkystoneYPosition = (32);
-            driveToSkystonePosition(globalPositionUpdate);
+//            driveToSkystonePosition(globalPositionUpdate);
             IntakeMotor.setPower(1);
         }
         else {
@@ -103,7 +106,12 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
             telemetry.update();
             SkystoneXPosition = (38);
             SkystoneYPosition = (32);
-            driveToSkystonePosition(globalPositionUpdate);
+            try {
+                sleep(1400);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+//            driveToSkystonePosition(globalPositionUpdate);
             IntakeMotor.setPower(1);
         }
 

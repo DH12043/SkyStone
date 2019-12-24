@@ -57,18 +57,19 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean liftEncoderState = true;
     private boolean firstPressa = true;
 
+    private boolean firstLiftUpButton;
+    private boolean firstLiftDownButton;
+    private boolean liftUpCommand;
+    private boolean liftDownCommand;
+
     private boolean lastWaffleState = false;
     private boolean isWaffleStateRaised = false;
     private double foundationatorPosition = .335;
 
-    static final double countsPerMotor          = 10000 ;                           //TODO Change
+    static final double countsPerMotor          = 383.6;                           //TODO Change
     static final double gearReduction           = 1.0 ;                             //TODO Change
-    static final double wheelDiameter           = 4.0 ;                             //TODO Change
-    static final double countsPerInch           = (countsPerMotor * gearReduction) /
-            (wheelDiameter * Math.PI);
-    static final double spinInchesPerDegrees    = (15.375 * Math.PI) / 360;
-    static final double rotateDegrees           = (30.75 * Math.PI) / 360;
-    static final double spinCountsPerDegree     = (countsPerInch * spinInchesPerDegrees);
+    static final double wheelDiameter           = 1.771653543307087 ;                             //TODO Change
+    static final double countsPerInch           = (countsPerMotor * gearReduction) / (wheelDiameter * Math.PI);
 
     private String stoneOrientation = "empty";
     private String lCurrentPosition = "lDisengage";
@@ -102,30 +103,30 @@ public class PowerSurgeTeleOp extends OpMode {
     public void init() {
         telemetry.addData("Version Number", "12-22-19 1016pm");
         initializeVerticalLift();
-        initializeFoundationator();
+//        initializeFoundationator();
         initializeDriveTrain();
-        initializeOdometry();
-        initializeIntakeMechanism();
-        initializeStraightener();
+//        initializeOdometry();
+        //initializeIntakeMechanism();
+        //initializeStraightener();
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
     }
 
-    @Override
-    public void start() {
-        startOdometry();
-        telemetry.addData("Status", "Odometry System has started");
-        telemetry.update();
-    }
+//    @Override
+//    public void start() {
+//        startOdometry();
+//        telemetry.addData("Status", "Odometry System has started");
+//        telemetry.update();
+//    }
 
     @Override
     public void loop() {
         checkVerticalLift();
-        checkFoundationator();
-        checkOdometry();
+//        checkFoundationator();
         checkDriveTrain();
-        checkIntakeMechanism();
-        checkStraightener();
+//        checkOdometry();
+        //checkIntakeMechanism();
+        //checkStraightener();
         telemetry.update();
     }
 
@@ -160,27 +161,41 @@ public class PowerSurgeTeleOp extends OpMode {
 
         if (liftEncoderState) {
             LiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            telemetry.addData("LiftMotor","LiftMotor.getCurrentPosition() - LiftMotor.getTargetPosition()");
+            LiftMotor.setPower(.1);
+            telemetry.addData("LiftMotorDistance",LiftMotor.getCurrentPosition() - LiftMotor.getTargetPosition());
             //setting the Target position if we press the right bumper
             if (LiftUpButton) {
+                if (firstLiftUpButton) {
+                    liftUpCommand = true;
+                    firstLiftUpButton = false;
+                }
+                else {
+                    liftUpCommand = false;
+                }
+            }
+            else {
+                firstLiftUpButton = true;
+            }
+
+            if (LiftDownButton) {
+                if (firstLiftDownButton) {
+                    liftDownCommand = true;
+                    firstLiftDownButton = false;
+                }
+                else {
+                    liftDownCommand = false;
+                }
+            }
+            else {
+                firstLiftDownButton = true;
+            }
+
+            if (liftUpCommand) {
                 LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (4 * countsPerInch)));
             }
             //setting the Target position if we press the left Bumper
-            else if (LiftDownButton) {
+            else if (liftDownCommand) {
                 LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (-4 * countsPerInch)));
-            }
-            //setting the motor to .5 if we are lower than our Target Position
-            if (LiftMotor.getTargetPosition() > (LiftMotor.getCurrentPosition())) {
-                LiftMotor.setPower(.5);
-            }
-            //setting our power to -.5 if we are higher than our Target Position
-            else if (LiftMotor.getTargetPosition() < (LiftMotor.getCurrentPosition())) {
-                LiftMotor.setPower(-.5);
-            }
-            //setting the motor to brake if we are at our Target Position
-            else {
-                LiftMotor.setPower(0);
             }
         }
         else {
