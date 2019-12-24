@@ -109,7 +109,7 @@ public class PowerSurgeTeleOp extends OpMode {
     public void init() {
         telemetry.addData("Version Number", "12-23-19 700pm");
         initializeVerticalLift();
-//        initializeFoundationator();
+        initializeFoundationator();
         initializeDriveTrain();
         initializeOdometry();
         initializeIntakeMechanism();
@@ -119,17 +119,17 @@ public class PowerSurgeTeleOp extends OpMode {
         telemetry.update();
     }
 
-//    @Override
-//    public void start() {
-//        startOdometry();
-//        telemetry.addData("Status", "Odometry System has started");
-//        telemetry.update();
-//    }
+    @Override
+    public void start() {
+        startOdometry();
+        telemetry.addData("Status", "Odometry System has started");
+        telemetry.update();
+    }
 
     @Override
     public void loop() {
         checkVerticalLift();
-//        checkFoundationator();
+        checkFoundationator();
         checkDriveTrain();
         checkIntakeMechanism();
         checkStraightener();
@@ -251,6 +251,10 @@ public class PowerSurgeTeleOp extends OpMode {
         telemetry.addData("Lowering Foundationator", "");
     }
 
+    //
+    // Grabber Arm
+    //
+
     private void initializeGrabber() {
         GrabberServo =  hardwareMap.servo.get("GrabberServo");
         OrientStoneServo = hardwareMap.servo.get("OrientStoneServo");
@@ -261,8 +265,6 @@ public class PowerSurgeTeleOp extends OpMode {
         GrabberServo.setPosition(.5);
         // close grabber servo
         return;
-
-
     }
     //this.moveArmToScorePosition("horizontal");
     private void moveArmToScorePosition(String orientation) {
@@ -300,7 +302,8 @@ public class PowerSurgeTeleOp extends OpMode {
         double forwardButton = gamepad1.left_stick_y;
         double sidewaysButton = gamepad1.left_stick_x;
         double spinningButton = gamepad1.right_stick_x;
-        
+
+        FrontRight.setDirection(DcMotor.Direction.REVERSE);
         BackLeft.setDirection(DcMotor.Direction.REVERSE);
 
         forwardButton = DeadModifier(forwardButton);
