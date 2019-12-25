@@ -79,19 +79,22 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private boolean liftEncoderState = true;
     private boolean firstPressa = true;
-
     private boolean firstLiftUpButton;
     private boolean firstLiftDownButton;
     private boolean liftUpCommand;
     private boolean liftDownCommand;
+    private boolean firstPressDown = true;
+    private boolean firstPressUp = true;
+    private int liftHeight = 0;
+    private boolean liftIsDown = true;
 
     private boolean lastWaffleState = false;
     private boolean isWaffleStateRaised = false;
     private double foundationatorPosition = .335;
 
-    static final double countsPerMotor          = 383.6;                           //TODO Change
-    static final double gearReduction           = 1.0 ;                             //TODO Change
-    static final double wheelDiameter           = 1.771653543307087 ;                             //TODO Change
+    static final double countsPerMotor          = 383.6;
+    static final double gearReduction           = 1.0 ;
+    static final double wheelDiameter           = 1.771653543307087 ;
     static final double countsPerInch           = (countsPerMotor * gearReduction) / (wheelDiameter * Math.PI);
 
     private String stoneOrientation = "empty";
@@ -169,9 +172,11 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void checkVerticalLift() {
-        boolean LiftUpButton = gamepad1.right_bumper;
-        boolean LiftDownButton = gamepad1.left_bumper;
+        double LiftUpButton = gamepad1.right_trigger;
+        double LiftDownButton = gamepad1.left_trigger;
         boolean LiftManualToggleButton = gamepad1.y;
+        boolean LiftOverideDownButton = gamepad2.dpad_down;
+        boolean LiftOverideUpButton = gamepad2.dpad_up;
 
         if (LiftManualToggleButton) {
             if (firstPressa) {
@@ -183,12 +188,32 @@ public class PowerSurgeTeleOp extends OpMode {
             firstPressa = true;
         }
 
+        if (LiftOverideDownButton) {
+            if (firstPressDown) {
+                liftHeight++;
+                firstPressDown = false;
+            }
+        }
+        else {
+            firstPressDown = true;
+        }
+
+        if (LiftOverideUpButton) {
+            if (firstPressUp) {
+                liftHeight--;
+                firstPressUp = false;
+            }
+        }
+        else {
+            firstPressUp = true;
+        }
+
         if (liftEncoderState) {
             LiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             LiftMotor.setPower(.1);
             telemetry.addData("LiftMotorDistance",LiftMotor.getCurrentPosition() - LiftMotor.getTargetPosition());
             //setting the Target position if we press the right bumper
-            if (LiftUpButton) {
+            if (LiftUpButton > .5) {
                 if (firstLiftUpButton) {
                     liftUpCommand = true;
                     firstLiftUpButton = false;
@@ -201,7 +226,7 @@ public class PowerSurgeTeleOp extends OpMode {
                 firstLiftUpButton = true;
             }
 
-            if (LiftDownButton) {
+            if (LiftDownButton > .5) {
                 if (firstLiftDownButton) {
                     liftDownCommand = true;
                     firstLiftDownButton = false;
@@ -215,12 +240,22 @@ public class PowerSurgeTeleOp extends OpMode {
             }
 
             if (liftUpCommand) {
+                liftHeight++;
+                LiftMotor.setTargetPosition((int)(liftHeight * (4 * countsPerInch)));
+                liftUpCommand = false;
+            }
+            else if (liftDownCommand) {
+                LiftMotor.setTargetPosition(0);
+                liftDownCommand = false;
+            }
+
+            /*if (liftUpCommand) {
                 LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (4 * countsPerInch)));
             }
             //setting the Target position if we press the left Bumper
             else if (liftDownCommand) {
                 LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (-4 * countsPerInch)));
-            }
+            }*/
         }
         else {
             LiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
