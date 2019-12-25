@@ -71,6 +71,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private Servo IntakeReleaseServo;
 
     private ModernRoboticsI2cRangeSensor OrientationSensor;
+    private ModernRoboticsI2cRangeSensor StonePresenceSensor;
 
     private int intakeState = 0;
     private boolean outputButton;
@@ -101,6 +102,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private String lCurrentPosition = "lDisengage";
     private String rCurrentPosition = "rDisengage";
     private double orientDistance = 0;
+    private double stoneDistance;
     private double lDisengage = .5;
     private double rDisengage = 1;
     private double lEngage = 1;
@@ -190,7 +192,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
         if (LiftOverideDownButton) {
             if (firstPressDown) {
-                liftHeight++;
+                liftHeight--;
                 firstPressDown = false;
             }
         }
@@ -200,7 +202,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
         if (LiftOverideUpButton) {
             if (firstPressUp) {
-                liftHeight--;
+                liftHeight++;
                 firstPressUp = false;
             }
         }
@@ -248,6 +250,8 @@ public class PowerSurgeTeleOp extends OpMode {
                 LiftMotor.setTargetPosition(0);
                 liftDownCommand = false;
             }
+
+            telemetry.addData("Lift Height", liftHeight);
 
             /*if (liftUpCommand) {
                 LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (4 * countsPerInch)));
@@ -533,6 +537,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     public void initializeStraightener() {
         OrientationSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "OrientationSensor");
+        StonePresenceSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "StonePresenceSensor");
         OrientationServoLeft = hardwareMap.get(Servo.class, "OrientationServoLeft");
         OrientationServoRight = hardwareMap.get(Servo.class, "OrientationServoRight");
         OrientationServoLeft.setPosition(lDisengage);
@@ -540,7 +545,16 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void checkStraightener() {
-        stoneFullyInStraightener = gamepad1.b;
+        //stoneFullyInStraightener = gamepad1.b;
+        stoneDistance = StonePresenceSensor.getDistance(DistanceUnit.INCH);
+        telemetry.addData("Stone Distance", stoneDistance);
+        if (stoneDistance < .5) {
+            stoneFullyInStraightener = true;
+        }
+        else {
+            stoneFullyInStraightener = false;
+        }
+
         orientStone();
         manualOverride();
     }
