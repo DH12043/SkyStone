@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -48,6 +50,10 @@ public class PowerSurgeTeleOp extends OpMode {
     private static final int ParkLineXPosition = 9;
     private static final int ParkLineYPosition = 72;
 
+    private static final int ScoringXPosition = 0;
+    private static final int ScoringYPosition = 0;
+    private static final int ScoringRotation = 0;
+
     private static final double GRABBERSERVOCLOSEDPOSITION = 0;
     private static final double GRABBERSERVOOPENPOSITION = .5;
 
@@ -72,6 +78,9 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private ModernRoboticsI2cRangeSensor OrientationSensor;
     private ModernRoboticsI2cRangeSensor StonePresenceSensor;
+
+    BNO055IMU imu;
+    BNO055IMU.Parameters parameters;
 
     private int intakeState = 0;
     private int intakeReleaseState = 1;
@@ -134,6 +143,7 @@ public class PowerSurgeTeleOp extends OpMode {
     @Override
     public void init() {
         telemetry.addData("Version Number", "12-23-19 700pm");
+        initializeImu();
         initializeVerticalLift();
         initializeFoundationator();
         initializeGrabber();
@@ -155,6 +165,7 @@ public class PowerSurgeTeleOp extends OpMode {
     @Override
     public void loop() {
         checkVerticalLift();
+        checkImu();
         checkFoundationator();
         checkDriveTrain();
         checkOdometry();
@@ -278,8 +289,8 @@ public class PowerSurgeTeleOp extends OpMode {
     public void initializeFoundationator() {
         lFoundationator = hardwareMap.servo.get("lFoundationator");
         rFoundationator = hardwareMap.servo.get("rFoundationator");
-        lFoundationator.setPosition(foundationatorPosition);
-        rFoundationator.setPosition(0);
+        lFoundationator.setPosition(0);
+        rFoundationator.setPosition(foundationatorPosition);
     }
 
     public void checkFoundationator() {
@@ -365,21 +376,53 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void checkDriveTrain() {
-        double forwardButton = gamepad1.left_stick_y;
-        double sidewaysButton = gamepad1.left_stick_x;
-        double spinningButton = gamepad1.right_stick_x;
+        if (gamepad1.right_bumper && gamepad1.left_bumper) {
+            driveToScoringPosition();
+        }
+        else {
+            double forwardButton = gamepad1.left_stick_y;
+            double sidewaysButton = gamepad1.left_stick_x;
+            double spinningButton = gamepad1.right_stick_x;
 
-        FrontRight.setDirection(DcMotor.Direction.REVERSE);
-        BackLeft.setDirection(DcMotor.Direction.REVERSE);
+            FrontRight.setDirection(DcMotor.Direction.REVERSE);
+            BackLeft.setDirection(DcMotor.Direction.REVERSE);
 
-        forwardButton = DeadModifier(forwardButton);
-        sidewaysButton = DeadModifier(sidewaysButton);
-        spinningButton = DeadModifier(spinningButton);
+            forwardButton = DeadModifier(forwardButton);
+            sidewaysButton = DeadModifier(sidewaysButton);
+            spinningButton = DeadModifier(spinningButton);
 
-        Drive(forwardButton, sidewaysButton, spinningButton);
+            Drive(forwardButton, sidewaysButton, spinningButton);
+        }
     }
 
-    public double  DeadModifier(double joystickValue) {
+    public void driveToScoringPosition() {
+        double rightRobotRotationError = Math.abs(RobotRotation - ScoringRotation);
+        double leftRobotRotationError = Math.abs(ScoringRotation - RobotRotation);
+        double robotRotationError;
+        java.lang.String turningDirection;
+        if (rightRobotRotationError < leftRobotRotationError) {
+            robotRotationError = rightRobotRotationError;
+            turningDirection = "right";
+        }
+        else {
+            robotRotationError = leftRobotRotationError;
+            turningDirection = "left";
+        }
+
+        if (Math.abs(robotRotationError) > 10) {
+            if (turningDirection.equals("right")) {
+                Drive(0, 0, .5);
+            }
+            else {
+                Drive(0, 0, -.5);
+            }
+        }
+        else {
+            Drive(0,0,0);
+        }
+    }
+
+    public double DeadModifier(double joystickValue) {
         if(joystickValue < DEADZONE && joystickValue > -DEADZONE)
             return 0;
         else {
@@ -459,6 +502,31 @@ public class PowerSurgeTeleOp extends OpMode {
 
         return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     }
+
+    //
+    // IMU
+    //
+
+    public void initializeImu() {
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+
+        //Initialize IMU parameters
+        parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+        parameters.loggingEnabled      = true;
+        parameters.loggingTag          = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+        imu.initialize(parameters);
+        telemetry.addData("Odometry System Calibration Status", "IMU Init Complete");
+    }
+
+    public void checkImu() {
+        double angle = -imu.getAngularOrientation().firstAngle;
+        telemetry.addData("IMU Angle", angle);
+    }
+
 
     //
     // INTAKE
@@ -591,7 +659,6 @@ public class PowerSurgeTeleOp extends OpMode {
             if (stoneOrientation.equals("right")) {
                 runLeftServo();
             }
-
             if (stoneOrientation.equals("left")) {
                 runRightServo();
             }
@@ -606,8 +673,15 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void manualOverride() {
-        if (gamepad2.right_bumper) {
+        if (gamepad2.a) {
             manualReset = true;
+        }
+
+        if (gamepad2.right_bumper) {
+            runLeftServo();
+        }
+        else if (gamepad2.left_bumper) {
+            runRightServo();
         }
     }
 
@@ -650,4 +724,17 @@ public class PowerSurgeTeleOp extends OpMode {
             straightenerBusy = false;
         }
     }
+
+    //
+    // Loop Lag Timer
+    //
+
+    /*public void startLoopLagTimer() {
+
+        lagTimer =
+    }
+
+    public void checkLoopLagTimer() {
+        telemetry.addData("Lag in Seconds", )
+    }*/
 }
