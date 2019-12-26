@@ -104,19 +104,19 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
         if (positionSkystone.equals("Left")) {
             SkystoneXPosition = (38);
             SkystoneYPosition = (44);
-//            driveToSkystonePosition(globalPositionUpdate);
+            driveToSkystonePosition(globalPositionUpdate);
             IntakeMotor.setPower(1);
         }
         else if (positionSkystone.equals("Center")) {
             SkystoneXPosition = (38);
             SkystoneYPosition = (36);
-//            driveToSkystonePosition(globalPositionUpdate);
+            driveToSkystonePosition(globalPositionUpdate);
             IntakeMotor.setPower(1);
         }
         else if (positionSkystone.equals("Right")) {
             SkystoneXPosition = (38);
             SkystoneYPosition = (32);
-//            driveToSkystonePosition(globalPositionUpdate);
+            driveToSkystonePosition(globalPositionUpdate);
             IntakeMotor.setPower(1);
         }
         else {
@@ -210,19 +210,20 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
     }
 
     private void driveToSkystonePosition(OdometryGlobalCoordinatePosition position) {
-        double distanceAway = getDistanceFromCoordinates(SkystoneXPosition, SkystoneYPosition, position);
+
 
         while (position.returnYCoordinate() < SkystoneYPosition) {
-            FrontRight.setPower(1);
-            FrontLeft.setPower(-1);
-            BackRight.setPower(-1);
-            BackLeft.setPower(1);
-        }
-        while (position.returnYCoordinate() > SkystoneYPosition) {
-            FrontRight.setPower(-1);
+            FrontRight.setPower(0);
             FrontLeft.setPower(1);
             BackRight.setPower(1);
-            BackLeft.setPower(-1);
+            BackLeft.setPower(0);
+            getDistanceFromCoordinates(SkystoneXPosition, SkystoneYPosition, position);
+        }
+        while (position.returnYCoordinate() > SkystoneYPosition) {
+            FrontRight.setPower(1);
+            FrontLeft.setPower(0);
+            BackRight.setPower(0);
+            BackLeft.setPower(1);
         }
         while(position.returnXCoordinate() > SkystoneXPosition + 10) {
             FrontRight.setPower(1);
