@@ -74,69 +74,73 @@ public class PowerSurgeTeleOp extends OpMode {
     private ModernRoboticsI2cRangeSensor StonePresenceSensor;
 
     private int intakeState = 0;
-    private boolean outputButton;
-    private boolean intakeButton;
-    private boolean firstPressDpadUp = true;
+    private int intakeReleaseState = 1;
+    private int liftHeight = 0;
 
-    private boolean liftEncoderState = true;
-    private boolean firstPressa = true;
+
     private boolean firstLiftUpButton;
     private boolean firstLiftDownButton;
     private boolean liftUpCommand;
     private boolean liftDownCommand;
+    private boolean outputButton;
+    private boolean intakeButton;
+
+    private boolean firstPressa = true;
+    private boolean firstPressb = true;
     private boolean firstPressDown = true;
     private boolean firstPressUp = true;
-    private int liftHeight = 0;
+    private boolean firstLeftRun = true;
+    private boolean firstPressDpadUp = true;
     private boolean liftIsDown = true;
 
     private boolean lastWaffleState = false;
     private boolean isWaffleStateRaised = false;
-    private double foundationatorPosition = .335;
-
-    static final double countsPerMotor          = 383.6;
-    static final double gearReduction           = 1.0 ;
-    static final double wheelDiameter           = 1.771653543307087 ;
-    static final double countsPerInch           = (countsPerMotor * gearReduction) / (wheelDiameter * Math.PI);
-
-    private String stoneOrientation = "empty";
-    private String lCurrentPosition = "lDisengage";
-    private String rCurrentPosition = "rDisengage";
-    private double orientDistance = 0;
-    private double stoneDistance;
-    private double lDisengage = .5;
-    private double rDisengage = 1;
-    private double lEngage = 1;
-    private double rEngage = .5;
+    private boolean liftEncoderState = true;
     private boolean readyToGrab = false;
     private boolean manualReset = false;
     private boolean stoneFullyInStraightener = false;
     private boolean straightenerBusy = false;
     private boolean firstRightRun = true;
+
+    static final double countsPerMotor          = 383.6;
+    static final double gearReduction           = 1.0 ;
+    static final double wheelDiameter           = 1.771653543307087 ;
+    static final double countsPerInch           = (countsPerMotor * gearReduction) / (wheelDiameter * Math.PI);
+    static final double liftOffset = (1.5 * countsPerInch);     //TODO Change
+    static final double minimumSwingPosition = 8;
+
+    private String stoneOrientation = "empty";
+    private String lCurrentPosition = "lDisengage";
+    private String rCurrentPosition = "rDisengage";
+    private double foundationatorPosition = .335;
+    private double orientDistance = 0;
+    private double lDisengage = .5;
+    private double rDisengage = 1;
+    private double lEngage = 1;
+    private double rEngage = .5;
     private double startRightTime = 0;
     private double currentRightTime = 0;
     private double actualRightTime = 0;
     private double lastActualRightTime = 0;
     private double rightOrientCheck = 1;
-    private boolean firstLeftRun = true;
     private double startLeftTime = 0;
     private double currentLeftTime = 0;
     private double actualLeftTime = 0;
     private double lastActualLeftTime = 0;
     private double targetTime = .5;
+    private double stoneDistance;
 
-    private boolean firstPressb = true;
-    private int intakeReleaseState = 1;
 
     @Override
     public void init() {
         telemetry.addData("Version Number", "12-23-19 700pm");
         initializeVerticalLift();
         initializeFoundationator();
+        initializeGrabber();
         initializeDriveTrain();
         initializeOdometry();
         initializeIntakeMechanism();
         initializeStraightener();
-        initializeGrabber();
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
     }
@@ -152,8 +156,8 @@ public class PowerSurgeTeleOp extends OpMode {
     public void loop() {
         checkVerticalLift();
         checkFoundationator();
-        checkOdometry();
         checkDriveTrain();
+        checkOdometry();
         checkIntakeMechanism();
         checkStraightener();
         telemetry.update();
@@ -212,7 +216,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
         if (liftEncoderState) {
             LiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            LiftMotor.setPower(.1);
+            LiftMotor.setPower(.3);
             telemetry.addData("LiftMotorDistance",LiftMotor.getCurrentPosition() - LiftMotor.getTargetPosition());
             //setting the Target position if we press the right bumper
             if (LiftUpButton > .5) {
@@ -243,7 +247,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
             if (liftUpCommand) {
                 liftHeight++;
-                LiftMotor.setTargetPosition((int)(liftHeight * (4 * countsPerInch)));
+                LiftMotor.setTargetPosition((int)(liftHeight * (4 * countsPerInch) + liftOffset));
                 liftUpCommand = false;
             }
             else if (liftDownCommand) {
@@ -265,7 +269,7 @@ public class PowerSurgeTeleOp extends OpMode {
             LiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             LiftMotor.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
         }
-    }
+}
 
     //
     // FOUNDATIONATOR
