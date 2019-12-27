@@ -57,6 +57,9 @@ public class PowerSurgeTeleOp extends OpMode {
     private static final double GRABBERSERVOCLOSEDPOSITION = 0;
     private static final double GRABBERSERVOOPENPOSITION = .5;
 
+    private int autoDrivingStage = 0;
+    private int autoDrivingTimes = 0;
+
     OdometryGlobalCoordinatePosition globalPositionUpdate;
     Thread positionThread;
 
@@ -86,7 +89,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean outputButton;
     private boolean intakeButton;
     private boolean firstPressDpadUp = true;
-
+    private boolean firstPressBumpers = true;
     private boolean liftEncoderState = true;
     private boolean firstPressa = true;
     private boolean firstLiftUpButton;
@@ -153,6 +156,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void start() {
+        startIntakeMechanism();
         startOdometry();
         telemetry.addData("Status", "Odometry System has started");
         telemetry.update();
@@ -373,9 +377,16 @@ public class PowerSurgeTeleOp extends OpMode {
 
     public void checkDriveTrain() {
         if (gamepad1.right_bumper && gamepad1.left_bumper) {
-            driveToScoringPosition();
+            if (firstPressBumpers) {
+                autoDrivingStage = 0;
+                autoDrivingTimes = 0;
+                firstPressBumpers = false;
+            }
+            smoothDriveToScoringPosition();
         }
         else {
+            firstPressBumpers = true;
+
             double forwardButton = gamepad1.left_stick_y;
             double sidewaysButton = gamepad1.left_stick_x;
             double spinningButton = gamepad1.right_stick_x;
@@ -392,30 +403,171 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void driveToScoringPosition() {
-        double rightRobotRotationError = Math.abs(RobotRotation - ScoringRotation);
-        double leftRobotRotationError = Math.abs(ScoringRotation - RobotRotation);
-        double robotRotationError;
         java.lang.String turningDirection;
-        if (rightRobotRotationError < leftRobotRotationError) {
-            robotRotationError = rightRobotRotationError;
-            turningDirection = "right";
-        }
-        else {
-            robotRotationError = leftRobotRotationError;
+        double distanceFromOrientation;
+
+        if (RobotRotation > 2 && RobotRotation < 180) {
             turningDirection = "left";
         }
-
-        if (Math.abs(robotRotationError) > 10) {
+        else {
+            turningDirection = "right";
+        }
+        telemetry.addData("TurningDirection", turningDirection);
+        if (RobotRotation > 2 && RobotRotation < 358) {
             if (turningDirection.equals("right")) {
-                Drive(0, 0, .5);
+                distanceFromOrientation = 360 - RobotRotation;
+                if (distanceFromOrientation > 120) {
+                    Drive(0, 0, 1);
+                }
+                else if (distanceFromOrientation > 45) {
+                    Drive(0,0,.35);
+                }
+                else {
+                    Drive(0,0,.15);
+                }
             }
             else {
-                Drive(0, 0, -.5);
+                distanceFromOrientation = RobotRotation;
+                if (distanceFromOrientation > 120) {
+                    Drive(0, 0, -1);
+                }
+                else if (distanceFromOrientation > 45) {
+                    Drive(0,0,-.35);
+                }
+                else {
+                    Drive(0,0,-.15);
+                }
+            }
+            telemetry.addData("DistanceFromOrientation", distanceFromOrientation);
+        }
+        else if (RobotYPosition < -.5 || RobotYPosition > .5) {
+            if (RobotYPosition < 0) {
+                if (RobotYPosition < -6) {
+                    Drive(-.3,0,0);
+                }
+                else {
+                    Drive(-.1, 0, 0);
+                }
+            }
+            else {
+                if (RobotYPosition > 6) {
+                    Drive(.3,0,0);
+                }
+                else {
+                    Drive(.1,0,0);
+                }
+            }
+        }
+        else if (RobotXPosition < -.5 || RobotXPosition > .5) {
+            if (RobotXPosition < 0) {
+                if (RobotXPosition < -6) {
+                    Drive(0,.5,0);
+                }
+                else {
+                    Drive(0, .2, 0);
+                }
+            }
+            else {
+                if (RobotXPosition > 6) {
+                    Drive(0,-.5,0);
+                }
+                else {
+                    Drive(0,-.2,0);
+                }
             }
         }
         else {
             Drive(0,0,0);
         }
+    }
+
+    public void smoothDriveToScoringPosition() {
+        java.lang.String turningDirection;
+        double distanceFromOrientation;
+
+        if (RobotRotation > 2 && RobotRotation < 180) {
+            turningDirection = "left";
+        } else {
+            turningDirection = "right";
+        }
+        telemetry.addData("TurningDirection", turningDirection);
+
+        if (autoDrivingStage == 0) {
+            if (RobotRotation > 5 && RobotRotation < 355) {
+                if (turningDirection.equals("right")) {
+                    distanceFromOrientation = 360 - RobotRotation;
+                    if (distanceFromOrientation > 120) {
+                        Drive(0, 0, .6);
+                    } else if (distanceFromOrientation > 45) {
+                        Drive(0, 0, .35);
+                    } else {
+                        Drive(0, 0, .15);
+                    }
+                } else {
+                    distanceFromOrientation = RobotRotation;
+                    if (distanceFromOrientation > 120) {
+                        Drive(0, 0, -.6);
+                    } else if (distanceFromOrientation > 45) {
+                        Drive(0, 0, -.35);
+                    } else {
+                        Drive(0, 0, -.15);
+                    }
+                }
+                telemetry.addData("DistanceFromOrientation", distanceFromOrientation);
+            }
+            else {
+                autoDrivingStage++;
+            }
+        }
+        else if (autoDrivingStage == 1) {
+            if (RobotYPosition < -.5 || RobotYPosition > .5) {
+                if (RobotYPosition < 0) {
+                    if (RobotYPosition < -12) {
+                        Drive(-.3, 0, 0);
+                    } else {
+                        Drive(-.1, 0, 0);
+                    }
+                } else {
+                    if (RobotYPosition > 12) {
+                        Drive(.3, 0, 0);
+                    } else {
+                        Drive(.1, 0, 0);
+                    }
+                }
+            }
+            else {
+                autoDrivingStage++;
+            }
+        }
+        else if (autoDrivingStage == 2) {
+            if (RobotXPosition < -.5 || RobotXPosition > .5) {
+                if (RobotXPosition < 0) {
+                    if (RobotXPosition < -6) {
+                        Drive(0, .5, 0);
+                    } else {
+                        Drive(0, .2, 0);
+                    }
+                } else {
+                    if (RobotXPosition > 6) {
+                        Drive(0, -.5, 0);
+                    } else {
+                        Drive(0, -.2, 0);
+                    }
+                }
+            } else {
+                if (autoDrivingTimes == 0) {
+                    autoDrivingTimes = 1;
+                    autoDrivingStage = 0;
+                }
+                else {
+                    Drive(0, 0, 0);
+                }
+            }
+        }
+    }
+
+    public void oneMotionDriveToScoringPosition() {
+        
     }
 
     public double DeadModifier(double joystickValue) {
@@ -476,6 +628,10 @@ public class PowerSurgeTeleOp extends OpMode {
         RobotYPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + StartingYPosition;
         RobotRotation = (globalPositionUpdate.returnOrientation()) + StartingRotation;
 
+        if (RobotRotation < 0){
+            RobotRotation += 360;
+        }
+
         telemetry.addData("X", RobotXPosition);
         telemetry.addData("Y", RobotYPosition);
         telemetry.addData("θ", RobotRotation);
@@ -534,6 +690,8 @@ public class PowerSurgeTeleOp extends OpMode {
         IntakeReleaseServo = hardwareMap.servo.get("IntakeReleaseServo");
         IntakeMotor.setPower(0);
         IntakeAssistServo.setPower(0);
+    }
+    public void startIntakeMechanism() {
         IntakeReleaseServo.setPosition(.6);
     }
 
