@@ -90,10 +90,10 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean liftEncoderState = true;
     private boolean firstPressa = true;
     private boolean firstPressb = true;
+    private boolean firstPressx = true;
     private boolean firstPressDown = true;
     private boolean firstPressUp = true;
     private boolean firstLeftRun = true;
-    private boolean liftIsDown = true;
 
     private boolean lastWaffleState = false;
     private boolean isWaffleStateRaised = false;
@@ -115,9 +115,9 @@ public class PowerSurgeTeleOp extends OpMode {
     private String rCurrentPosition = "rDisengage";
     private double foundationatorPosition = .335;
     private double orientDistance = 0;
-    private double lDisengage = .5;
+    private double lDisengage = .3;
     private double rDisengage = 1;
-    private double lEngage = 1;
+    private double lEngage = .8;
     private double rEngage = .5;
     private double startRightTime = 0;
     private double currentRightTime = 0;
@@ -134,7 +134,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void init() {
-        telemetry.addData("Version Number", "12-23-19 700pm");
+        telemetry.addData("Version Number", "12-26-19 700pm");
         initializeVerticalLift();
         initializeFoundationator();
         initializeGrabber();
@@ -148,6 +148,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void start() {
+        startFoundationator();
         startIntakeMechanism();
         startOdometry();
         telemetry.addData("Status", "Odometry System has started");
@@ -280,6 +281,9 @@ public class PowerSurgeTeleOp extends OpMode {
     public void initializeFoundationator() {
         lFoundationator = hardwareMap.servo.get("lFoundationator");
         rFoundationator = hardwareMap.servo.get("rFoundationator");
+    }
+
+    public void startFoundationator() {
         lFoundationator.setPosition(0);
         rFoundationator.setPosition(foundationatorPosition);
     }
@@ -557,7 +561,29 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void oneMotionDriveToScoringPosition() {
-        
+        java.lang.String turningDirection;
+        double distanceFromOrientation;
+        int inversingPowerRotationMultiplier;
+
+        if (RobotRotation > 2 && RobotRotation < 180) {
+            turningDirection = "left";
+        } else {
+            turningDirection = "right";
+        }
+        telemetry.addData("TurningDirection", turningDirection);
+        if (turningDirection.equals("right")) {
+            distanceFromOrientation = 360 - RobotRotation;
+            inversingPowerRotationMultiplier = 1;
+        }
+        else {
+            distanceFromOrientation = RobotRotation;
+            inversingPowerRotationMultiplier = -1;
+        }
+        telemetry.addData("DistanceFromOrientation", distanceFromOrientation);
+
+
+
+        //Drive((.3*));
     }
 
 //    public double DeadModifier(double joystickValue) {
@@ -626,6 +652,18 @@ public class PowerSurgeTeleOp extends OpMode {
         RobotYPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + StartingYPosition;
         RobotRotation = (globalPositionUpdate.returnOrientation()) + StartingRotation;
 
+        if (gamepad1.b) {
+            if (firstPressb) {
+                firstPressb = false;
+                StartingXPosition = -RobotXPosition;
+                StartingYPosition = -RobotYPosition;
+                StartingRotation = -RobotRotation;
+            }
+        }
+        else {
+            firstPressb = true;
+        }
+
         if (RobotRotation < 0){
             RobotRotation += 360;
         }
@@ -675,18 +713,18 @@ public class PowerSurgeTeleOp extends OpMode {
         intake(intakeButton);
 
         if (gamepad1.x) {
-            if (firstPressb) {
+            if (firstPressx) {
                 if (intakeReleaseState == 1) {
                     intakeReleaseState = 0;
                 }
                 else {
                     intakeReleaseState = 1;
                 }
-                firstPressb = false;
+                firstPressx = false;
             }
         }
         else {
-            firstPressb = true;
+            firstPressx = true;
         }
 
         if (intakeReleaseState == 0) {
@@ -744,7 +782,7 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void checkStraightener() {
-        //stoneFullyInStraightener = gamepad1.b;
+
         stoneDistance = StonePresenceSensor.getDistance(DistanceUnit.INCH);
         telemetry.addData("Stone Distance", stoneDistance);
         if (stoneDistance < .5) {
