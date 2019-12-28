@@ -54,6 +54,9 @@ public class PowerSurgeTeleOp extends OpMode {
     private int autoDrivingStage = 0;
     private int autoDrivingTimes = 0;
 
+    private double rightBackupDistance;
+    private double leftBackupDistance;
+
     OdometryGlobalCoordinatePosition globalPositionUpdate;
     Thread positionThread;
 
@@ -75,6 +78,9 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private ModernRoboticsI2cRangeSensor OrientationSensor;
     private ModernRoboticsI2cRangeSensor StonePresenceSensor;
+
+    private ModernRoboticsI2cRangeSensor RightBackupSensor;
+    private ModernRoboticsI2cRangeSensor LeftBackupSensor;
 
     private int intakeState = 0;
     private int intakeReleaseState = 1;
@@ -115,10 +121,10 @@ public class PowerSurgeTeleOp extends OpMode {
     private String rCurrentPosition = "rDisengage";
     private double foundationatorPosition = .335;
     private double orientDistance = 0;
-    private double lDisengage = .3;
+    private double lDisengage = .2;
     private double rDisengage = 1;
-    private double lEngage = .8;
-    private double rEngage = .5;
+    private double lEngage = .85;
+    private double rEngage = .25;
     private double startRightTime = 0;
     private double currentRightTime = 0;
     private double actualRightTime = 0;
@@ -129,7 +135,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private double actualLeftTime = 0;
     private double lastActualLeftTime = 0;
     private double targetTime = .5;
-    private double stoneDistance;
+    private double stoneDistance = 0;
 
 
     @Override
@@ -360,6 +366,8 @@ public class PowerSurgeTeleOp extends OpMode {
     //
 
     public void initializeDriveTrain() {
+        RightBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "RightBackupSensor");
+        LeftBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "LeftBackupSensor");
         FrontRight = hardwareMap.dcMotor.get("FrontRight");
         FrontLeft = hardwareMap.dcMotor.get("FrontLeft");
         BackRight = hardwareMap.dcMotor.get("BackRight");
@@ -371,13 +379,19 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void checkDriveTrain() {
+        rightBackupDistance = RightBackupSensor.getDistance(DistanceUnit.INCH);
+        leftBackupDistance = LeftBackupSensor.getDistance(DistanceUnit.INCH);
+
+        telemetry.addData("Right Backup Distance", rightBackupDistance);
+        telemetry.addData("Left Backup Distance", leftBackupDistance);
+
         if (gamepad1.right_bumper && gamepad1.left_bumper) {
             if (firstPressBumpers) {
-                autoDrivingStage = 0;
-                autoDrivingTimes = 0;
+                //autoDrivingStage = 0;
+                //autoDrivingTimes = 0;
                 firstPressBumpers = false;
             }
-            smoothDriveToScoringPosition();
+            goToPosition(0,0,0,.5,.5);
         } else {
             firstPressBumpers = true;
 
@@ -395,6 +409,72 @@ public class PowerSurgeTeleOp extends OpMode {
             Drive(forwardButton, sidewaysButton, spinningButton);
         }
     }
+
+    // From Gluten Free
+
+    public void goToPosition(double x, double y, double movementSpeed) {
+        double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
+        double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
+        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (RobotRotation-90));
+
+        double relativeXToPoint = Math.cos(relativeAngleToPoint) * distanceToTarget;
+        double relativeYToPoint = Math.sin(relativeAngleToPoint) * distanceToTarget;
+
+        double movementXPower = relativeXToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
+        double movementYPower = relativeYToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
+
+        movement_x = movementXPower * movementSpeed;
+        movement_y = movementYPower * movementSpeed;
+    }
+
+    public double AngleWrap(double angle){
+        while(angle < -180) {
+            angle += 360;
+        }
+        while(angle > 180) {
+            angle -= 360;
+        }
+        return angle;
+    }
+
+    // From Wizards
+
+    /*private void goToPosition(double targetXPosition, double targetYPosition, double targetOrientation, double power, double allowableDistanceError) {
+        double distanceToXTarget = (targetXPosition*COUNTS_PER_INCH) - globalPositionUpdate.returnXCoordinate();
+        double distanceToYTarget = (targetYPosition*COUNTS_PER_INCH) - globalPositionUpdate.returnYCoordinate();
+
+        double distance = Math.hypot(distanceToXTarget, distanceToYTarget);
+
+        double robotMovementAngle = Math.toDegrees(Math.atan2(distanceToXTarget, distanceToYTarget));
+
+        double robot_movement_x_component = calculateX(robotMovementAngle, power);
+        double robot_movement_y_component = calculateY(robotMovementAngle, power);
+        double pivotCorrection = targetOrientation - globalPositionUpdate.returnOrientation();
+
+        if (distance < allowableDistanceError) {
+            Drive(0,0,0);
+        }
+        else {
+//            FrontRight.setPower(-DZSidewaysButton - DZForwardButton - DZSpinningButton);
+//            FrontLeft.setPower(-DZSidewaysButton + DZForwardButton - DZSpinningButton);
+//            BackRight.setPower(DZSidewaysButton - DZForwardButton - DZSpinningButton);
+//            BackLeft.setPower(DZSidewaysButton + DZForwardButton - DZSpinningButton);
+
+            telemetry.addData("robot_movement_x_component", robot_movement_x_component);
+            telemetry.addData("robot_movement_y_component", robot_movement_y_component);
+            telemetry.addData("pivotCorrection", pivotCorrection);
+            telemetry.addData("robotMovementAngle", robotMovementAngle);
+        }
+    }*/
+
+    private double calculateX(double desiredAngle, double speed) {
+        return Math.sin(Math.toRadians(desiredAngle)) * speed;
+    }
+    private double calculateY(double desiredAngle, double speed) {
+        return Math.cos(Math.toRadians(desiredAngle)) * speed;
+    }
+
+    // By DH
 
     public void driveToScoringPosition() {
         java.lang.String turningDirection;
@@ -580,10 +660,6 @@ public class PowerSurgeTeleOp extends OpMode {
             inversingPowerRotationMultiplier = -1;
         }
         telemetry.addData("DistanceFromOrientation", distanceFromOrientation);
-
-
-
-        //Drive((.3*));
     }
 
 //    public double DeadModifier(double joystickValue) {
@@ -593,6 +669,8 @@ public class PowerSurgeTeleOp extends OpMode {
 //
 //        Drive(forwardButton, sidewaysButton, spinningButton);
 //    }
+
+    // By Paul
 
     public double  DeadModifier(double joystickValue) {
         if(joystickValue < DEADZONE && joystickValue > -DEADZONE)
@@ -782,10 +860,9 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void checkStraightener() {
-
         stoneDistance = StonePresenceSensor.getDistance(DistanceUnit.INCH);
         telemetry.addData("Stone Distance", stoneDistance);
-        if (stoneDistance < .5) {
+        if (stoneDistance < 1.5) {
             stoneFullyInStraightener = true;
         }
         else {
@@ -798,7 +875,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private void senseOrientation() {
         orientDistance = OrientationSensor.getDistance(DistanceUnit.INCH);
-        telemetry.addData("sensor distance", orientDistance);
+        telemetry.addData("Orient Distance", orientDistance);
 
         // StoneOrientation is assigned relative to the side of the robot that the studs of the stone
         // are on when looking at the robot from the back.
@@ -841,6 +918,12 @@ public class PowerSurgeTeleOp extends OpMode {
     private void manualOverride() {
         if (gamepad2.right_bumper) {
             manualReset = true;
+        }
+        if (gamepad2.dpad_right) {
+            runLeftServo();
+        }
+        if (gamepad2.dpad_left) {
+            runRightServo();
         }
     }
 
