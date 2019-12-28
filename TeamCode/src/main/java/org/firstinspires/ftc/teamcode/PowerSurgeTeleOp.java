@@ -10,6 +10,7 @@ import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
+import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
 import java.io.File;
@@ -53,6 +54,10 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private int autoDrivingStage = 0;
     private int autoDrivingTimes = 0;
+
+    private double movement_x;
+    private double movement_y;
+    private double movement_turn;
 
     private double rightBackupDistance;
     private double leftBackupDistance;
@@ -391,7 +396,8 @@ public class PowerSurgeTeleOp extends OpMode {
                 //autoDrivingTimes = 0;
                 firstPressBumpers = false;
             }
-            goToPosition(0,0,0,.5,.5);
+            goToPosition(0,0,.3,.3,0);
+            Drive(movement_y, movement_x, movement_turn);
         } else {
             firstPressBumpers = true;
 
@@ -412,7 +418,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     // From Gluten Free
 
-    public void goToPosition(double x, double y, double movementSpeed) {
+    public void goToPosition(double x, double y, double movementSpeed, double turnSpeed, double preferredAngle) {
         double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
         double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
         double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (RobotRotation-90));
@@ -425,6 +431,13 @@ public class PowerSurgeTeleOp extends OpMode {
 
         movement_x = movementXPower * movementSpeed;
         movement_y = movementYPower * movementSpeed;
+
+        double relativeTurnAngle = relativeAngleToPoint - 180 + preferredAngle;
+        movement_turn = Range.clip(relativeTurnAngle / 30, -1, 1) * turnSpeed;
+
+        if (distanceToTarget < 3) {
+            movement_turn = 0;
+        }
     }
 
     public double AngleWrap(double angle){
