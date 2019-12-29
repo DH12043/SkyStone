@@ -127,7 +127,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private double foundationatorPosition = .335;
     private double orientDistance = 0;
     private double lDisengage = .2;
-    private double rDisengage = 1;
+    private double rDisengage = .9;
     private double lEngage = .85;
     private double rEngage = .25;
     private double startRightTime = 0;
@@ -260,7 +260,13 @@ public class PowerSurgeTeleOp extends OpMode {
             }
 
             if (liftUpCommand) {
-                liftHeight++;
+                if (liftHeight >= 10) {
+                    liftHeight = 10;
+                }
+                else {
+                    liftHeight++;
+                }
+
                 LiftMotor.setTargetPosition((int)(liftHeight * (4 * countsPerInch) + liftOffset));
                 liftUpCommand = false;
             }
@@ -396,8 +402,7 @@ public class PowerSurgeTeleOp extends OpMode {
                 //autoDrivingTimes = 0;
                 firstPressBumpers = false;
             }
-            goToPosition(0,0,.3,.3,0);
-            Drive(movement_y, movement_x, movement_turn);
+            goToPosition(0,0,.5,.5, 0);
         } else {
             firstPressBumpers = true;
 
@@ -438,6 +443,8 @@ public class PowerSurgeTeleOp extends OpMode {
         if (distanceToTarget < 3) {
             movement_turn = 0;
         }
+        Drive(.3*movement_y, movement_x, .3*movement_turn);
+        Drive(.3*movement_y, movement_x, .3*movement_turn);
     }
 
     public double AngleWrap(double angle){

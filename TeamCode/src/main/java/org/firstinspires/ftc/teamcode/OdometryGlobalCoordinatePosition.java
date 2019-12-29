@@ -52,7 +52,6 @@ public class OdometryGlobalCoordinatePosition implements Runnable{
 
         robotEncoderWheelDistance = Double.parseDouble(ReadWriteFile.readFile(wheelBaseSeparationFile).trim()) * COUNTS_PER_INCH;
         this.horizontalEncoderTickPerDegreeOffset = Double.parseDouble(ReadWriteFile.readFile(horizontalTickOffsetFile).trim());
-
     }
 
     /**
