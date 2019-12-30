@@ -139,7 +139,7 @@ public class PowerSurgeTeleOp extends OpMode {
         initializeGrabber();
         initializeDriveTrain();
         initializeOdometry();
-//        initializeIntakeMechanism();
+        initializeIntakeMechanism();
         initializeStraightener();
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
@@ -158,7 +158,7 @@ public class PowerSurgeTeleOp extends OpMode {
         checkFoundationator();
         checkDriveTrain();
         checkOdometry();
-//        checkIntakeMechanism();
+        checkIntakeMechanism();
         checkStraightener();
         telemetry.update();
     }
