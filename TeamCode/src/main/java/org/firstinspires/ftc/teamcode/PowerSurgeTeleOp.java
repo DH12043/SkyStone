@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.os.SystemClock;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -140,6 +142,10 @@ public class PowerSurgeTeleOp extends OpMode {
     private double lastActualLeftTime = 0;
     private double targetTime = .5;
     private double stoneDistance = 0;
+
+
+    //last update time
+    private long lastUpdateTime = 0;
 
 
     @Override
@@ -425,7 +431,7 @@ public class PowerSurgeTeleOp extends OpMode {
     public void goToPosition(double x, double y, double movementSpeed, double turnSpeed, double preferredAngle) {
         double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
         double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
-        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (RobotRotation-90));
+        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (Math.toRadians(RobotRotation)-Math.toRadians(90)));
 
         double relativeXToPoint = Math.cos(relativeAngleToPoint) * distanceToTarget;
         double relativeYToPoint = Math.sin(relativeAngleToPoint) * distanceToTarget;
@@ -436,23 +442,72 @@ public class PowerSurgeTeleOp extends OpMode {
         movement_x = movementXPower * movementSpeed;
         movement_y = movementYPower * movementSpeed;
 
-        double relativeTurnAngle = relativeAngleToPoint - 180 + preferredAngle;
-        movement_turn = Range.clip(relativeTurnAngle / 30, -1, 1) * turnSpeed;
-
+        double relativeTurnAngle = relativeAngleToPoint - Math.toRadians(180) + preferredAngle;
         if (distanceToTarget < 3) {
             movement_turn = 0;
+        } else {
+            movement_turn = Range.clip(relativeTurnAngle / Math.toRadians(30), -1, 1) * turnSpeed;
         }
-        Drive(.3*movement_y, movement_x, .3*movement_turn);
-        Drive(.3*movement_y, movement_x, .3*movement_turn);
+
+        applyMovement();
     }
 
-    public double AngleWrap(double angle){
-        while(angle < -180) {
-            angle += 360;
+    /**converts movement_y, movement_x, movement_turn into motor powers */
+    // Code comes from 11115 Peter and 7571 Alumineers
+    public void applyMovement() {
+        long currTime = SystemClock.uptimeMillis();
+        if(currTime - lastUpdateTime < 16){
+            return;
         }
-        while(angle > 180) {
-            angle -= 360;
+        lastUpdateTime = currTime;
+
+
+        double fl_power_raw = movement_y-movement_turn+movement_x*1.5;
+        double bl_power_raw = movement_y-movement_turn- movement_x*1.5;
+        double br_power_raw = -movement_y-movement_turn-movement_x*1.5;
+        double fr_power_raw = -movement_y-movement_turn+movement_x*1.5;
+
+        //find the maximum of the powers
+        double maxRawPower = Math.abs(fl_power_raw);
+        if(Math.abs(bl_power_raw) > maxRawPower){ maxRawPower = Math.abs(bl_power_raw);}
+        if(Math.abs(br_power_raw) > maxRawPower){ maxRawPower = Math.abs(br_power_raw);}
+        if(Math.abs(fr_power_raw) > maxRawPower){ maxRawPower = Math.abs(fr_power_raw);}
+
+        //if the maximum is greater than 1, scale all the powers down to preserve the shape
+        double scaleDownAmount = 1.0;
+        if(maxRawPower > 1.0){
+            //when max power is multiplied by this ratio, it will be 1.0, and others less
+            scaleDownAmount = 1.0/maxRawPower;
         }
+        fl_power_raw *= scaleDownAmount;
+        bl_power_raw *= scaleDownAmount;
+        br_power_raw *= scaleDownAmount;
+        fr_power_raw *= scaleDownAmount;
+
+
+        //now we can set the powers ONLY IF THEY HAVE CHANGED TO AVOID SPAMMING USB COMMUNICATIONS
+        FrontLeft.setPower(fl_power_raw);
+        BackLeft.setPower(bl_power_raw);
+        BackRight.setPower(br_power_raw);
+        FrontRight.setPower(fr_power_raw);
+    }
+
+    /**
+     * wrap angle to -180 to 180
+     * @param angle angle to be wrapped in radians
+     * @return new angle in radians
+     */
+
+    public static double AngleWrap(double angle){
+
+        while(angle < -Math.PI){
+            angle += 2*Math.PI;
+        }
+        while(angle > Math.PI){
+            angle -= 2*Math.PI;
+        }
+
+
         return angle;
     }
 
