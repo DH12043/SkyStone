@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Point;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -14,6 +16,7 @@ import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
 import java.io.File;
+import java.util.ArrayList;
 
 
 @TeleOp(name = "PowerSurgeTeleOp")
@@ -132,20 +135,24 @@ public class PowerSurgeTeleOp extends OpMode {
     private double rEngage = .25;
     private double startRightTime = 0;
     private double currentRightTime = 0;
-    private double actualRightTime = 0;
+    private double actualRightTime = 1.5;
     private double lastActualRightTime = 0;
     private double rightOrientCheck = 1;
     private double startLeftTime = 0;
     private double currentLeftTime = 0;
-    private double actualLeftTime = 0;
+    private double actualLeftTime = 1.5;
+    private double waitTime = 1;
     private double lastActualLeftTime = 0;
-    private double targetTime = .5;
+    private double targetTime = .5 + waitTime;
     private double stoneDistance = 0;
+
+    private double startGrabberTime;
+    private double currentGrabberTime;
 
 
     @Override
     public void init() {
-        telemetry.addData("Version Number", "12-26-19 700pm");
+        telemetry.addData("Version Number", "12-30-19 600pm");
         initializeVerticalLift();
         initializeFoundationator();
         initializeGrabber();
@@ -350,7 +357,35 @@ public class PowerSurgeTeleOp extends OpMode {
         MoveArmServo = hardwareMap.servo.get("MoveArmServo");
     }
 
-    private void grabStoneFromStraightener() {
+    private void checkGrabber() {
+        if (gamepad1.b) {
+            if (firstPressb) {
+                GrabberServo.setPosition(.1);
+                startGrabberTime = getRuntime();
+                firstPressb = false;
+            }
+        }
+        else {
+            firstPressb = true;
+        }
+    }
+
+    private void grabRotateRaiseStone() {
+        currentGrabberTime = getRuntime();
+
+        if (currentGrabberTime - startGrabberTime > .5) {
+            LiftMotor.setTargetPosition((int)(6 * countsPerInch));
+        }
+
+        if (LiftMotor.getCurrentPosition() > 500) {
+            MoveArmServo.setPosition(1);
+        }
+        else {
+            MoveArmServo.setPosition(0);
+        }
+    }
+
+    /*private void grabStoneFromStraightener() {
         GrabberServo.setPosition(.5);
         // close grabber servo
         return;
@@ -370,7 +405,7 @@ public class PowerSurgeTeleOp extends OpMode {
         GrabberServo.setPosition(0);
         // open grabber servo to release stone
         return;
-    }
+    }*/
 
     //
     // DRIVE TRAIN
@@ -402,7 +437,7 @@ public class PowerSurgeTeleOp extends OpMode {
                 //autoDrivingTimes = 0;
                 firstPressBumpers = false;
             }
-            goToPosition(0,0,.5,.5, 0);
+            goToPosition(0,0,.3,.3, 0);
         } else {
             firstPressBumpers = true;
 
@@ -425,8 +460,9 @@ public class PowerSurgeTeleOp extends OpMode {
 
     public void goToPosition(double x, double y, double movementSpeed, double turnSpeed, double preferredAngle) {
         double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
+
         double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
-        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (RobotRotation-90));
+        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - RobotRotation);
 
         double relativeXToPoint = Math.cos(relativeAngleToPoint) * distanceToTarget;
         double relativeYToPoint = Math.sin(relativeAngleToPoint) * distanceToTarget;
@@ -443,8 +479,22 @@ public class PowerSurgeTeleOp extends OpMode {
         if (distanceToTarget < 3) {
             movement_turn = 0;
         }
-        Drive(.3*movement_y, movement_x, .3*movement_turn);
-        Drive(.3*movement_y, movement_x, .3*movement_turn);
+        if (distanceToTarget < 1) {
+            movement_x = 0;
+            movement_y = 0;
+        }
+
+        Drive(.3*movement_y, -movement_x, .3*movement_turn);
+
+
+        telemetry.addData("Distance to Target", distanceToTarget);
+
+        telemetry.addData("absoluteAngleToTarget", absoluteAngleToTarget);
+        telemetry.addData("relativeTurnAngle", relativeTurnAngle);
+
+        telemetry.addData("MovementX", movement_x);
+        telemetry.addData("MovementY", movement_y);
+        telemetry.addData("MovementTurn", movement_turn);
     }
 
     public double AngleWrap(double angle){
@@ -456,6 +506,15 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         return angle;
     }
+
+    /*public ArrayList<Point> lineCircleIntersection(Point circleCenter, double radius, Point linePoint1, Point linePoint2) {
+        if(Math.abs(linePoint1.y - linePoint2.y) < .003) {
+            linePoint1.y = linePoint2.y + .003;
+        }
+        if(Math.abs(linePoint1.x - linePoint2.x) < .003) {
+            linePoint1.x = linePoint2.x + .003;
+        }
+    }*/
 
     // From Wizards
 
@@ -900,8 +959,9 @@ public class PowerSurgeTeleOp extends OpMode {
         // StoneOrientation is assigned relative to the side of the robot that the studs of the stone
         // are on when looking at the robot from the back.
         // this is true for the servos as well; left and right are assigned relative to the back
+
         if(!straightenerBusy) {
-            if (orientDistance > .25 && orientDistance <= .75) {
+            if (orientDistance > .25 && orientDistance <= .55) {
                 stoneOrientation = "left";
             } else if (orientDistance > .75 && orientDistance <= 2.3) {
                 stoneOrientation = "center";
@@ -963,7 +1023,13 @@ public class PowerSurgeTeleOp extends OpMode {
             OrientationServoRight.setPosition(rDisengage);
             telemetry.addData("is ready for return", "yes");
             firstRightRun = true;
+        }
+        if (actualRightTime > targetTime + .5) {
+            firstRightRun = true;
             straightenerBusy = false;
+        }
+        else {
+            straightenerBusy = true;
         }
     }
 
@@ -983,7 +1049,14 @@ public class PowerSurgeTeleOp extends OpMode {
             OrientationServoLeft.setPosition(lDisengage);
             telemetry.addData("is ready for return", "yes");
             firstLeftRun = true;
+        }
+
+        if (actualLeftTime > targetTime + .5) {
+            firstLeftRun = true;
             straightenerBusy = false;
+        }
+        else {
+            straightenerBusy = true;
         }
     }
 }
