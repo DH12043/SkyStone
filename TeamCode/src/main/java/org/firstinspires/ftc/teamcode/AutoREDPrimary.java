@@ -180,6 +180,92 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
 
     }
 
+    public void driveToScoringPosition() {
+        java.lang.String turningDirection;
+        double distanceFromOrientation;
+
+        if (RobotRotation > 2 && RobotRotation < 180) {
+            turningDirection = "left";
+        }
+        else {
+            turningDirection = "right";
+        }
+        telemetry.addData("TurningDirection", turningDirection);
+        if (RobotRotation > 2 && RobotRotation < 358) {
+            if (turningDirection.equals("right")) {
+                distanceFromOrientation = 360 - RobotRotation;
+                if (distanceFromOrientation > 120) {
+                    Drive(0, 0, 1);
+                }
+                else if (distanceFromOrientation > 45) {
+                    Drive(0,0,.35);
+                }
+                else {
+                    Drive(0,0,.15);
+                }
+            }
+            else {
+                distanceFromOrientation = RobotRotation;
+                if (distanceFromOrientation > 120) {
+                    Drive(0, 0, -1);
+                }
+                else if (distanceFromOrientation > 45) {
+                    Drive(0,0,-.35);
+                }
+                else {
+                    Drive(0,0,-.15);
+                }
+            }
+            telemetry.addData("DistanceFromOrientation", distanceFromOrientation);
+        }
+        else if (RobotYPosition < -.5 || RobotYPosition > .5) {
+            if (RobotYPosition < 0) {
+                if (RobotYPosition < -6) {
+                    Drive(-.3,0,0);
+                }
+                else {
+                    Drive(-.1, 0, 0);
+                }
+            }
+            else {
+                if (RobotYPosition > 6) {
+                    Drive(.3,0,0);
+                }
+                else {
+                    Drive(.1,0,0);
+                }
+            }
+        }
+        else if (RobotXPosition < -.5 || RobotXPosition > .5) {
+            if (RobotXPosition < 0) {
+                if (RobotXPosition < -6) {
+                    Drive(0,.5,0);
+                }
+                else {
+                    Drive(0, .2, 0);
+                }
+            }
+            else {
+                if (RobotXPosition > 6) {
+                    Drive(0,-.5,0);
+                }
+                else {
+                    Drive(0,-.2,0);
+                }
+            }
+        }
+        else {
+            Drive(0,0,0);
+        }
+    }
+
+    public void Drive(double DZForwardButton, double DZSidewaysButton, double DZSpinningButton) {
+        DZSpinningButton = -DZSpinningButton;
+        FrontRight.setPower(-DZSidewaysButton - DZForwardButton + DZSpinningButton);
+        FrontLeft.setPower(-DZSidewaysButton + DZForwardButton + DZSpinningButton);
+        BackRight.setPower(DZSidewaysButton - DZForwardButton + DZSpinningButton);
+        BackLeft.setPower(DZSidewaysButton + DZForwardButton + DZSpinningButton);
+    }
 
     @Override
     public void stop() {
@@ -249,7 +335,7 @@ public class AutoREDPrimary extends SkystoneVuforiaNew {
 
     private void driveToSkystonePosition(OdometryGlobalCoordinatePosition position) {
 
-        if(CurrentRobotXPosition < SkystoneXPosition) {          //TODO Remove + 20 when Odometry is fixed
+        if(CurrentRobotXPosition < SkystoneXPosition) {
             if(CurrentRobotYPosition < SkystoneYPosition) {
                 FrontRight.setPower(.3);
                 FrontLeft.setPower(.3);

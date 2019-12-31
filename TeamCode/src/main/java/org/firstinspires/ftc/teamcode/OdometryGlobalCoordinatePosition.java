@@ -57,7 +57,7 @@ public class OdometryGlobalCoordinatePosition implements Runnable{
     /**
      * Updates the global (x, y, theta) coordinate position of the robot using the odometry encoders
      */
-    private void globalCoordinatePositionUpdate(){
+     void globalCoordinatePositionUpdate(){
         //Get Current Positions
         verticalLeftEncoderWheelPosition = (verticalEncoderLeft.getCurrentPosition() * verticalLeftEncoderPositionMultiplier);
         verticalRightEncoderWheelPosition = (verticalEncoderRight.getCurrentPosition() * verticalRightEncoderPositionMultiplier);
