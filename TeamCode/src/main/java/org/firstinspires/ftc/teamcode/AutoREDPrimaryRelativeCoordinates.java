@@ -40,7 +40,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
 
 
     final double COUNTS_PER_INCH = 307.699557;
-    private boolean goToNewPosition;
+    private boolean goToNewPosition = true;
     private static int PreFoundationXPosition = 36;
     private static int PreFoundationYPosition = 95;
     private static int FoundationXPosition = 48;
@@ -50,9 +50,9 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
     private static int ParkLineXPosition = 9;
     private static int ParkLineYPosition = 72;
 
-    private double CurrentRobotXPosition;
-    private double CurrentRobotYPosition;
-    private double CurrentRobotRotation;
+    private double RobotXPosition;
+    private double RobotYPosition;
+    private double RobotRotation;
     private double startTime;
     private double currentTime;
 
@@ -90,10 +90,9 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
         verticalLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         verticalRight.setDirection(DcMotorSimple.Direction.REVERSE);
         horizontal.setDirection(DcMotorSimple.Direction.REVERSE);
-        boolean goToTargetPosition = true;
-        RobotXPosition = (9);
-        RobotYPosition = (-36);
-        RobotRotation = (0);
+        StartingXPosition = (0);
+        StartingYPosition = (0);
+        StartingRotation = (0);
     }
 
     @Override
@@ -114,13 +113,13 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
     public void loop() {
         currentTime = getRuntime();
 
-        CurrentRobotXPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + RobotXPosition;
-        CurrentRobotYPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + RobotYPosition;
-        CurrentRobotRotation = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + RobotRotation;
+        RobotXPosition = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingXPosition;
+        RobotYPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + StartingYPosition;
+        RobotRotation = (globalPositionUpdate.returnOrientation()) + StartingRotation;
 
-        telemetry.addData ("RobotX", CurrentRobotXPosition);
-        telemetry.addData ("RobotY", CurrentRobotYPosition);
-        telemetry.addData ("RobotRotation", CurrentRobotRotation);
+        telemetry.addData ("RobotX", RobotXPosition);
+        telemetry.addData ("RobotY", RobotYPosition);
+        telemetry.addData ("RobotTheta", RobotRotation);
 
         // Drop intake
         // Turn on intake
@@ -185,10 +184,10 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
 
     }
     private void goToTarget (double x, double y, double Θ) {
-       if (goToNewPosition == true) {
-           RobotXPosition = (-x);
-           RobotYPosition = (-y);
-           RobotRotation = (-Θ);
+       if (goToNewPosition) {
+           StartingXPosition = (-x);
+           StartingYPosition = (-y);
+           StartingRotation = (-Θ);
 
            goToNewPosition = false;
        }
@@ -201,18 +200,18 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
         java.lang.String turningDirection;
         double distanceFromOrientation;
 
-        if (CurrentRobotRotation > 2 && CurrentRobotRotation < 180) {
+        if (RobotRotation > 2 && RobotRotation < 180) {
             turningDirection = "left";
         }
         else {
             turningDirection = "right";
         }
         telemetry.addData("TurningDirection", turningDirection);
-        if (CurrentRobotRotation > 2 && CurrentRobotRotation < 358) {
-            telemetry.addData("RobotCurrentOrientation", CurrentRobotRotation);
+        if (RobotRotation > 2 && RobotRotation < 358) {
+            telemetry.addData("RobotCurrentOrientation", RobotRotation);
             telemetry.addData("RobotTargetOrientation", "0");
             if (turningDirection.equals("right")) {
-                distanceFromOrientation = 360 - CurrentRobotRotation;
+                distanceFromOrientation = 360 - RobotRotation;
                 if (distanceFromOrientation > 120) {
                     Drive(0, 0, 1);
                 }
@@ -224,7 +223,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
                 }
             }
             else {
-                distanceFromOrientation = CurrentRobotRotation;
+                distanceFromOrientation = RobotRotation;
                 if (distanceFromOrientation > 120) {
                     Drive(0, 0, -1);
                 }
@@ -237,9 +236,9 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
             }
             telemetry.addData("DistanceFromOrientation", distanceFromOrientation);
         }
-        else if (CurrentRobotYPosition < -.5 || CurrentRobotYPosition > .5) {
-            if (CurrentRobotYPosition < 0) {
-                if (CurrentRobotYPosition < -6) {
+        else if (RobotYPosition < -.5 || RobotYPosition > .5) {
+            if (RobotYPosition < 0) {
+                if (RobotYPosition < -6) {
                     Drive(-.3,0,0);
                 }
                 else {
@@ -247,7 +246,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
                 }
             }
             else {
-                if (CurrentRobotYPosition > 6) {
+                if (RobotYPosition > 6) {
                     Drive(.3,0,0);
                 }
                 else {
@@ -255,9 +254,9 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
                 }
             }
         }
-        else if (CurrentRobotXPosition < -.5 || CurrentRobotXPosition > .5) {
-            if (CurrentRobotXPosition < 0) {
-                if (CurrentRobotXPosition < -6) {
+        else if (RobotXPosition < -.5 || RobotXPosition > .5) {
+            if (RobotXPosition < 0) {
+                if (RobotXPosition < -6) {
                     Drive(0,.5,0);
                 }
                 else {
@@ -265,7 +264,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
                 }
             }
             else {
-                if (CurrentRobotXPosition > 6) {
+                if (RobotXPosition > 6) {
                     Drive(0,-.5,0);
                 }
                 else {
@@ -354,8 +353,8 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
 
     private void driveToSkystonePosition(OdometryGlobalCoordinatePosition position) {
 
-        if(CurrentRobotXPosition < SkystoneXPosition) {
-            if(CurrentRobotYPosition < SkystoneYPosition) {
+        if(RobotXPosition < SkystoneXPosition) {
+            if(RobotYPosition < SkystoneYPosition) {
                 FrontRight.setPower(.3);
                 FrontLeft.setPower(.3);
                 BackRight.setPower(-.3);
@@ -363,7 +362,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
                 telemetry.addData("Strafing","Forward Right");
                 telemetry.update();
             }
-            else if(CurrentRobotYPosition > SkystoneYPosition) {
+            else if(RobotYPosition > SkystoneYPosition) {
                 FrontRight.setPower(-.3);
                 FrontLeft.setPower(-.3);
                 BackRight.setPower(.3);
@@ -376,13 +375,13 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
                 BackRight.setPower(.15);
                 BackLeft.setPower(-.15);
                 telemetry.addData("Straight", "Forward");
-                telemetry.addData("RobotX",CurrentRobotXPosition);
-                telemetry.addData("RobotY",CurrentRobotYPosition);
-                telemetry.addData("RobotRotation", CurrentRobotRotation);
+                telemetry.addData("RobotX", RobotXPosition);
+                telemetry.addData("RobotY", RobotYPosition);
+                telemetry.addData("StartingRotation", RobotRotation);
             }
-            CurrentRobotXPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + RobotXPosition;
-            CurrentRobotYPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + RobotYPosition;
-            CurrentRobotRotation = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + RobotRotation;
+            RobotXPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + StartingXPosition;
+            RobotYPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingYPosition;
+            RobotRotation = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingRotation;
             telemetry.addData("SkystoneXPosition", SkystoneXPosition / COUNTS_PER_INCH);
             telemetry.addData("SkystoneYPosition", SkystoneYPosition / COUNTS_PER_INCH);
             telemetry.update();
@@ -454,7 +453,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
 
             distanceAway = getDistanceFromCoordinates(PreFoundationXPosition, PreFoundationYPosition, position);
         }
-        while (RobotRotation < 90) {
+        while (StartingRotation < 90) {
             FrontRight.setPower(.5);
             FrontLeft.setPower(-.5);
             BackRight.setPower(.5);
@@ -528,7 +527,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
         lFoundationator.setPosition(0);
         rFoundationator.setPosition(.27);
 
-        while (RobotRotation < 90) {
+        while (StartingRotation < 90) {
             FrontRight.setPower(.5);
             FrontLeft.setPower(-.5);
             BackRight.setPower(.5);

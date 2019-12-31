@@ -51,9 +51,9 @@ public class AutoREDSecondary extends SkystoneVuforiaNew {
         verticalRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         verticalLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         horizontal.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        RobotXPosition = (9);
-        RobotYPosition = (96);
-        RobotRotation = (0);
+        StartingXPosition = (9);
+        StartingYPosition = (96);
+        StartingRotation = (0);
     }
 
     @Override
@@ -193,7 +193,7 @@ public class AutoREDSecondary extends SkystoneVuforiaNew {
 
             distanceAway = getDistanceFromCoordinates(PreFoundationXPosition, PreFoundationYPosition, position);
         }
-        while (RobotRotation < 90) {
+        while (StartingRotation < 90) {
             FrontRight.setPower(.5);
             FrontLeft.setPower(-.5);
             BackRight.setPower(.5);
@@ -270,7 +270,7 @@ public class AutoREDSecondary extends SkystoneVuforiaNew {
 
     private void PickUpSkystone(OdometryGlobalCoordinatePosition position) {
 
-        while (RobotRotation > 0) {
+        while (StartingRotation > 0) {
             FrontRight.setPower(-.5);
             FrontLeft.setPower(.5);
             BackRight.setPower(-.5);
