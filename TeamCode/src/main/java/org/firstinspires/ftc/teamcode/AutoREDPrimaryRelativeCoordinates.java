@@ -163,6 +163,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
             }
             else {
                 autoState++;
+                stopMotors();
             }
             lastAutoState = 1;
         }
@@ -276,6 +277,8 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
             Drive(0,0,0);
         }
     }
+
+    private void stopMotors() { Drive (0,0,0); }
 
     public void Drive(double DZForwardButton, double DZSidewaysButton, double DZSpinningButton) {
         DZSpinningButton = -DZSpinningButton;

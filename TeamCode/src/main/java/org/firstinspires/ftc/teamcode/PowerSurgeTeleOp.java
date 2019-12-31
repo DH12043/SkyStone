@@ -604,7 +604,8 @@ public class PowerSurgeTeleOp extends OpMode {
         double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
 
         double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
-        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (Math.toRadians(RobotRotation)-Math.toRadians(90)));
+        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget
+                - (Math.toRadians(RobotRotation)-Math.toRadians(90)));
 
         double relativeXToPoint = Math.cos(relativeAngleToPoint) * distanceToTarget;
         double relativeYToPoint = Math.sin(relativeAngleToPoint) * distanceToTarget;
@@ -628,7 +629,6 @@ public class PowerSurgeTeleOp extends OpMode {
 
         Drive(.3*movement_y, -movement_x, .3*movement_turn);
 
-
         telemetry.addData("Distance to Target", distanceToTarget);
 
         telemetry.addData("absoluteAngleToTarget", absoluteAngleToTarget);
@@ -637,6 +637,7 @@ public class PowerSurgeTeleOp extends OpMode {
         telemetry.addData("MovementX", movement_x);
         telemetry.addData("MovementY", movement_y);
         telemetry.addData("MovementTurn", movement_turn);
+        
         applyMovement();
     }
 
