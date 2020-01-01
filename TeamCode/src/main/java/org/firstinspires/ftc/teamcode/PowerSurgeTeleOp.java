@@ -656,7 +656,7 @@ public class PowerSurgeTeleOp extends OpMode {
         movement_x = movementXPower * movementSpeed;
         movement_y = movementYPower * movementSpeed;
 
-        double relativeTurnAngle = AngleWrap(Math.toRadians(preferredAngle)-Math.toRadians(RobotRotation);
+        double relativeTurnAngle = AngleWrap(Math.toRadians(preferredAngle)-Math.toRadians(RobotRotation));
         if (distanceToTarget < 3) {
             movement_turn = 0;
         } else {
