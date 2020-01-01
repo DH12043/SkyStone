@@ -579,7 +579,7 @@ public class PowerSurgeTeleOp extends OpMode {
                 //autoDrivingTimes = 0;
                 firstPressBumpers = false;
             }
-            goToPosition(0,0,.3,.3, 0);
+            goToPositionMrK(0,0,.5,.5, 0);
         } else {
             firstPressBumpers = true;
 
@@ -599,7 +599,6 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     // From Gluten Free
-
     public void goToPosition(double x, double y, double movementSpeed, double turnSpeed, double preferredAngle) {
         double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
 
@@ -638,6 +637,36 @@ public class PowerSurgeTeleOp extends OpMode {
         telemetry.addData("MovementY", movement_y);
         telemetry.addData("MovementTurn", movement_turn);
         
+        applyMovement();
+    }
+
+    // From mrKuiper
+    public void goToPositionMrK(double x, double y, double movementSpeed, double turnSpeed, double preferredAngle) {
+        double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
+        double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
+        double relativeAngleToPoint = AngleWrap(-absoluteAngleToTarget
+                - (Math.toRadians(RobotRotation)+Math.toRadians(90)));
+
+        double relativeXToPoint = Math.cos(relativeAngleToPoint);
+        double relativeYToPoint = Math.sin(relativeAngleToPoint);
+
+        double movementXPower = relativeXToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
+        double movementYPower = relativeYToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
+
+        movement_x = movementXPower * movementSpeed;
+        movement_y = movementYPower * movementSpeed;
+
+        double relativeTurnAngle = AngleWrap(Math.toRadians(preferredAngle)-Math.toRadians(RobotRotation);
+        if (distanceToTarget < 3) {
+            movement_turn = 0;
+        } else {
+            movement_turn = Range.clip(relativeTurnAngle / Math.toRadians(30), -1, 1) * turnSpeed;
+        }
+
+        telemetry.addData("X Movement", movement_x);
+        telemetry.addData("Y Movement", movement_y);
+        telemetry.addData("Turn Movement", movement_turn);
+
         applyMovement();
     }
 
