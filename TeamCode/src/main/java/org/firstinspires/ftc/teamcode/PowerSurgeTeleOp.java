@@ -173,12 +173,12 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void loop() {
-        checkVerticalLift();
-        checkFoundationator();
+        //checkVerticalLift();
+        //checkFoundationator();
         checkDriveTrain();
         checkOdometry();
-        checkIntakeMechanism();
-        checkStraightener();
+        //checkIntakeMechanism();
+        //checkStraightener();
         telemetry.update();
     }
 
@@ -407,7 +407,7 @@ public class PowerSurgeTeleOp extends OpMode {
                 //autoDrivingTimes = 0;
                 firstPressBumpers = false;
             }
-            goToPositionMrK(0,0,.5,.5, 0);
+            goToPositionMrK(0,0,.25,.25, 0);
         } else {
             firstPressBumpers = true;
 
@@ -521,9 +521,9 @@ public class PowerSurgeTeleOp extends OpMode {
 
         //now we can set the powers ONLY IF THEY HAVE CHANGED TO AVOID SPAMMING USB COMMUNICATIONS
         FrontLeft.setPower(fl_power_raw);
-        BackLeft.setPower(bl_power_raw);
+        BackLeft.setPower(-bl_power_raw);
         BackRight.setPower(br_power_raw);
-        FrontRight.setPower(fr_power_raw);
+        FrontRight.setPower(-fr_power_raw);
     }
 
     /**
