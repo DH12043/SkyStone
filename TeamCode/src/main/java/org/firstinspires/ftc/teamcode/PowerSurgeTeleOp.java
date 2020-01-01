@@ -52,6 +52,24 @@ public class PowerSurgeTeleOp extends OpMode {
     private static final int ParkLineXPosition = 9;
     private static final int ParkLineYPosition = 72;
 
+    private static final double GRABBERSERVOCLOSEDPOSITION = 0;
+    private static final double GRABBERSERVOOPENPOSITION = .5;
+
+    private static final double DECELERATION_START_POINT = 24;
+    private static final double DECELERATION_ZERO_POINT = 2;
+    private static final double TURNING_DECELERATION_START_POINT = 90;
+    private static final double TURNING_DECELERATION_ZERO_POINT = 1;
+    private static final double X_SPEED_MULTIPLIER = 1.2; // Compensates for slower movement while strafing
+
+    private static final double MODIFIED_DECELERATION_START_POINT = 12;
+    private static final double MODIFIED_DECELERATION_ZERO_POINT = 0;
+    private static final double MODIFIED_TURNING_DECELERATION_START_POINT = TURNING_DECELERATION_START_POINT;
+    private static final double MODIFIED_TURNING_DECELERATION_ZERO_POINT = TURNING_DECELERATION_ZERO_POINT;
+    private static final double MAX_BRAKING_DISTANCE = 8;
+    private static final double BRAKING_DISTANCE_RATIO_THRESHOLD = 0.5;
+
+    private double lastDistanceToTarget = 0;
+
     private int autoDrivingStage = 0;
     private int autoDrivingTimes = 0;
 
@@ -579,7 +597,7 @@ public class PowerSurgeTeleOp extends OpMode {
                 //autoDrivingTimes = 0;
                 firstPressBumpers = false;
             }
-            goToPositionMrK(0,0,.5,.5, 0);
+            goToPositionMrK(0,0,1.0,1.0, 0);
         } else {
             firstPressBumpers = true;
 
@@ -641,7 +659,31 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     // From mrKuiper
-    public void goToPositionMrK(double x, double y, double movementSpeed, double turnSpeed, double preferredAngle) {
+
+    /**
+     * Universal goToPosition method that assumes the following coordinate system for the
+     * odometry output values: , RobotYPosition, and :
+     * RobotRotation: 0*->360* rotation values, where 0* and 360* are straight forward
+     * RobotXPosition: Positive X would be strafing to the right
+     * RobotYPosition: Positive Y would be moving forwards
+     * Method generates three values indicating the immediate motion needed to move the
+     * robot towards the global position requested:
+     * movement_turn: Positive value to turn clockwise, negative for counterclockwise
+     * movement_x: Positive value indicates strafe to the right proportionally
+     * movement_y: Positive value indicates drive forward proportionally
+     * These values can be used as inputs to a method that typically accepts joystick control,
+     * in some cases the 'y' value must be negated.
+     *
+     * author: Original code by FTC Team 11115 Gluten Free, modified by Travis Kuiper.
+     * date: 2020/01/01
+     *
+     * @param x global target coordinate 'x' component
+     * @param y global target coordinate 'x' component
+     * @param maxMovementSpeed max speed value to be given to any one drivetrain direction of motion
+     * @param maxTurnSpeed max turning speed to be given to drivetrain rotation
+     * @param preferredAngle global target coordinate theta component
+     */
+    public void goToPositionMrK(double x, double y, double maxMovementSpeed, double maxTurnSpeed, double preferredAngle) {
         double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
         double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
         double relativeAngleToPoint = AngleWrap(-absoluteAngleToTarget
@@ -653,24 +695,99 @@ public class PowerSurgeTeleOp extends OpMode {
         double movementXPower = relativeXToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
         double movementYPower = relativeYToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
 
-        movement_x = movementXPower * movementSpeed;
-        movement_y = movementYPower * movementSpeed;
+        double yDecelLimiter = Range.clip(Math.abs((distanceToTarget - DECELERATION_ZERO_POINT)
+                / (DECELERATION_START_POINT - DECELERATION_ZERO_POINT)), 0, 1);
+        double xDecelLimiter = Range.clip(yDecelLimiter * X_SPEED_MULTIPLIER, 0, 1);
 
         double relativeTurnAngle = AngleWrap(Math.toRadians(preferredAngle)-Math.toRadians(RobotRotation));
+        double turnDecelLimiter = Range.clip((Math.abs(relativeTurnAngle) - TURNING_DECELERATION_ZERO_POINT)
+                / (TURNING_DECELERATION_START_POINT - TURNING_DECELERATION_ZERO_POINT), 0, 1);
+
+        movement_x = movementXPower * Range.clip(maxMovementSpeed, -xDecelLimiter, xDecelLimiter);
+        movement_y = movementYPower * Range.clip(maxMovementSpeed, -yDecelLimiter, yDecelLimiter);
+
         if (distanceToTarget < 3) {
             movement_turn = 0;
         } else {
-            movement_turn = Range.clip(relativeTurnAngle / Math.toRadians(30), -1, 1) * turnSpeed;
+            movement_turn = Range.clip(Range.clip(relativeTurnAngle / Math.toRadians(30),
+                    -1, 1) * maxTurnSpeed, -turnDecelLimiter, turnDecelLimiter);
         }
 
         telemetry.addData("X Movement", movement_x);
         telemetry.addData("Y Movement", movement_y);
         telemetry.addData("Turn Movement", movement_turn);
 
+        lastDistanceToTarget = distanceToTarget;
+
         applyMovement();
     }
 
-    /**converts movement_y, movement_x, movement_turn into motor powers */
+    /**
+     * Same as goToPositionMrK, accept deceleration happens later and more aggressively, and code
+     * watches for robot approaching target too rapidly and brakes accordingly then resumes.
+     * @param x
+     * @param y
+     * @param maxMovementSpeed
+     * @param maxTurnSpeed
+     * @param preferredAngle
+     */
+    public void goToPositionMrKWithBraking(double x, double y, double maxMovementSpeed, double maxTurnSpeed, double preferredAngle) {
+        double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
+        double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
+        double relativeAngleToPoint = AngleWrap(-absoluteAngleToTarget
+                - (Math.toRadians(RobotRotation)+Math.toRadians(90)));
+
+        double relativeXToPoint = Math.cos(relativeAngleToPoint);
+        double relativeYToPoint = Math.sin(relativeAngleToPoint);
+
+        double movementXPower = relativeXToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
+        double movementYPower = relativeYToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
+
+        double yDecelLimiter = Range.clip(Math.abs((distanceToTarget - MODIFIED_DECELERATION_ZERO_POINT)
+                / (MODIFIED_DECELERATION_START_POINT - MODIFIED_DECELERATION_ZERO_POINT)), 0, 1);
+        double xDecelLimiter = Range.clip(yDecelLimiter * X_SPEED_MULTIPLIER, 0, 1);
+
+        double relativeTurnAngle = AngleWrap(Math.toRadians(preferredAngle)-Math.toRadians(RobotRotation));
+        double turnDecelLimiter = Range.clip((Math.abs(relativeTurnAngle) - MODIFIED_TURNING_DECELERATION_ZERO_POINT)
+                / (MODIFIED_TURNING_DECELERATION_START_POINT - MODIFIED_TURNING_DECELERATION_ZERO_POINT), 0, 1);
+
+        if ((distanceToTarget / lastDistanceToTarget <= BRAKING_DISTANCE_RATIO_THRESHOLD) && (distanceToTarget <= MAX_BRAKING_DISTANCE)) {
+            FrontLeft.setPower(0);
+            BackLeft.setPower(0);
+            BackRight.setPower(0);
+            FrontRight.setPower(0);
+        }
+
+        movement_x = movementXPower * Range.clip(maxMovementSpeed, -xDecelLimiter, xDecelLimiter);
+        movement_y = movementYPower * Range.clip(maxMovementSpeed, -yDecelLimiter, yDecelLimiter);
+
+        if (distanceToTarget < 3) {
+            movement_turn = 0;
+        } else {
+            movement_turn = Range.clip(Range.clip(relativeTurnAngle / Math.toRadians(30),
+                    -1, 1) * maxTurnSpeed, -turnDecelLimiter, turnDecelLimiter);
+        }
+
+        telemetry.addData("X Movement", movement_x);
+        telemetry.addData("Y Movement", movement_y);
+        telemetry.addData("Turn Movement", movement_turn);
+
+        lastDistanceToTarget = distanceToTarget;
+
+        applyMovement();
+    }
+
+    /**
+     * Converts movement_y, movement_x, movement_turn into motor powers.
+     *
+     *
+     * author: Original code by FTC Team 7571 Alumineers, modified by Travis Kuiper
+     * date: 2020/01/01
+     *
+     * movement_turn: Positive value to turn clockwise, negative for counterclockwise
+     * movement_x: Positive value indicates strafe to the right proportionally
+     * movement_y: Positive value indicates drive forward proportionally
+     */
     // Code comes from 11115 Peter and 7571 Alumineers
     public void applyMovement() {
         long currTime = SystemClock.uptimeMillis();
@@ -679,11 +796,10 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         lastUpdateTime = currTime;
 
-
-        double fl_power_raw = movement_y-movement_turn+movement_x*1.5;
-        double bl_power_raw = movement_y-movement_turn- movement_x*1.5;
-        double br_power_raw = -movement_y-movement_turn-movement_x*1.5;
-        double fr_power_raw = -movement_y-movement_turn+movement_x*1.5;
+        double fl_power_raw = movement_y-movement_turn+movement_x;
+        double bl_power_raw = movement_y-movement_turn-movement_x;
+        double br_power_raw = -movement_y-movement_turn-movement_x;
+        double fr_power_raw = -movement_y-movement_turn+movement_x;
 
         //find the maximum of the powers
         double maxRawPower = Math.abs(fl_power_raw);
@@ -701,7 +817,6 @@ public class PowerSurgeTeleOp extends OpMode {
         bl_power_raw *= scaleDownAmount;
         br_power_raw *= scaleDownAmount;
         fr_power_raw *= scaleDownAmount;
-
 
         //now we can set the powers ONLY IF THEY HAVE CHANGED TO AVOID SPAMMING USB COMMUNICATIONS
         FrontLeft.setPower(fl_power_raw);
@@ -1019,7 +1134,7 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     public void startOdometry() {
-        globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 75);
+        globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 25);
         positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
 
@@ -1163,12 +1278,7 @@ public class PowerSurgeTeleOp extends OpMode {
     public void checkStraightener() {
         stoneDistance = StonePresenceSensor.getDistance(DistanceUnit.INCH);
         telemetry.addData("Stone Distance", stoneDistance);
-        if (stoneDistance < 1.5) {
-            stoneFullyInStraightener = true;
-        }
-        else {
-            stoneFullyInStraightener = false;
-        }
+        stoneFullyInStraightener = stoneDistance < 1.5;
 
         orientStone();
         manualOverride();
@@ -1208,12 +1318,7 @@ public class PowerSurgeTeleOp extends OpMode {
                 runRightServo();
             }
 
-            if (stoneOrientation.equals("center")) {
-                readyToGrab = true;
-            }
-            else {
-                readyToGrab = false;
-            }
+            readyToGrab = stoneOrientation.equals("center");
         }
     }
 
