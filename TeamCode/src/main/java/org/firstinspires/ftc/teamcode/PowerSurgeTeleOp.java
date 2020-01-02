@@ -55,18 +55,18 @@ public class PowerSurgeTeleOp extends OpMode {
     private static final double GRABBERSERVOCLOSEDPOSITION = 0;
     private static final double GRABBERSERVOOPENPOSITION = .5;
 
-    private static final double DECELERATION_START_POINT = 24;
-    private static final double DECELERATION_ZERO_POINT = 2;
-    private static final double TURNING_DECELERATION_START_POINT = 90;
+    private static final double DECELERATION_START_POINT = 72;
+    private static final double DECELERATION_ZERO_POINT = -4;
+    private static final double TURNING_DECELERATION_START_POINT = 135;
     private static final double TURNING_DECELERATION_ZERO_POINT = 1;
     private static final double X_SPEED_MULTIPLIER = 1.2; // Compensates for slower movement while strafing
 
-    private static final double MODIFIED_DECELERATION_START_POINT = 12;
-    private static final double MODIFIED_DECELERATION_ZERO_POINT = 0;
+    private static final double MODIFIED_DECELERATION_START_POINT = DECELERATION_START_POINT;
+    private static final double MODIFIED_DECELERATION_ZERO_POINT = DECELERATION_ZERO_POINT;
     private static final double MODIFIED_TURNING_DECELERATION_START_POINT = TURNING_DECELERATION_START_POINT;
     private static final double MODIFIED_TURNING_DECELERATION_ZERO_POINT = TURNING_DECELERATION_ZERO_POINT;
-    private static final double MAX_BRAKING_DISTANCE = 8;
-    private static final double BRAKING_DISTANCE_RATIO_THRESHOLD = 0.5;
+    private static final double MAX_BRAKING_DISTANCE = DECELERATION_START_POINT * .75;
+    private static final double BRAKING_DISTANCE_RATIO_THRESHOLD = .5;
 
     private double lastDistanceToTarget = 0;
 
@@ -597,27 +597,33 @@ public class PowerSurgeTeleOp extends OpMode {
                 //autoDrivingTimes = 0;
                 firstPressBumpers = false;
             }
-            goToPositionMrK(0,0,1.0,1.0, 0);
+            goToPositionMrK(0,0,.5,.5, 0);
         } else {
             firstPressBumpers = true;
 
-            double forwardButton = gamepad1.left_stick_y;
-            double sidewaysButton = gamepad1.left_stick_x;
-            double spinningButton = gamepad1.right_stick_x;
+            movement_y = DeadModifier(-gamepad1.left_stick_y);
+            movement_x = DeadModifier(gamepad1.left_stick_x);
+            movement_turn = DeadModifier(gamepad1.right_stick_x);
 
-            FrontRight.setDirection(DcMotor.Direction.REVERSE);
-            BackLeft.setDirection(DcMotor.Direction.REVERSE);
+            applyMovement();
 
-            forwardButton = DeadModifier(forwardButton);
-            sidewaysButton = DeadModifier(sidewaysButton);
-            spinningButton = DeadModifier(spinningButton);
+            //double forwardButton = gamepad1.left_stick_y;
+            //double sidewaysButton = gamepad1.left_stick_x;
+            //double spinningButton = gamepad1.right_stick_x;
 
-            Drive(forwardButton, sidewaysButton, spinningButton);
+            //FrontRight.setDirection(DcMotor.Direction.REVERSE);
+            //BackLeft.setDirection(DcMotor.Direction.REVERSE);
+
+            //forwardButton = DeadModifier(forwardButton);
+            //sidewaysButton = DeadModifier(sidewaysButton);
+            //spinningButton = DeadModifier(spinningButton);
+
+            //Drive(forwardButton, sidewaysButton, spinningButton);
         }
     }
 
     // From Gluten Free
-    public void goToPosition(double x, double y, double movementSpeed, double turnSpeed, double preferredAngle) {
+    /*public void goToPosition(double x, double y, double movementSpeed, double turnSpeed, double preferredAngle) {
         double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
 
         double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
@@ -656,7 +662,7 @@ public class PowerSurgeTeleOp extends OpMode {
         telemetry.addData("MovementTurn", movement_turn);
         
         applyMovement();
-    }
+    }*/
 
     // From mrKuiper
 
@@ -687,10 +693,10 @@ public class PowerSurgeTeleOp extends OpMode {
         double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
         double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
         double relativeAngleToPoint = AngleWrap(-absoluteAngleToTarget
-                - (Math.toRadians(RobotRotation)+Math.toRadians(90)));
+                - Math.toRadians(RobotRotation) + Math.toRadians(90));
 
-        double relativeXToPoint = Math.cos(relativeAngleToPoint);
-        double relativeYToPoint = Math.sin(relativeAngleToPoint);
+        double relativeXToPoint = 2 * Math.sin(relativeAngleToPoint);
+        double relativeYToPoint = Math.cos(relativeAngleToPoint);
 
         double movementXPower = relativeXToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
         double movementYPower = relativeYToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
@@ -700,7 +706,7 @@ public class PowerSurgeTeleOp extends OpMode {
         double xDecelLimiter = Range.clip(yDecelLimiter * X_SPEED_MULTIPLIER, 0, 1);
 
         double relativeTurnAngle = AngleWrap(Math.toRadians(preferredAngle)-Math.toRadians(RobotRotation));
-        double turnDecelLimiter = Range.clip((Math.abs(relativeTurnAngle) - TURNING_DECELERATION_ZERO_POINT)
+        double turnDecelLimiter = Range.clip((Math.abs(Math.toDegrees(relativeTurnAngle)) - TURNING_DECELERATION_ZERO_POINT)
                 / (TURNING_DECELERATION_START_POINT - TURNING_DECELERATION_ZERO_POINT), 0, 1);
 
         movement_x = movementXPower * Range.clip(maxMovementSpeed, -xDecelLimiter, xDecelLimiter);
@@ -709,10 +715,14 @@ public class PowerSurgeTeleOp extends OpMode {
         if (distanceToTarget < 3) {
             movement_turn = 0;
         } else {
-            movement_turn = Range.clip(Range.clip(relativeTurnAngle / Math.toRadians(30),
-                    -1, 1) * maxTurnSpeed, -turnDecelLimiter, turnDecelLimiter);
+            //movement_turn = Range.clip(Range.clip(relativeTurnAngle / Math.toRadians(30),
+            //        -1, 1) * maxTurnSpeed, -turnDecelLimiter, turnDecelLimiter);
+            movement_turn = Range.clip(relativeTurnAngle / Math.toRadians(TURNING_DECELERATION_START_POINT), -1, 1) * maxTurnSpeed;
         }
-
+        telemetry.addData("relativeTurnAngle", relativeTurnAngle);
+        telemetry.addData("turnDecelLimiter", turnDecelLimiter);
+        telemetry.addData("relativeXToPoint", relativeXToPoint);
+        telemetry.addData("relativeYToPoint", relativeYToPoint);
         telemetry.addData("X Movement", movement_x);
         telemetry.addData("Y Movement", movement_y);
         telemetry.addData("Turn Movement", movement_turn);
@@ -731,7 +741,7 @@ public class PowerSurgeTeleOp extends OpMode {
      * @param maxTurnSpeed
      * @param preferredAngle
      */
-    public void goToPositionMrKWithBraking(double x, double y, double maxMovementSpeed, double maxTurnSpeed, double preferredAngle) {
+    /*public void goToPositionMrKWithBraking(double x, double y, double maxMovementSpeed, double maxTurnSpeed, double preferredAngle) {
         double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
         double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
         double relativeAngleToPoint = AngleWrap(-absoluteAngleToTarget
@@ -775,7 +785,7 @@ public class PowerSurgeTeleOp extends OpMode {
         lastDistanceToTarget = distanceToTarget;
 
         applyMovement();
-    }
+    }*/
 
     /**
      * Converts movement_y, movement_x, movement_turn into motor powers.
@@ -796,10 +806,15 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         lastUpdateTime = currTime;
 
-        double fl_power_raw = movement_y-movement_turn+movement_x;
-        double bl_power_raw = movement_y-movement_turn-movement_x;
-        double br_power_raw = -movement_y-movement_turn-movement_x;
-        double fr_power_raw = -movement_y-movement_turn+movement_x;
+        //double fl_power_raw = movement_y-movement_turn+movement_x;
+        //double bl_power_raw = movement_y-movement_turn-movement_x;
+        //double br_power_raw = -movement_y-movement_turn-movement_x;
+        //double fr_power_raw = -movement_y-movement_turn+movement_x;
+
+        double fl_power_raw = movement_y+movement_turn+movement_x;
+        double bl_power_raw = movement_y+movement_turn-movement_x;
+        double br_power_raw = -movement_y+movement_turn-movement_x;
+        double fr_power_raw = -movement_y+movement_turn+movement_x;
 
         //find the maximum of the powers
         double maxRawPower = Math.abs(fl_power_raw);
@@ -819,10 +834,10 @@ public class PowerSurgeTeleOp extends OpMode {
         fr_power_raw *= scaleDownAmount;
 
         //now we can set the powers ONLY IF THEY HAVE CHANGED TO AVOID SPAMMING USB COMMUNICATIONS
-        FrontLeft.setPower(fl_power_raw);
-        BackLeft.setPower(bl_power_raw);
-        BackRight.setPower(br_power_raw);
-        FrontRight.setPower(fr_power_raw);
+        FrontLeft.setPower(-fl_power_raw);
+        BackLeft.setPower(-bl_power_raw);
+        BackRight.setPower(-br_power_raw);
+        FrontRight.setPower(-fr_power_raw);
     }
 
     /**
@@ -1117,9 +1132,12 @@ public class PowerSurgeTeleOp extends OpMode {
         verticalLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         horizontal.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        //These values also affect the drive motors so we also reversed FrontRight
         verticalLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         verticalRight.setDirection(DcMotorSimple.Direction.REVERSE);
         horizontal.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        FrontRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         verticalRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         verticalLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
