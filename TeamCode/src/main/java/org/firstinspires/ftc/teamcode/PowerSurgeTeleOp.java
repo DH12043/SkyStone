@@ -1002,8 +1002,10 @@ public class PowerSurgeTeleOp extends OpMode {
         manualOverride();
     }
 
+
     private void senseOrientation() {
-        orientDistance = OrientationSensor.getDistance(DistanceUnit.INCH);
+        //orientDistance = OrientationSensor.getDistance(DistanceUnit.INCH);
+        orientDistance = OrientationSensor.cmOptical()/2.54;
         telemetry.addData("Orient Distance", orientDistance);
 
         // StoneOrientation is assigned relative to the side of the robot that the studs of the stone
@@ -1011,7 +1013,7 @@ public class PowerSurgeTeleOp extends OpMode {
         // this is true for the servos as well; left and right are assigned relative to the back
 
         if(!straightenerBusy) {
-            if (orientDistance > .25 && orientDistance <= .55) {
+            /*if (orientDistance > .25 && orientDistance <= .55) {
                 stoneOrientation = "left";
             }
             else if (orientDistance > .75 && orientDistance <= 2.3) {
@@ -1020,11 +1022,28 @@ public class PowerSurgeTeleOp extends OpMode {
             else if (orientDistance > 4) {
                 stoneOrientation = "empty";
             }
-            else if (Double.isNaN(orientDistance) || orientDistance > 2.5 && orientDistance < 3){
+            else if (orientDistance > 2.5 && orientDistance < 3){
+                stoneOrientation = "right";
+            }*/
+
+            if (orientDistance > .35 && orientDistance <= .45) {
+                stoneOrientation = "left";
+            }
+            else if (orientDistance > 1.2 && orientDistance <= 1.8) {
+                stoneOrientation = "center";
+            }
+            else if (orientDistance > 3) {
+                stoneOrientation = "empty";
+            }
+            else if (orientDistance > 2 && orientDistance < 2.4){
                 stoneOrientation = "right";
             }
-            telemetry.addData("orientPosition:  ", stoneOrientation);
+            else {
+                stoneOrientation = "notInThreshold";
+            }
         }
+        telemetry.addData("orientPosition", stoneOrientation);
+        telemetry.addData("StraightenerBusy", straightenerBusy);
     }
 
     private void orientStone() {
@@ -1045,6 +1064,11 @@ public class PowerSurgeTeleOp extends OpMode {
                 OrientationServoLeft.setPosition(rDisengage);
             }
             else if(stoneOrientation.equals("center")) {
+                readyToGrab = true;
+                OrientationServoLeft.setPosition(lDisengage);
+                OrientationServoLeft.setPosition(rDisengage);
+            }
+            else if (stoneOrientation.equals("notInThreshold")) {
                 readyToGrab = true;
                 OrientationServoLeft.setPosition(lDisengage);
                 OrientationServoLeft.setPosition(rDisengage);
@@ -1082,7 +1106,8 @@ public class PowerSurgeTeleOp extends OpMode {
             telemetry.addData("is ready for return", "yes");
             firstRightRun = true;
         }
-        if (actualRightTime > targetTime + .5) {
+
+        if (actualRightTime > targetTime + 2) {
             firstRightRun = true;
             straightenerBusy = false;
         }
@@ -1109,7 +1134,7 @@ public class PowerSurgeTeleOp extends OpMode {
             firstLeftRun = true;
         }
 
-        if (actualLeftTime > targetTime + .5) {
+        if (actualLeftTime > targetTime + 2) {
             firstLeftRun = true;
             straightenerBusy = false;
         }
