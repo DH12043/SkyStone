@@ -51,18 +51,11 @@ public class PowerSurgeTeleOp extends OpMode {
     private static final double GRABBERSERVOCLOSEDPOSITION = 0;
     private static final double GRABBERSERVOOPENPOSITION = .5;
 
-    private static final double DECELERATION_START_POINT = 72;
-    private static final double DECELERATION_ZERO_POINT = -4;
-    private static final double TURNING_DECELERATION_START_POINT = 135;
-    private static final double TURNING_DECELERATION_ZERO_POINT = 1;
-    private static final double X_SPEED_MULTIPLIER = 1.2; // Compensates for slower movement while strafing
-
-    private static final double MODIFIED_DECELERATION_START_POINT = DECELERATION_START_POINT;
-    private static final double MODIFIED_DECELERATION_ZERO_POINT = DECELERATION_ZERO_POINT;
-    private static final double MODIFIED_TURNING_DECELERATION_START_POINT = TURNING_DECELERATION_START_POINT;
-    private static final double MODIFIED_TURNING_DECELERATION_ZERO_POINT = TURNING_DECELERATION_ZERO_POINT;
-    private static final double MAX_BRAKING_DISTANCE = DECELERATION_START_POINT * .75;
-    private static final double BRAKING_DISTANCE_RATIO_THRESHOLD = .5;
+    private static final double DECELERATION_START_POINT = 96;
+    private static final double DECELERATION_ZERO_POINT = -6;
+    private static final double TURNING_DECELERATION_START_POINT = 180;
+    private static final double TURNING_DECELERATION_ZERO_POINT = -5;
+    private static final double X_SPEED_MULTIPLIER = 1; // Compensates for slower movement while strafing was 1.2
 
     private double lastDistanceToTarget = 0;
 
@@ -658,7 +651,7 @@ public class PowerSurgeTeleOp extends OpMode {
                 //autoDrivingTimes = 0;
                 firstPressBumpers = false;
             }
-            goToPositionMrK(0,0,.75,.5, 0);
+            goToPositionMrK(0,0,1,.5, 0);
         } else {
             firstPressBumpers = true;
 
@@ -729,7 +722,7 @@ public class PowerSurgeTeleOp extends OpMode {
         movement_x = movementXPower * Range.clip(maxMovementSpeed, -xDecelLimiter, xDecelLimiter);
         movement_y = movementYPower * Range.clip(maxMovementSpeed, -yDecelLimiter, yDecelLimiter);
 
-        if (distanceToTarget < 3) {
+        if (distanceToTarget < 1) {
             movement_turn = 0;
         } else {
             //movement_turn = Range.clip(Range.clip(relativeTurnAngle / Math.toRadians(30),
