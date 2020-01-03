@@ -10,12 +10,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
-
 import com.qualcomm.robotcore.util.Range;
-
 import java.io.File;
-import java.util.ArrayList;
-
 
 @TeleOp(name = "PowerSurgeTeleOp")
 public class PowerSurgeTeleOp extends OpMode {
@@ -70,9 +66,6 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private double lastDistanceToTarget = 0;
 
-    private int autoDrivingStage = 0;
-    private int autoDrivingTimes = 0;
-
     private double movement_x;
     private double movement_y;
     private double movement_turn;
@@ -106,14 +99,38 @@ public class PowerSurgeTeleOp extends OpMode {
     private ModernRoboticsI2cRangeSensor RightBackupSensor;
     private ModernRoboticsI2cRangeSensor LeftBackupSensor;
 
+    // BUTTONS
+
+    private double LiftUpButton;
+    private double LiftDownButton;
+    private boolean LiftManualToggleButton;
+    private boolean LiftEncoderResetButton;
+    private boolean LiftOverideDownButton;
+    private boolean LiftOverideUpButton;
+
+    private boolean currentWaffleState;
+
+    private double grabStoneButton;
+    private double releaseStoneButton;
+    private boolean emergencyEjectButton;
+    private boolean grabberManualButton;
+    private boolean armManualButton;
+
+    private boolean outputButton;
+    private boolean intakeButton;
+    private boolean intakeReleaseButton;
+
+    private boolean manualLeftServoButton;
+    private boolean manualRightServoButton;
+
+    private boolean odometryResetButton;
+
     // FIRST PRESS AND RUN
 
     private boolean firstLiftUpButton;
     private boolean firstLiftDownButton;
     private boolean liftUpCommand;
     private boolean liftDownCommand;
-    private boolean outputButton;
-    private boolean intakeButton;
     private boolean firstPressDpadUp = true;
     private boolean firstPressBumpers = true;
     private boolean liftEncoderState = true;
@@ -128,6 +145,9 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean firstPressy2 = true;
     private boolean firstPressRightTrigger = true;
     private boolean firstPressLeftTrigger = true;
+    private boolean firstPressArmManual = true;
+    private boolean firstPressGrabberManual = true;
+    private boolean firstRunZeroLiftPosition = true;
 
     // WAFFLE STUFF
 
@@ -183,8 +203,11 @@ public class PowerSurgeTeleOp extends OpMode {
     private int liftGrabberState = 0;
     private int grabberReturnState = 0;
     private int emergencyStoneEjectState = 0;
-    private double grabberOpenPosition = 0;
+    private double grabberOpenPosition = .07;
     private double grabberClosedPosition = .4;
+    private boolean grabberManualClosed = false;
+    private boolean armManualClosed = true;
+
 
     //last update time
     private long lastUpdateTime = 0;
@@ -208,6 +231,7 @@ public class PowerSurgeTeleOp extends OpMode {
     public void start() {
         startFoundationator();
         startIntakeMechanism();
+        startVerticalLift();
         startGrabber();
         startOdometry();
         telemetry.addData("Status", "Odometry System has started");
@@ -216,6 +240,30 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        LiftUpButton = gamepad1.right_trigger;
+        LiftDownButton = gamepad1.left_trigger;
+        LiftManualToggleButton = gamepad2.y;
+        LiftEncoderResetButton = gamepad2.x;
+        LiftOverideDownButton = gamepad2.dpad_down;
+        LiftOverideUpButton = gamepad2.dpad_up;
+
+        currentWaffleState = gamepad1.a;
+
+        grabStoneButton = gamepad1.right_trigger;
+        releaseStoneButton = gamepad1.left_trigger;
+        emergencyEjectButton = gamepad1.y;
+        grabberManualButton = gamepad2.b;
+        armManualButton = gamepad2.a;
+
+        outputButton = gamepad1.dpad_down;
+        intakeButton = gamepad1.dpad_up;
+        intakeReleaseButton = gamepad1.x;
+
+        manualLeftServoButton = gamepad2.dpad_right;
+        manualRightServoButton = gamepad2.dpad_left;
+
+        odometryResetButton = gamepad1.b;
+
         checkDriveTrain();
         checkOdometry();
         checkVerticalLift();
@@ -230,23 +278,20 @@ public class PowerSurgeTeleOp extends OpMode {
     // VERTICAL LIFT
     //
 
-    public void initializeVerticalLift() {
+    private void initializeVerticalLift() {
         LiftMotor = hardwareMap.dcMotor.get("LiftMotor");
         LiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        LiftMotor.setPower(0);
+        LiftMotor.setPower((int)(countsPerInch));
         LiftMotor.setTargetPosition(0);
         LiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         LiftMotor.setDirection(DcMotor.Direction.FORWARD);
         LiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
+    private void startVerticalLift() {
+        LiftMotor.setTargetPosition((int)(countsPerInch));
+    }
 
-    public void checkVerticalLift() {
-        double LiftUpButton = gamepad1.right_trigger;
-        double LiftDownButton = gamepad1.left_trigger;
-        boolean LiftManualToggleButton = gamepad2.y;
-        boolean LiftOverideDownButton = gamepad2.dpad_down;
-        boolean LiftOverideUpButton = gamepad2.dpad_up;
-
+    private void checkVerticalLift() {
         if (LiftManualToggleButton) {
             if (firstPressy2) {
                 liftEncoderState =! liftEncoderState;
@@ -255,6 +300,11 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         else {
             firstPressy2 = true;
+        }
+
+        if (LiftEncoderResetButton) {
+            LiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            LiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
 
         if (LiftOverideDownButton) {
@@ -320,19 +370,11 @@ public class PowerSurgeTeleOp extends OpMode {
                 liftUpCommand = false;
             }
             else if (liftDownCommand) {
-                LiftMotor.setTargetPosition(0);
+                LiftMotor.setTargetPosition((int)(countsPerInch));
                 liftDownCommand = false;
             }
 
             telemetry.addData("Lift Height", liftHeight);
-
-            /*if (liftUpCommand) {
-                LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (4 * countsPerInch)));
-            }
-            //setting the Target position if we press the left Bumper
-            else if (liftDownCommand) {
-                LiftMotor.setTargetPosition((int)(LiftMotor.getTargetPosition() + (-4 * countsPerInch)));
-            }*/
         }
         else {
             LiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -344,19 +386,17 @@ public class PowerSurgeTeleOp extends OpMode {
     // FOUNDATIONATOR
     //
 
-    public void initializeFoundationator() {
+    private void initializeFoundationator() {
         lFoundationator = hardwareMap.servo.get("lFoundationator");
         rFoundationator = hardwareMap.servo.get("rFoundationator");
     }
 
-    public void startFoundationator() {
+    private void startFoundationator() {
         lFoundationator.setPosition(0);
         rFoundationator.setPosition(foundationatorPosition);
     }
 
-    public void checkFoundationator() {
-        boolean currentWaffleState = gamepad1.a;
-
+    private void checkFoundationator() {
         if (lastWaffleState == currentWaffleState){
             return;
         }
@@ -368,13 +408,6 @@ public class PowerSurgeTeleOp extends OpMode {
             }
         }
         lastWaffleState = currentWaffleState;
-
-        if (isWaffleStateRaised) {
-            telemetry.addData("Foundationator is", "Raised");
-        }
-        else {
-            telemetry.addData("Foundationator is", "Lowered");
-        }
     }
 
     private void raiseFoundationator() {
@@ -405,45 +438,88 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void checkGrabber() {
-        if (gamepad1.right_trigger > .5) {
-            if (firstPressRightTrigger) {
-                GrabberServo.setPosition(grabberClosedPosition);
-                liftGrabberState = 1;
-                startGrabberTime = getRuntime();
-                firstPressRightTrigger = false;
+        if (liftEncoderState) {
+            telemetry.addData("readyToGrab", readyToGrab);
+            if (readyToGrab && liftGrabberState == 0 && grabberReturnState == 0 && emergencyStoneEjectState == 0) {
+                if (firstRunZeroLiftPosition) {
+                    startGrabberTime = getRuntime();
+                    firstRunZeroLiftPosition = false;
+                }
+                currentGrabberTime = getRuntime();
+                if (currentGrabberTime - startGrabberTime > 1) {
+                    LiftMotor.setTargetPosition(0);
+                }
             }
-        }
-        else {
-            firstPressRightTrigger = true;
-        }
-        grabRotateRaiseStone();
+            else {
+                firstRunZeroLiftPosition = true;
+            }
 
-        if(gamepad1.left_trigger > .5) {
-            if(firstPressLeftTrigger) {
-                GrabberServo.setPosition(grabberOpenPosition);
-                liftGrabberState = 0;
-                grabberReturnState = 1;
-                startGrabberTime = getRuntime();
-                firstPressLeftTrigger = false;
+            if (grabStoneButton > .5) {
+                if (firstPressRightTrigger) {
+                    GrabberServo.setPosition(grabberClosedPosition);
+                    liftGrabberState = 1;
+                    startGrabberTime = getRuntime();
+                    firstPressRightTrigger = false;
+                }
+            } else {
+                firstPressRightTrigger = true;
             }
-        }
-        else {
-            firstPressLeftTrigger = true;
-        }
-        returnGrabberArm();
+            grabRotateRaiseStone();
 
-        if(gamepad1.y) {
-            if(firstPressy) {
-                emergencyStoneEjectState = 1;
-                GrabberServo.setPosition(grabberClosedPosition);
-                startGrabberTime = getRuntime();
-                firstPressy = false;
+            if (releaseStoneButton > .5) {
+                if (firstPressLeftTrigger) {
+                    GrabberServo.setPosition(grabberOpenPosition);
+                    liftGrabberState = 0;
+                    grabberReturnState = 1;
+                    startGrabberTime = getRuntime();
+                    firstPressLeftTrigger = false;
+                }
+            } else {
+                firstPressLeftTrigger = true;
             }
+            returnGrabberArm();
+
+            if (emergencyEjectButton) {
+                if (firstPressy) {
+                    emergencyStoneEjectState = 1;
+                    GrabberServo.setPosition(grabberClosedPosition);
+                    startGrabberTime = getRuntime();
+                    firstPressy = false;
+                }
+            } else {
+                firstPressy = true;
+            }
+            emergencyStoneEject();
         }
         else {
-            firstPressy = true;
+            if (grabberManualButton) {
+                firstPressGrabberManual = false;
+                if (grabberManualClosed) {
+                    GrabberServo.setPosition(grabberOpenPosition);
+                }
+                else {
+                    GrabberServo.setPosition(grabberClosedPosition);
+                }
+                grabberManualClosed = !grabberManualClosed;
+            }
+            else {
+                firstPressGrabberManual = true;
+            }
+
+            if (armManualButton) {
+                firstPressArmManual = false;
+                if (armManualClosed) {
+                    MoveArmServo.setPosition(1);
+                }
+                else {
+                    MoveArmServo.setPosition(0);
+                }
+                armManualClosed = !armManualClosed;
+            }
+            else {
+                firstPressArmManual = true;
+            }
         }
-        emergencyStoneEject();
     }
 
     private void grabRotateRaiseStone() {
@@ -460,7 +536,7 @@ public class PowerSurgeTeleOp extends OpMode {
                 LiftMotor.setTargetPosition((int)((9 * countsPerInch) + liftOffset));
                 if(LiftMotor.getCurrentPosition() > (int)((8 * countsPerInch) + liftOffset)) {
                     MoveArmServo.setPosition(0);
-                    if (currentGrabberTime - startGrabberTime > 1.5) {
+                    if (currentGrabberTime - startGrabberTime > 2) {
                         liftUpCommand = true;
                         liftGrabberState = 0;
                     }
@@ -486,6 +562,13 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private void returnGrabberArm() {
         if (grabberReturnState == 1) {
+            LiftMotor.setTargetPosition((int)((liftHeight * (4 * countsPerInch)) + liftOffset - countsPerInch));
+            if (LiftMotor.getCurrentPosition() < (int)(liftHeight * (4 * countsPerInch) + liftOffset - (.75 * countsPerInch))) {
+                grabberReturnState++;
+                startGrabberTime = getRuntime();
+            }
+        }
+        if (grabberReturnState == 2) {
             currentGrabberTime = getRuntime();
             GrabberServo.setPosition(grabberOpenPosition);
 
@@ -506,9 +589,9 @@ public class PowerSurgeTeleOp extends OpMode {
             }
 
         }
-        else if (grabberReturnState == 2) {
+        else if (grabberReturnState == 3) {
             currentGrabberTime = getRuntime();
-            if(currentGrabberTime - startGrabberTime > 1) {
+            if(currentGrabberTime - startGrabberTime > 1.5) {
                 liftDownCommand = true;
                 grabberReturnState = 0;
             }
@@ -545,33 +628,11 @@ public class PowerSurgeTeleOp extends OpMode {
         }
     }
 
-    /*private void grabStoneFromStraightener() {
-        GrabberServo.setPosition(.5);
-        // close grabber servo
-        return;
-    }
-    //this.moveArmToScorePosition("horizontal");
-    private void moveArmToScorePosition(String orientation) {
-        if(orientation.contentEquals("long")) {
-        }
-        else if(orientation.contentEquals("wide")) {
-        }
-        // move arm to scoring position
-        // orient the grabber to prepare to place the stone
-        return;
-    }
-
-    private void releaseStoneFromGrabber() {
-        GrabberServo.setPosition(0);
-        // open grabber servo to release stone
-        return;
-    }*/
-
     //
     // DRIVE TRAIN
     //
 
-    public void initializeDriveTrain() {
+    private void initializeDriveTrain() {
         RightBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "RightBackupSensor");
         LeftBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "LeftBackupSensor");
         FrontRight = hardwareMap.dcMotor.get("FrontRight");
@@ -584,7 +645,7 @@ public class PowerSurgeTeleOp extends OpMode {
         BackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
-    public void checkDriveTrain() {
+    private void checkDriveTrain() {
         rightBackupDistance = RightBackupSensor.getDistance(DistanceUnit.INCH);
         leftBackupDistance = LeftBackupSensor.getDistance(DistanceUnit.INCH);
 
@@ -597,7 +658,7 @@ public class PowerSurgeTeleOp extends OpMode {
                 //autoDrivingTimes = 0;
                 firstPressBumpers = false;
             }
-            goToPositionMrK(0,0,.5,.5, 0);
+            goToPositionMrK(0,0,.75,.5, 0);
         } else {
             firstPressBumpers = true;
 
@@ -622,50 +683,6 @@ public class PowerSurgeTeleOp extends OpMode {
         }
     }
 
-    // From Gluten Free
-    /*public void goToPosition(double x, double y, double movementSpeed, double turnSpeed, double preferredAngle) {
-        double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
-
-        double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
-        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget
-                - (Math.toRadians(RobotRotation)-Math.toRadians(90)));
-
-        double relativeXToPoint = Math.cos(relativeAngleToPoint) * distanceToTarget;
-        double relativeYToPoint = Math.sin(relativeAngleToPoint) * distanceToTarget;
-
-        double movementXPower = relativeXToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
-        double movementYPower = relativeYToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
-
-        movement_x = movementXPower * movementSpeed;
-        movement_y = movementYPower * movementSpeed;
-
-        double relativeTurnAngle = relativeAngleToPoint - Math.toRadians(180) + preferredAngle;
-        if (distanceToTarget < 3) {
-            movement_turn = 0;
-        } else {
-            movement_turn = Range.clip(relativeTurnAngle / Math.toRadians(30), -1, 1) * turnSpeed;
-        }
-        if (distanceToTarget < 1) {
-            movement_x = 0;
-            movement_y = 0;
-        }
-
-        Drive(.3*movement_y, -movement_x, .3*movement_turn);
-
-        telemetry.addData("Distance to Target", distanceToTarget);
-
-        telemetry.addData("absoluteAngleToTarget", absoluteAngleToTarget);
-        telemetry.addData("relativeTurnAngle", relativeTurnAngle);
-
-        telemetry.addData("MovementX", movement_x);
-        telemetry.addData("MovementY", movement_y);
-        telemetry.addData("MovementTurn", movement_turn);
-        
-        applyMovement();
-    }*/
-
-    // From mrKuiper
-
     /**
      * Universal goToPosition method that assumes the following coordinate system for the
      * odometry output values: , RobotYPosition, and :
@@ -689,7 +706,7 @@ public class PowerSurgeTeleOp extends OpMode {
      * @param maxTurnSpeed max turning speed to be given to drivetrain rotation
      * @param preferredAngle global target coordinate theta component
      */
-    public void goToPositionMrK(double x, double y, double maxMovementSpeed, double maxTurnSpeed, double preferredAngle) {
+    private void goToPositionMrK(double x, double y, double maxMovementSpeed, double maxTurnSpeed, double preferredAngle) {
         double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
         double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
         double relativeAngleToPoint = AngleWrap(-absoluteAngleToTarget
@@ -733,63 +750,7 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     /**
-     * Same as goToPositionMrK, accept deceleration happens later and more aggressively, and code
-     * watches for robot approaching target too rapidly and brakes accordingly then resumes.
-     * @param x
-     * @param y
-     * @param maxMovementSpeed
-     * @param maxTurnSpeed
-     * @param preferredAngle
-     */
-    /*public void goToPositionMrKWithBraking(double x, double y, double maxMovementSpeed, double maxTurnSpeed, double preferredAngle) {
-        double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
-        double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
-        double relativeAngleToPoint = AngleWrap(-absoluteAngleToTarget
-                - (Math.toRadians(RobotRotation)+Math.toRadians(90)));
-
-        double relativeXToPoint = Math.cos(relativeAngleToPoint);
-        double relativeYToPoint = Math.sin(relativeAngleToPoint);
-
-        double movementXPower = relativeXToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
-        double movementYPower = relativeYToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
-
-        double yDecelLimiter = Range.clip(Math.abs((distanceToTarget - MODIFIED_DECELERATION_ZERO_POINT)
-                / (MODIFIED_DECELERATION_START_POINT - MODIFIED_DECELERATION_ZERO_POINT)), 0, 1);
-        double xDecelLimiter = Range.clip(yDecelLimiter * X_SPEED_MULTIPLIER, 0, 1);
-
-        double relativeTurnAngle = AngleWrap(Math.toRadians(preferredAngle)-Math.toRadians(RobotRotation));
-        double turnDecelLimiter = Range.clip((Math.abs(relativeTurnAngle) - MODIFIED_TURNING_DECELERATION_ZERO_POINT)
-                / (MODIFIED_TURNING_DECELERATION_START_POINT - MODIFIED_TURNING_DECELERATION_ZERO_POINT), 0, 1);
-
-        if ((distanceToTarget / lastDistanceToTarget <= BRAKING_DISTANCE_RATIO_THRESHOLD) && (distanceToTarget <= MAX_BRAKING_DISTANCE)) {
-            FrontLeft.setPower(0);
-            BackLeft.setPower(0);
-            BackRight.setPower(0);
-            FrontRight.setPower(0);
-        }
-
-        movement_x = movementXPower * Range.clip(maxMovementSpeed, -xDecelLimiter, xDecelLimiter);
-        movement_y = movementYPower * Range.clip(maxMovementSpeed, -yDecelLimiter, yDecelLimiter);
-
-        if (distanceToTarget < 3) {
-            movement_turn = 0;
-        } else {
-            movement_turn = Range.clip(Range.clip(relativeTurnAngle / Math.toRadians(30),
-                    -1, 1) * maxTurnSpeed, -turnDecelLimiter, turnDecelLimiter);
-        }
-
-        telemetry.addData("X Movement", movement_x);
-        telemetry.addData("Y Movement", movement_y);
-        telemetry.addData("Turn Movement", movement_turn);
-
-        lastDistanceToTarget = distanceToTarget;
-
-        applyMovement();
-    }*/
-
-    /**
      * Converts movement_y, movement_x, movement_turn into motor powers.
-     *
      *
      * author: Original code by FTC Team 7571 Alumineers, modified by Travis Kuiper
      * date: 2020/01/01
@@ -799,7 +760,7 @@ public class PowerSurgeTeleOp extends OpMode {
      * movement_y: Positive value indicates drive forward proportionally
      */
     // Code comes from 11115 Peter and 7571 Alumineers
-    public void applyMovement() {
+    private void applyMovement() {
         long currTime = SystemClock.uptimeMillis();
         if(currTime - lastUpdateTime < 16){
             return;
@@ -846,7 +807,7 @@ public class PowerSurgeTeleOp extends OpMode {
      * @return new angle in radians
      */
 
-    public static double AngleWrap(double angle){
+    private static double AngleWrap(double angle){
 
         while(angle < -Math.PI){
             angle += 2*Math.PI;
@@ -855,255 +816,12 @@ public class PowerSurgeTeleOp extends OpMode {
             angle -= 2*Math.PI;
         }
 
-
         return angle;
     }
 
-    /*public ArrayList<Point> lineCircleIntersection(Point circleCenter, double radius, Point linePoint1, Point linePoint2) {
-        if(Math.abs(linePoint1.y - linePoint2.y) < .003) {
-            linePoint1.y = linePoint2.y + .003;
-        }
-        if(Math.abs(linePoint1.x - linePoint2.x) < .003) {
-            linePoint1.x = linePoint2.x + .003;
-        }
-    }*/
-
-    // From Wizards
-
-    /*private void goToPosition(double targetXPosition, double targetYPosition, double targetOrientation, double power, double allowableDistanceError) {
-        double distanceToXTarget = (targetXPosition*COUNTS_PER_INCH) - globalPositionUpdate.returnXCoordinate();
-        double distanceToYTarget = (targetYPosition*COUNTS_PER_INCH) - globalPositionUpdate.returnYCoordinate();
-
-        double distance = Math.hypot(distanceToXTarget, distanceToYTarget);
-
-        double robotMovementAngle = Math.toDegrees(Math.atan2(distanceToXTarget, distanceToYTarget));
-
-        double robot_movement_x_component = calculateX(robotMovementAngle, power);
-        double robot_movement_y_component = calculateY(robotMovementAngle, power);
-        double pivotCorrection = targetOrientation - globalPositionUpdate.returnOrientation();
-
-        if (distance < allowableDistanceError) {
-            Drive(0,0,0);
-        }
-        else {
-//            FrontRight.setPower(-DZSidewaysButton - DZForwardButton - DZSpinningButton);
-//            FrontLeft.setPower(-DZSidewaysButton + DZForwardButton - DZSpinningButton);
-//            BackRight.setPower(DZSidewaysButton - DZForwardButton - DZSpinningButton);
-//            BackLeft.setPower(DZSidewaysButton + DZForwardButton - DZSpinningButton);
-
-            telemetry.addData("robot_movement_x_component", robot_movement_x_component);
-            telemetry.addData("robot_movement_y_component", robot_movement_y_component);
-            telemetry.addData("pivotCorrection", pivotCorrection);
-            telemetry.addData("robotMovementAngle", robotMovementAngle);
-        }
-    }*/
-
-    private double calculateX(double desiredAngle, double speed) {
-        return Math.sin(Math.toRadians(desiredAngle)) * speed;
-    }
-    private double calculateY(double desiredAngle, double speed) {
-        return Math.cos(Math.toRadians(desiredAngle)) * speed;
-    }
-
-    // By DH
-
-    public void driveToScoringPosition() {
-        java.lang.String turningDirection;
-        double distanceFromOrientation;
-
-        if (RobotRotation > 2 && RobotRotation < 180) {
-            turningDirection = "left";
-        }
-        else {
-            turningDirection = "right";
-        }
-        telemetry.addData("TurningDirection", turningDirection);
-        if (RobotRotation > 2 && RobotRotation < 358) {
-            if (turningDirection.equals("right")) {
-                distanceFromOrientation = 360 - RobotRotation;
-                if (distanceFromOrientation > 120) {
-                    Drive(0, 0, 1);
-                }
-                else if (distanceFromOrientation > 45) {
-                    Drive(0,0,.35);
-                }
-                else {
-                    Drive(0,0,.15);
-                }
-            }
-            else {
-                distanceFromOrientation = RobotRotation;
-                if (distanceFromOrientation > 120) {
-                    Drive(0, 0, -1);
-                }
-                else if (distanceFromOrientation > 45) {
-                    Drive(0,0,-.35);
-                }
-                else {
-                    Drive(0,0,-.15);
-                }
-            }
-            telemetry.addData("DistanceFromOrientation", distanceFromOrientation);
-        }
-        else if (RobotYPosition < -.5 || RobotYPosition > .5) {
-            if (RobotYPosition < 0) {
-                if (RobotYPosition < -6) {
-                    Drive(-.3,0,0);
-                }
-                else {
-                    Drive(-.1, 0, 0);
-                }
-            }
-            else {
-                if (RobotYPosition > 6) {
-                    Drive(.3,0,0);
-                }
-                else {
-                    Drive(.1,0,0);
-                }
-            }
-        }
-        else if (RobotXPosition < -.5 || RobotXPosition > .5) {
-            if (RobotXPosition < 0) {
-                if (RobotXPosition < -6) {
-                    Drive(0,.5,0);
-                }
-                else {
-                    Drive(0, .2, 0);
-                }
-            }
-            else {
-                if (RobotXPosition > 6) {
-                    Drive(0,-.5,0);
-                }
-                else {
-                    Drive(0,-.2,0);
-                }
-            }
-        }
-        else {
-            Drive(0,0,0);
-        }
-    }
-
-    public void smoothDriveToScoringPosition() {
-        java.lang.String turningDirection;
-        double distanceFromOrientation;
-
-        if (RobotRotation > 2 && RobotRotation < 180) {
-            turningDirection = "left";
-        } else {
-            turningDirection = "right";
-        }
-        telemetry.addData("TurningDirection", turningDirection);
-
-        if (autoDrivingStage == 0) {
-            if (RobotRotation > 5 && RobotRotation < 355) {
-                if (turningDirection.equals("right")) {
-                    distanceFromOrientation = 360 - RobotRotation;
-                    if (distanceFromOrientation > 120) {
-                        Drive(0, 0, .6);
-                    } else if (distanceFromOrientation > 45) {
-                        Drive(0, 0, .35);
-                    } else {
-                        Drive(0, 0, .15);
-                    }
-                } else {
-                    distanceFromOrientation = RobotRotation;
-                    if (distanceFromOrientation > 120) {
-                        Drive(0, 0, -.6);
-                    } else if (distanceFromOrientation > 45) {
-                        Drive(0, 0, -.35);
-                    } else {
-                        Drive(0, 0, -.15);
-                    }
-                }
-                telemetry.addData("DistanceFromOrientation", distanceFromOrientation);
-            }
-            else {
-                autoDrivingStage++;
-            }
-        }
-        else if (autoDrivingStage == 1) {
-            if (RobotYPosition < -.5 || RobotYPosition > .5) {
-                if (RobotYPosition < 0) {
-                    if (RobotYPosition < -12) {
-                        Drive(-.3, 0, 0);
-                    } else {
-                        Drive(-.1, 0, 0);
-                    }
-                } else {
-                    if (RobotYPosition > 12) {
-                        Drive(.3, 0, 0);
-                    } else {
-                        Drive(.1, 0, 0);
-                    }
-                }
-            }
-            else {
-                autoDrivingStage++;
-            }
-        }
-        else if (autoDrivingStage == 2) {
-            if (RobotXPosition < -.5 || RobotXPosition > .5) {
-                if (RobotXPosition < 0) {
-                    if (RobotXPosition < -6) {
-                        Drive(0, .5, 0);
-                    } else {
-                        Drive(0, .2, 0);
-                    }
-                } else {
-                    if (RobotXPosition > 6) {
-                        Drive(0, -.5, 0);
-                    } else {
-                        Drive(0, -.2, 0);
-                    }
-                }
-            } else {
-                if (autoDrivingTimes == 0) {
-                    autoDrivingTimes = 1;
-                    autoDrivingStage = 0;
-                }
-                else {
-                    Drive(0, 0, 0);
-                }
-            }
-        }
-    }
-
-    public void oneMotionDriveToScoringPosition() {
-        java.lang.String turningDirection;
-        double distanceFromOrientation;
-        int inversingPowerRotationMultiplier;
-
-        if (RobotRotation > 2 && RobotRotation < 180) {
-            turningDirection = "left";
-        } else {
-            turningDirection = "right";
-        }
-        telemetry.addData("TurningDirection", turningDirection);
-        if (turningDirection.equals("right")) {
-            distanceFromOrientation = 360 - RobotRotation;
-            inversingPowerRotationMultiplier = 1;
-        }
-        else {
-            distanceFromOrientation = RobotRotation;
-            inversingPowerRotationMultiplier = -1;
-        }
-        telemetry.addData("DistanceFromOrientation", distanceFromOrientation);
-    }
-
-//    public double DeadModifier(double joystickValue) {
-//        forwardButton = DeadModifier(forwardButton);
-//        sidewaysButton = DeadModifier(sidewaysButton);
-//        spinningButton = DeadModifier(spinningButton);
-//
-//        Drive(forwardButton, sidewaysButton, spinningButton);
-//    }
-
     // By Paul
 
-    public double  DeadModifier(double joystickValue) {
+    private double DeadModifier(double joystickValue) {
         if(joystickValue < DEADZONE && joystickValue > -DEADZONE)
             return 0;
         else {
@@ -1111,7 +829,7 @@ public class PowerSurgeTeleOp extends OpMode {
         }
     }
 
-    public void Drive(double DZForwardButton, double DZSidewaysButton, double DZSpinningButton) {
+    private void Drive(double DZForwardButton, double DZSidewaysButton, double DZSpinningButton) {
         DZSpinningButton = -DZSpinningButton;
         FrontRight.setPower(-DZSidewaysButton - DZForwardButton + DZSpinningButton);
         FrontLeft.setPower(-DZSidewaysButton + DZForwardButton + DZSpinningButton);
@@ -1123,7 +841,7 @@ public class PowerSurgeTeleOp extends OpMode {
     // Odometry
     //
 
-    public void initializeOdometry() {
+    private void initializeOdometry() {
         verticalLeft = hardwareMap.dcMotor.get(verticalLeftEncoderName);
         verticalRight = hardwareMap.dcMotor.get(verticalRightEncoderName);
         horizontal = hardwareMap.dcMotor.get(horizontalEncoderName);
@@ -1151,7 +869,7 @@ public class PowerSurgeTeleOp extends OpMode {
         StartingRotation = 0;
     }
 
-    public void startOdometry() {
+    private void startOdometry() {
         globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 25);
         positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
@@ -1159,12 +877,12 @@ public class PowerSurgeTeleOp extends OpMode {
         globalPositionUpdate.reverseRightEncoder();
     }
 
-    public void checkOdometry() {
+    private void checkOdometry() {
         RobotXPosition = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingXPosition;
         RobotYPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + StartingYPosition;
         RobotRotation = (globalPositionUpdate.returnOrientation()) + StartingRotation;
 
-        if (gamepad2.b) {
+        if (odometryResetButton) {
             if (firstPressb2) {
                 firstPressb2 = false;
                 StartingXPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
@@ -1196,35 +914,26 @@ public class PowerSurgeTeleOp extends OpMode {
         telemetry.addData("Thread Active", positionThread.isAlive());
     }
 
-    double getDistanceFromCoordinates(double x, double y, OdometryGlobalCoordinatePosition position) {
-        double deltaX = x - position.returnXCoordinate();
-        double deltaY = y - position.returnYCoordinate();
-
-        return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    }
-
     //
     // INTAKE
     //
 
-    public void initializeIntakeMechanism() {
+    private void initializeIntakeMechanism() {
         IntakeMotor = hardwareMap.dcMotor.get("IntakeMotor");
         IntakeAssistServo = hardwareMap.crservo.get("IntakeAssistServo");
         IntakeReleaseServo = hardwareMap.servo.get("IntakeReleaseServo");
         IntakeMotor.setPower(0);
         IntakeAssistServo.setPower(0);
     }
-    public void startIntakeMechanism() {
+    private void startIntakeMechanism() {
         IntakeReleaseServo.setPosition(.6);
+        IntakeAssistServo.setPower(0);
     }
 
-    public void checkIntakeMechanism() {
-        intakeButton = gamepad1.dpad_up;
-        outputButton = gamepad1.dpad_down;
-
+    private void checkIntakeMechanism() {
         intake(intakeButton);
 
-        if (gamepad2.x) {
+        if (intakeReleaseButton) {
             if (firstPressx2) {
                 if (intakeReleaseState == 1) {
                     intakeReleaseState = 0;
@@ -1245,11 +954,9 @@ public class PowerSurgeTeleOp extends OpMode {
         else {
             IntakeReleaseServo.setPosition(.6);
         }
-
-
     }
 
-    public void intake(boolean intakeButton) {
+    private void intake(boolean intakeButton) {
         if (intakeButton) {
             if (firstPressDpadUp) {
                 if (intakeState == 1) {
@@ -1284,7 +991,7 @@ public class PowerSurgeTeleOp extends OpMode {
     // Straightener
     //
 
-    public void initializeStraightener() {
+    private void initializeStraightener() {
         OrientationSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "OrientationSensor");
         StonePresenceSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "StonePresenceSensor");
         OrientationServoLeft = hardwareMap.get(Servo.class, "OrientationServoLeft");
@@ -1293,7 +1000,7 @@ public class PowerSurgeTeleOp extends OpMode {
         OrientationServoRight.setPosition(rDisengage);
     }
 
-    public void checkStraightener() {
+    private void checkStraightener() {
         stoneDistance = StonePresenceSensor.getDistance(DistanceUnit.INCH);
         telemetry.addData("Stone Distance", stoneDistance);
         stoneFullyInStraightener = stoneDistance < 1.5;
@@ -1313,11 +1020,14 @@ public class PowerSurgeTeleOp extends OpMode {
         if(!straightenerBusy) {
             if (orientDistance > .25 && orientDistance <= .55) {
                 stoneOrientation = "left";
-            } else if (orientDistance > .75 && orientDistance <= 2.3) {
+            }
+            else if (orientDistance > .75 && orientDistance <= 2.3) {
                 stoneOrientation = "center";
-            } else if (orientDistance > 4) {
+            }
+            else if (orientDistance > 4) {
                 stoneOrientation = "empty";
-            } else {
+            }
+            else if (Double.isNaN(orientDistance) || orientDistance > 2.5 && orientDistance < 3){
                 stoneOrientation = "right";
             }
             telemetry.addData("orientPosition:  ", stoneOrientation);
@@ -1330,21 +1040,34 @@ public class PowerSurgeTeleOp extends OpMode {
         if (stoneFullyInStraightener) {
             if (stoneOrientation.equals("right")) {
                 runLeftServo();
+                readyToGrab = false;
             }
-
-            if (stoneOrientation.equals("left")) {
+            else if (stoneOrientation.equals("left")) {
                 runRightServo();
+                readyToGrab = false;
             }
-
-            readyToGrab = stoneOrientation.equals("center");
+            else if (stoneOrientation.equals("empty")) {
+                readyToGrab = false;
+                OrientationServoLeft.setPosition(lDisengage);
+                OrientationServoLeft.setPosition(rDisengage);
+            }
+            else if(stoneOrientation.equals("center")) {
+                readyToGrab = true;
+                OrientationServoLeft.setPosition(lDisengage);
+                OrientationServoLeft.setPosition(rDisengage);
+            }
+        }
+        else {
+            readyToGrab = false;
+            stoneOrientation = "empty";
         }
     }
 
     private void manualOverride() {
-        if (gamepad2.dpad_right) {
+        if (manualLeftServoButton) {
             runLeftServo();
         }
-        if (gamepad2.dpad_left) {
+        if (manualRightServoButton) {
             runRightServo();
         }
     }
