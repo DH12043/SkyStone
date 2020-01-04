@@ -182,7 +182,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private double actualLeftTime = 1.5;
     private double waitTime = 1;
     private double lastActualLeftTime = 0;
-    private double targetTime = .5 + waitTime;
+    private double targetTime = .5;
     private double stoneDistance = 0;
     private boolean readyToGrab = false;
     private boolean stoneFullyInStraightener = false;
@@ -999,7 +999,7 @@ public class PowerSurgeTeleOp extends OpMode {
         stoneFullyInStraightener = stoneDistance < 1.5;
 
         orientStone();
-        manualOverride();
+        //manualOverride();
     }
 
 
@@ -1026,7 +1026,7 @@ public class PowerSurgeTeleOp extends OpMode {
                 stoneOrientation = "right";
             }*/
 
-            if (orientDistance > .35 && orientDistance <= .45) {
+            if (orientDistance > .35 && orientDistance <= .6) {
                 stoneOrientation = "left";
             }
             else if (orientDistance > 1.2 && orientDistance <= 1.8) {
@@ -1049,6 +1049,11 @@ public class PowerSurgeTeleOp extends OpMode {
     private void orientStone() {
         senseOrientation();
 
+        if (!straightenerBusy) {
+            OrientationServoLeft.setPosition(lDisengage);
+            OrientationServoRight.setPosition(rDisengage);
+        }
+
         if (stoneFullyInStraightener) {
             if (stoneOrientation.equals("right")) {
                 runLeftServo();
@@ -1061,22 +1066,29 @@ public class PowerSurgeTeleOp extends OpMode {
             else if (stoneOrientation.equals("empty")) {
                 readyToGrab = false;
                 OrientationServoLeft.setPosition(lDisengage);
-                OrientationServoLeft.setPosition(rDisengage);
+                OrientationServoRight.setPosition(rDisengage);
             }
             else if(stoneOrientation.equals("center")) {
                 readyToGrab = true;
                 OrientationServoLeft.setPosition(lDisengage);
-                OrientationServoLeft.setPosition(rDisengage);
+                OrientationServoRight.setPosition(rDisengage);
             }
             else if (stoneOrientation.equals("notInThreshold")) {
-                readyToGrab = true;
+                readyToGrab = false;
                 OrientationServoLeft.setPosition(lDisengage);
-                OrientationServoLeft.setPosition(rDisengage);
+                OrientationServoRight.setPosition(rDisengage);
             }
+            telemetry.addData("actualLeftTime", actualLeftTime);
+            telemetry.addData("actualRightTime", actualRightTime);
+            telemetry.addData("target time", targetTime);
+            telemetry.addData("orientPosition", stoneOrientation);
+            telemetry.addData("StraightenerBusy", straightenerBusy);
         }
         else {
             readyToGrab = false;
-            stoneOrientation = "empty";
+            if (!straightenerBusy) {
+                stoneOrientation = "empty";
+            }
         }
     }
 
@@ -1098,16 +1110,14 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         currentRightTime = getRuntime();
         actualRightTime = (currentRightTime-startRightTime);
-        telemetry.addData("actualRightTime", actualRightTime);
-        telemetry.addData("target time", targetTime);
 
         if(actualRightTime > targetTime) {
             OrientationServoRight.setPosition(rDisengage);
-            telemetry.addData("is ready for return", "yes");
             firstRightRun = true;
         }
 
-        if (actualRightTime > targetTime + 2) {
+        if (actualRightTime > targetTime*2) {
+            OrientationServoRight.setPosition(rDisengage);
             firstRightRun = true;
             straightenerBusy = false;
         }
@@ -1125,16 +1135,14 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         currentLeftTime = getRuntime();
         actualLeftTime = (currentLeftTime-startLeftTime);
-        telemetry.addData("actualLeftTime", actualLeftTime);
-        telemetry.addData("target time", targetTime);
 
         if(actualLeftTime > targetTime) {
             OrientationServoLeft.setPosition(lDisengage);
-            telemetry.addData("is ready for return", "yes");
             firstLeftRun = true;
         }
 
-        if (actualLeftTime > targetTime + 2) {
+        if (actualLeftTime > targetTime*2) {
+            OrientationServoLeft.setPosition(lDisengage);
             firstLeftRun = true;
             straightenerBusy = false;
         }
