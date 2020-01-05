@@ -204,8 +204,8 @@ public class PowerSurgeTeleOp extends OpMode {
     private int liftGrabberState = 0;
     private int grabberReturnState = 0;
     private int emergencyStoneEjectState = 0;
-    private double grabberOpenPosition = .07;
-    private double grabberClosedPosition = .4;
+    private double grabberOpenPosition = .4;
+    private double grabberClosedPosition = 0;
     private boolean grabberManualClosed = false;
     private boolean armManualClosed = true;
     private boolean readyToRelease = false;
@@ -306,7 +306,7 @@ public class PowerSurgeTeleOp extends OpMode {
         LiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
     private void startVerticalLift() {
-        LiftMotor.setTargetPosition((int)(countsPerInch));
+        LiftMotor.setTargetPosition((int)( 2 * countsPerInch));
     }
 
     private void checkVerticalLift() {
@@ -399,7 +399,7 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             else if (liftDownCommand) {
                 LiftMotor.setPower(.5);
-                LiftMotor.setTargetPosition((int)(countsPerInch));
+                LiftMotor.setTargetPosition((int)(2 * countsPerInch));
                 liftDownCommand = false;
             }
 
@@ -475,7 +475,7 @@ public class PowerSurgeTeleOp extends OpMode {
                     firstRunZeroLiftPosition = false;
                 }
                 currentGrabberTime = getRuntime();
-                if (currentGrabberTime - startGrabberTime > 1) {
+                if (currentGrabberTime - startGrabberTime > .25) {
                     LiftMotor.setPower(1);
                     LiftMotor.setTargetPosition(0);
                 }
@@ -645,27 +645,34 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private void emergencyStoneEject() {
         if(emergencyStoneEjectState == 1) {
+            LiftMotor.setPower(.5);
+            LiftMotor.setTargetPosition(0);
+            if(LiftMotor.getCurrentPosition() < (int)(countsPerInch / 4)) {
+                emergencyStoneEjectState++;
+            }
+        }
+        else if(emergencyStoneEjectState == 2) {
             currentGrabberTime = getRuntime();
             if (currentGrabberTime - startGrabberTime > .5) {
                 LiftMotor.setPower(1);
                 LiftMotor.setTargetPosition((int)((8 * countsPerInch) + liftOffset));
                 if(LiftMotor.getCurrentPosition() > (int)((7 * countsPerInch) + liftOffset)) {
-                    MoveArmServo.setPosition(0);
+                    MoveArmServo.setPosition(.5);
                     startGrabberTime = getRuntime();
                     emergencyStoneEjectState++;
                 }
             }
         }
-        else if(emergencyStoneEjectState == 2) {
+        else if(emergencyStoneEjectState == 3) {
             currentGrabberTime = getRuntime();
-            if (currentGrabberTime - startGrabberTime > 1) {
+            if (currentGrabberTime - startGrabberTime > .5) {
                 GrabberServo.setPosition(grabberOpenPosition);
                 MoveArmServo.setPosition(1);
                 startGrabberTime = getRuntime();
                 emergencyStoneEjectState++;
             }
         }
-        else if(emergencyStoneEjectState == 3) {
+        else if(emergencyStoneEjectState == 4) {
             currentGrabberTime = getRuntime();
             if (currentGrabberTime - startGrabberTime > 1) {
                 liftDownCommand = true;
