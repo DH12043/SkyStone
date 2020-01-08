@@ -607,6 +607,9 @@ public class PowerSurgeTeleOp extends OpMode {
             LiftMotor.setPower(1);
             LiftMotor.setTargetPosition((int)((liftHeight * (4 * countsPerInch)) + liftOffset + (1 * countsPerInch)));
             if (LiftMotor.getCurrentPosition() > (int)(liftHeight * (4 * countsPerInch) + liftOffset + (.5 * countsPerInch))) {
+                StartingXPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
+                StartingYPosition = -(globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
+                StartingRotation = -(globalPositionUpdate.returnOrientation());
                 grabberReturnState++;
                 startGrabberTime = getRuntime();
             }
@@ -1064,7 +1067,7 @@ public class PowerSurgeTeleOp extends OpMode {
         stoneFullyInStraightener = stoneDistance < 1.5;
 
         orientStone();
-        //manualOverride();
+        manualOverride();
     }
 
 
