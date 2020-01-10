@@ -97,21 +97,80 @@ public class AutoTest extends SkystoneVuforiaNew {
         double FLSpeed = (-x + y);
         double BRSpeed = (x - y);
         double BLSpeed = (x + y);
-        if(FRSpeed > 1) {
-            if(FRSpeed > FLSpeed) {
-                if(FRSpeed > BRSpeed) {
-                    if(FRSpeed > BLSpeed) {
-                        FRSpeed = (FRSpeed / FRSpeed);
-                        FLSpeed = (FLSpeed / FRSpeed);
-                        BRSpeed = (BRSpeed / FRSpeed);
-                        BLSpeed = (BLSpeed / FRSpeed);
-                    }
-                    else if (FRSpeed < BLSpeed) {
-                        FRSpeed = (FRSpeed / BLSpeed);
-                    }
+
+
+        if(FRSpeed > FLSpeed) {
+            if (FRSpeed > BRSpeed) {
+                if (FRSpeed > BLSpeed) {
+                    FRSpeed = (FRSpeed / FRSpeed);
+                    FLSpeed = (FLSpeed / FRSpeed);
+                    BRSpeed = (BRSpeed / FRSpeed);
+                    BLSpeed = (BLSpeed / FRSpeed);
+                }
+
+                else if (FRSpeed < BLSpeed) {
+                    FRSpeed = (FRSpeed / BLSpeed);
+                    FLSpeed = (FLSpeed / BLSpeed);
+                    BRSpeed = (BRSpeed / BLSpeed);
+                    BLSpeed = (BLSpeed / BLSpeed);
+                }
+            }
+
+
+            else if (FRSpeed < BRSpeed) {
+                if (BRSpeed > BLSpeed) {
+                    FRSpeed = (FRSpeed / BRSpeed);
+                    FLSpeed = (FLSpeed / BRSpeed);
+                    BRSpeed = (BRSpeed / BRSpeed);
+                    BLSpeed = (BLSpeed / BRSpeed);
+                }
+
+                else if (FRSpeed < BLSpeed) {
+                    FRSpeed = (FRSpeed / BLSpeed);
+                    FLSpeed = (FLSpeed / BLSpeed);
+                    BRSpeed = (BRSpeed / BLSpeed);
+                    BLSpeed = (BLSpeed / BLSpeed);
                 }
             }
         }
+
+
+
+        else if(FRSpeed < FLSpeed) {
+            if(FLSpeed > BRSpeed) {
+                if(FLSpeed > BLSpeed) {
+                    FRSpeed = (FRSpeed / FLSpeed);
+                    FLSpeed = (FLSpeed / FLSpeed);
+                    BRSpeed = (BRSpeed / FLSpeed);
+                    BLSpeed = (BLSpeed / FLSpeed);
+                }
+
+                else if (FLSpeed < BLSpeed) {
+                    FRSpeed = (FRSpeed / BLSpeed);
+                    FLSpeed = (FLSpeed / BLSpeed);
+                    BRSpeed = (BRSpeed / BLSpeed);
+                    BLSpeed = (BLSpeed / BLSpeed);
+                }
+            }
+
+
+            else if(FLSpeed < BRSpeed) {
+                if(BRSpeed > BLSpeed) {
+                    FRSpeed = (FRSpeed / BRSpeed);
+                    FLSpeed = (FLSpeed / BRSpeed);
+                    BRSpeed = (BRSpeed / BRSpeed);
+                    BLSpeed = (BLSpeed / BRSpeed);
+                }
+
+                else if (BRSpeed < BLSpeed) {
+                    FRSpeed = (FRSpeed / BLSpeed);
+                    FLSpeed = (FLSpeed / BLSpeed);
+                    BRSpeed = (BRSpeed / BLSpeed);
+                    BLSpeed = (BLSpeed / BLSpeed);
+                }
+            }
+        }
+
         while (CurrentRobotYPosition < y) {
             FrontRight.setPower(FRSpeed);
             FrontLeft.setPower(FLSpeed);
