@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.io.File;
@@ -27,6 +29,9 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
     Thread positionThread;
     OdometryGlobalCoordinatePosition globalPositionUpdate;
 
+    private ModernRoboticsI2cRangeSensor OrientationSensor;
+    private ModernRoboticsI2cRangeSensor StonePresenceSensor;
+
     private int SkystoneXPosition;
     private int SkystoneYPosition;
     private DcMotor FrontRight;
@@ -37,10 +42,11 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
     private DcMotor LiftMotor;
     private Servo lFoundationator;
     private Servo rFoundationator;
-
+    private Servo OrientationServoLeft;
+    private Servo OrientationServoRight;
 
     final double COUNTS_PER_INCH = 307.699557;
-    private boolean goToNewPosition;
+    private boolean goToNewPosition = true;
     private static int PreFoundationXPosition = 36;
     private static int PreFoundationYPosition = 95;
     private static int FoundationXPosition = 48;
@@ -50,14 +56,43 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
     private static int ParkLineXPosition = 9;
     private static int ParkLineYPosition = 72;
 
-    private double CurrentRobotXPosition;
-    private double CurrentRobotYPosition;
-    private double CurrentRobotRotation;
+    private double RobotXPosition;
+    private double RobotYPosition;
+    private double RobotRotation;
     private double startTime;
     private double currentTime;
 
     private int autoState = 0;
     private int lastAutoState = -1;
+
+    // ORIENTER STUFF
+
+    private String stoneOrientation = "empty";
+    private String lCurrentPosition = "lDisengage";
+    private String rCurrentPosition = "rDisengage";
+    private double foundationatorPosition = .335;
+    private double orientDistance = 0;
+    private double lDisengage = .2;
+    private double rDisengage = .9;
+    private double lEngage = .85;
+    private double rEngage = .25;
+    private double startRightTime = 0;
+    private double currentRightTime = 0;
+    private double actualRightTime = 1.5;
+    private double lastActualRightTime = 0;
+    private double rightOrientCheck = 1;
+    private double startLeftTime = 0;
+    private double currentLeftTime = 0;
+    private double actualLeftTime = 1.5;
+    private double waitTime = 1;
+    private double lastActualLeftTime = 0;
+    private double targetTime = .5;
+    private double stoneDistance = 0;
+    private boolean readyToGrab = false;
+    private boolean stoneFullyInStraightener = false;
+    private boolean straightenerBusy = false;
+    private boolean firstRightRun = true;
+    private boolean firstLeftRun = true;
 
     @Override
     public void init() {
@@ -90,10 +125,9 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
         verticalLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         verticalRight.setDirection(DcMotorSimple.Direction.REVERSE);
         horizontal.setDirection(DcMotorSimple.Direction.REVERSE);
-        boolean goToTargetPosition = true;
-        RobotXPosition = (9);
-        RobotYPosition = (-36);
-        RobotRotation = (0);
+        StartingXPosition = (0);
+        StartingYPosition = (0);
+        StartingRotation = (0);
     }
 
     @Override
@@ -114,13 +148,13 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
     public void loop() {
         currentTime = getRuntime();
 
-        CurrentRobotXPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + RobotXPosition;
-        CurrentRobotYPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + RobotYPosition;
-        CurrentRobotRotation = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + RobotRotation;
+        RobotXPosition = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingXPosition;
+        RobotYPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + StartingYPosition;
+        RobotRotation = (globalPositionUpdate.returnOrientation()) + StartingRotation;
 
-        telemetry.addData ("RobotX", CurrentRobotXPosition);
-        telemetry.addData ("RobotY", CurrentRobotYPosition);
-        telemetry.addData ("RobotRotation", CurrentRobotRotation);
+        telemetry.addData ("RobotX", RobotXPosition);
+        telemetry.addData ("RobotY", RobotYPosition);
+        telemetry.addData ("RobotTheta", RobotRotation);
 
         // Drop intake
         // Turn on intake
@@ -164,6 +198,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
             }
             else {
                 autoState++;
+                stopMotors();
             }
             lastAutoState = 1;
         }
@@ -185,10 +220,10 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
 
     }
     private void goToTarget (double x, double y, double Θ) {
-       if (goToNewPosition == true) {
-           RobotXPosition = (-x);
-           RobotYPosition = (-y);
-           RobotRotation = (-Θ);
+       if (goToNewPosition) {
+           StartingXPosition = (-x);
+           StartingYPosition = (-y);
+           StartingRotation = (-Θ);
 
            goToNewPosition = false;
        }
@@ -201,18 +236,18 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
         java.lang.String turningDirection;
         double distanceFromOrientation;
 
-        if (CurrentRobotRotation > 2 && CurrentRobotRotation < 180) {
+        if (RobotRotation > 2 && RobotRotation < 180) {
             turningDirection = "left";
         }
         else {
             turningDirection = "right";
         }
         telemetry.addData("TurningDirection", turningDirection);
-        if (CurrentRobotRotation > 2 && CurrentRobotRotation < 358) {
-            telemetry.addData("RobotCurrentOrientation", CurrentRobotRotation);
+        if (RobotRotation > 2 && RobotRotation < 358) {
+            telemetry.addData("RobotCurrentOrientation", RobotRotation);
             telemetry.addData("RobotTargetOrientation", "0");
             if (turningDirection.equals("right")) {
-                distanceFromOrientation = 360 - CurrentRobotRotation;
+                distanceFromOrientation = 360 - RobotRotation;
                 if (distanceFromOrientation > 120) {
                     Drive(0, 0, 1);
                 }
@@ -224,7 +259,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
                 }
             }
             else {
-                distanceFromOrientation = CurrentRobotRotation;
+                distanceFromOrientation = RobotRotation;
                 if (distanceFromOrientation > 120) {
                     Drive(0, 0, -1);
                 }
@@ -237,9 +272,9 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
             }
             telemetry.addData("DistanceFromOrientation", distanceFromOrientation);
         }
-        else if (CurrentRobotYPosition < -.5 || CurrentRobotYPosition > .5) {
-            if (CurrentRobotYPosition < 0) {
-                if (CurrentRobotYPosition < -6) {
+        else if (RobotYPosition < -.5 || RobotYPosition > .5) {
+            if (RobotYPosition < 0) {
+                if (RobotYPosition < -6) {
                     Drive(-.3,0,0);
                 }
                 else {
@@ -247,7 +282,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
                 }
             }
             else {
-                if (CurrentRobotYPosition > 6) {
+                if (RobotYPosition > 6) {
                     Drive(.3,0,0);
                 }
                 else {
@@ -255,9 +290,9 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
                 }
             }
         }
-        else if (CurrentRobotXPosition < -.5 || CurrentRobotXPosition > .5) {
-            if (CurrentRobotXPosition < 0) {
-                if (CurrentRobotXPosition < -6) {
+        else if (RobotXPosition < -.5 || RobotXPosition > .5) {
+            if (RobotXPosition < 0) {
+                if (RobotXPosition < -6) {
                     Drive(0,.5,0);
                 }
                 else {
@@ -265,7 +300,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
                 }
             }
             else {
-                if (CurrentRobotXPosition > 6) {
+                if (RobotXPosition > 6) {
                     Drive(0,-.5,0);
                 }
                 else {
@@ -277,6 +312,8 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
             Drive(0,0,0);
         }
     }
+
+    private void stopMotors() { Drive (0,0,0); }
 
     public void Drive(double DZForwardButton, double DZSidewaysButton, double DZSpinningButton) {
         DZSpinningButton = -DZSpinningButton;
@@ -354,8 +391,8 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
 
     private void driveToSkystonePosition(OdometryGlobalCoordinatePosition position) {
 
-        if(CurrentRobotXPosition < SkystoneXPosition) {
-            if(CurrentRobotYPosition < SkystoneYPosition) {
+        if(RobotXPosition < SkystoneXPosition) {
+            if(RobotYPosition < SkystoneYPosition) {
                 FrontRight.setPower(.3);
                 FrontLeft.setPower(.3);
                 BackRight.setPower(-.3);
@@ -363,7 +400,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
                 telemetry.addData("Strafing","Forward Right");
                 telemetry.update();
             }
-            else if(CurrentRobotYPosition > SkystoneYPosition) {
+            else if(RobotYPosition > SkystoneYPosition) {
                 FrontRight.setPower(-.3);
                 FrontLeft.setPower(-.3);
                 BackRight.setPower(.3);
@@ -376,13 +413,13 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
                 BackRight.setPower(.15);
                 BackLeft.setPower(-.15);
                 telemetry.addData("Straight", "Forward");
-                telemetry.addData("RobotX",CurrentRobotXPosition);
-                telemetry.addData("RobotY",CurrentRobotYPosition);
-                telemetry.addData("RobotRotation", CurrentRobotRotation);
+                telemetry.addData("RobotX", RobotXPosition);
+                telemetry.addData("RobotY", RobotYPosition);
+                telemetry.addData("StartingRotation", RobotRotation);
             }
-            CurrentRobotXPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + RobotXPosition;
-            CurrentRobotYPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + RobotYPosition;
-            CurrentRobotRotation = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + RobotRotation;
+            RobotXPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + StartingXPosition;
+            RobotYPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingYPosition;
+            RobotRotation = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingRotation;
             telemetry.addData("SkystoneXPosition", SkystoneXPosition / COUNTS_PER_INCH);
             telemetry.addData("SkystoneYPosition", SkystoneYPosition / COUNTS_PER_INCH);
             telemetry.update();
@@ -454,7 +491,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
 
             distanceAway = getDistanceFromCoordinates(PreFoundationXPosition, PreFoundationYPosition, position);
         }
-        while (RobotRotation < 90) {
+        while (StartingRotation < 90) {
             FrontRight.setPower(.5);
             FrontLeft.setPower(-.5);
             BackRight.setPower(.5);
@@ -528,7 +565,7 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
         lFoundationator.setPosition(0);
         rFoundationator.setPosition(.27);
 
-        while (RobotRotation < 90) {
+        while (StartingRotation < 90) {
             FrontRight.setPower(.5);
             FrontLeft.setPower(-.5);
             BackRight.setPower(.5);
@@ -564,6 +601,169 @@ public class AutoREDPrimaryRelativeCoordinates extends SkystoneVuforiaNew {
             BackLeft.setPower(motorSpeeds[2]);
 
             distanceAway = getDistanceFromCoordinates(ParkLineXPosition, ParkLineYPosition, position);
+        }
+    }
+
+
+    //
+    // Straightener
+    //
+
+    private void initializeStraightener() {
+        OrientationSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, "OrientationSensor");
+        StonePresenceSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "StonePresenceSensor");
+        OrientationServoLeft = hardwareMap.get(Servo.class, "OrientationServoLeft");
+        OrientationServoRight = hardwareMap.get(Servo.class, "OrientationServoRight");
+        OrientationServoLeft.setPosition(lDisengage);
+        OrientationServoRight.setPosition(rDisengage);
+    }
+
+    private void checkStraightener() {
+        stoneDistance = StonePresenceSensor.getDistance(DistanceUnit.INCH);
+        telemetry.addData("Stone Distance", stoneDistance);
+        stoneFullyInStraightener = stoneDistance < 1.5;
+
+        orientStone();
+        //manualOverride();
+    }
+
+
+    private void senseOrientation() {
+        //orientDistance = OrientationSensor.getDistance(DistanceUnit.INCH);
+        orientDistance = OrientationSensor.cmOptical()/2.54;
+        telemetry.addData("Orient Distance", orientDistance);
+
+        // StoneOrientation is assigned relative to the side of the robot that the studs of the stone
+        // are on when looking at the robot from the back.
+        // this is true for the servos as well; left and right are assigned relative to the back
+
+        if(!straightenerBusy) {
+            /*if (orientDistance > .25 && orientDistance <= .55) {
+                stoneOrientation = "left";
+            }
+            else if (orientDistance > .75 && orientDistance <= 2.3) {
+                stoneOrientation = "center";
+            }
+            else if (orientDistance > 4) {
+                stoneOrientation = "empty";
+            }
+            else if (orientDistance > 2.5 && orientDistance < 3){
+                stoneOrientation = "right";
+            }*/
+
+            if (orientDistance > .35 && orientDistance <= .6) {
+                stoneOrientation = "left";
+            }
+            else if (orientDistance > 1.2 && orientDistance <= 1.8) {
+                stoneOrientation = "center";
+            }
+            else if (orientDistance > 3) {
+                stoneOrientation = "empty";
+            }
+            else if (orientDistance > 2 && orientDistance < 2.4){
+                stoneOrientation = "right";
+            }
+            else {
+                stoneOrientation = "notInThreshold";
+            }
+        }
+        telemetry.addData("orientPosition", stoneOrientation);
+        telemetry.addData("StraightenerBusy", straightenerBusy);
+    }
+
+    private void orientStone() {
+        senseOrientation();
+
+        if (!straightenerBusy) {
+            OrientationServoLeft.setPosition(lDisengage);
+            OrientationServoRight.setPosition(rDisengage);
+        }
+
+        if (stoneFullyInStraightener) {
+            if (stoneOrientation.equals("right")) {
+                runLeftServo();
+                readyToGrab = false;
+            }
+            else if (stoneOrientation.equals("left")) {
+                runRightServo();
+                readyToGrab = false;
+            }
+            else if (stoneOrientation.equals("empty")) {
+                readyToGrab = false;
+                OrientationServoLeft.setPosition(lDisengage);
+                OrientationServoRight.setPosition(rDisengage);
+            }
+            else if(stoneOrientation.equals("center")) {
+                readyToGrab = true;
+                OrientationServoLeft.setPosition(lDisengage);
+                OrientationServoRight.setPosition(rDisengage);
+            }
+            else if (stoneOrientation.equals("notInThreshold")) {
+                readyToGrab = false;
+                OrientationServoLeft.setPosition(lDisengage);
+                OrientationServoRight.setPosition(rDisengage);
+            }
+            telemetry.addData("actualLeftTime", actualLeftTime);
+            telemetry.addData("actualRightTime", actualRightTime);
+            telemetry.addData("target time", targetTime);
+            telemetry.addData("orientPosition", stoneOrientation);
+            telemetry.addData("StraightenerBusy", straightenerBusy);
+        }
+        else {
+            readyToGrab = false;
+            if (!straightenerBusy) {
+                stoneOrientation = "empty";
+            }
+        }
+    }
+
+    private void runRightServo() {
+        if(firstRightRun && !straightenerBusy) {
+            OrientationServoRight.setPosition(rEngage);
+            startRightTime = getRuntime();
+            firstRightRun = false;
+            straightenerBusy = true;
+        }
+        currentRightTime = getRuntime();
+        actualRightTime = (currentRightTime-startRightTime);
+
+        if(actualRightTime > targetTime) {
+            OrientationServoRight.setPosition(rDisengage);
+            firstRightRun = true;
+        }
+
+        if (actualRightTime > targetTime*2) {
+            OrientationServoRight.setPosition(rDisengage);
+            firstRightRun = true;
+            straightenerBusy = false;
+        }
+        else {
+            straightenerBusy = true;
+        }
+    }
+
+    private void runLeftServo() {
+        if(firstLeftRun && !straightenerBusy) {
+            OrientationServoLeft.setPosition(lEngage);
+            startLeftTime = getRuntime();
+            firstLeftRun = false;
+            straightenerBusy = true;
+        }
+        currentLeftTime = getRuntime();
+        actualLeftTime = (currentLeftTime-startLeftTime);
+
+        if(actualLeftTime > targetTime) {
+            OrientationServoLeft.setPosition(lDisengage);
+            firstLeftRun = true;
+        }
+
+        if (actualLeftTime > targetTime*2) {
+            OrientationServoLeft.setPosition(lDisengage);
+            firstLeftRun = true;
+            straightenerBusy = false;
+        }
+        else {
+            straightenerBusy = true;
         }
     }
 }
