@@ -205,6 +205,8 @@ public class PowerSurgeTeleOp extends OpMode {
     private int grabberReturnState = 0;
     private int emergencyStoneEjectState = 0;
     private double grabberOpenPosition = .4;
+    private double armInsidePosition = .75;
+    private double armOutsidePosition = .5;
     private double grabberClosedPosition = 0;
     private boolean grabberManualClosed = false;
     private boolean armManualClosed = true;
@@ -462,7 +464,8 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void startGrabber() {
-        MoveArmServo.setPosition(1);
+        MoveArmServo.setDirection(Servo.Direction.FORWARD);
+        MoveArmServo.setPosition(0);
         GrabberServo.setPosition(grabberOpenPosition);
     }
 
@@ -541,9 +544,11 @@ public class PowerSurgeTeleOp extends OpMode {
             if (armManualButton) {
                 firstPressArmManual = false;
                 if (armManualClosed) {
+                    MoveArmServo.setDirection(Servo.Direction.FORWARD);
                     MoveArmServo.setPosition(1);
                 }
                 else {
+                    MoveArmServo.setDirection(Servo.Direction.REVERSE);
                     MoveArmServo.setPosition(0);
                 }
                 armManualClosed = !armManualClosed;
@@ -568,6 +573,7 @@ public class PowerSurgeTeleOp extends OpMode {
                 LiftMotor.setPower(1);
                 LiftMotor.setTargetPosition((int)((10 * countsPerInch) + liftOffset));
                 if(LiftMotor.getCurrentPosition() > (int)((9 * countsPerInch) + liftOffset)) {
+                    MoveArmServo.setDirection(Servo.Direction.REVERSE);
                     MoveArmServo.setPosition(0);
                     if (currentGrabberTime - startGrabberTime > 2) {
                         liftUpCommand = true;
@@ -588,6 +594,7 @@ public class PowerSurgeTeleOp extends OpMode {
             }
         }
         else if(liftGrabberState == 4) {
+            MoveArmServo.setDirection(Servo.Direction.REVERSE);
             MoveArmServo.setPosition(0);
             readyToRelease = true;
             liftGrabberState = 0;
@@ -623,12 +630,14 @@ public class PowerSurgeTeleOp extends OpMode {
                     LiftMotor.setPower(1);
                     LiftMotor.setTargetPosition((int)((6 * countsPerInch) + liftOffset));
                     if(LiftMotor.getCurrentPosition() > (int)((5 * countsPerInch) + liftOffset)) {
+                        MoveArmServo.setDirection(Servo.Direction.FORWARD);
                         MoveArmServo.setPosition(1);
                         grabberReturnState++;
                         startGrabberTime = getRuntime();
                     }
                 }
                 else {
+                    MoveArmServo.setDirection(Servo.Direction.FORWARD);
                     MoveArmServo.setPosition(1);
                     grabberReturnState++;
                     startGrabberTime = getRuntime();
@@ -660,6 +669,7 @@ public class PowerSurgeTeleOp extends OpMode {
                 LiftMotor.setPower(1);
                 LiftMotor.setTargetPosition((int)((8 * countsPerInch) + liftOffset));
                 if(LiftMotor.getCurrentPosition() > (int)((7 * countsPerInch) + liftOffset)) {
+                    MoveArmServo.setDirection(Servo.Direction.FORWARD);
                     MoveArmServo.setPosition(.5);
                     startGrabberTime = getRuntime();
                     emergencyStoneEjectState++;
@@ -670,6 +680,7 @@ public class PowerSurgeTeleOp extends OpMode {
             currentGrabberTime = getRuntime();
             if (currentGrabberTime - startGrabberTime > .5) {
                 GrabberServo.setPosition(grabberOpenPosition);
+                MoveArmServo.setDirection(Servo.Direction.FORWARD);
                 MoveArmServo.setPosition(1);
                 startGrabberTime = getRuntime();
                 emergencyStoneEjectState++;
