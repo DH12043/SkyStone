@@ -38,6 +38,10 @@ public class PowerSurgeTeleOp extends OpMode {
     private double StartingYPosition;
     private double StartingRotation;
 
+    private double ScoringXPosition;
+    private double ScoringYPosition;
+    private double ScoringRotation;
+
     private File startingXpositionFile = AppUtil.getInstance().getSettingsFile("startingXposition.txt");
     private File startingYpositionFile = AppUtil.getInstance().getSettingsFile("startingYposition.txt");
     private File startingθpositionFile = AppUtil.getInstance().getSettingsFile("startingθposition.txt");
@@ -112,6 +116,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private double grabStoneButton;
     private double releaseStoneButton;
     private boolean emergencyEjectButton;
+    private double capstoneButton;
     private boolean grabberManualButton;
     private boolean armManualButton;
 
@@ -121,6 +126,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private boolean manualLeftServoButton;
     private boolean manualRightServoButton;
+    private double readyToGrabOverideButton;
 
     private boolean odometryResetButton;
     private boolean halfSpeedDriveButton;
@@ -153,6 +159,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean firstPressGrabberManual = true;
     private boolean firstRunZeroLiftPosition = true;
     private boolean firstPressLiftHeightReset = true;
+    private boolean firstPressCapstoneButton = true;
 
     // WAFFLE STUFF
 
@@ -169,9 +176,9 @@ public class PowerSurgeTeleOp extends OpMode {
 
     static final double countsPerMotor          = 383.6;
     static final double gearReduction           = 1.0 ;
-    static final double wheelDiameter           = 1.771653543307087 ;
+    static final double wheelDiameter           = 1.7; //1.771653543307087
     static final double countsPerInch           = (countsPerMotor * gearReduction) / (wheelDiameter * Math.PI);
-    static final double liftOffset = (2.5 * countsPerInch);     //TODO Change
+    static final double liftOffset = (2.5 * countsPerInch);
 
     // ORIENTER STUFF
 
@@ -215,6 +222,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean grabberManualClosed = false;
     private boolean armManualClosed = true;
     private boolean readyToRelease = false;
+    private int capstoneState = 0;
 
     //last update time
     private long lastUpdateTime = 0;
@@ -278,6 +286,7 @@ public class PowerSurgeTeleOp extends OpMode {
         emergencyEjectButton = gamepad1.y;
         grabberManualButton = gamepad2.b;
         armManualButton = gamepad2.a;
+        capstoneButton = gamepad2.right_trigger;
 
         outputButton = gamepad1.dpad_down;
         intakeButton = gamepad1.dpad_up;
@@ -285,6 +294,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
         manualLeftServoButton = gamepad2.dpad_right;
         manualRightServoButton = gamepad2.dpad_left;
+        readyToGrabOverideButton = gamepad2.left_trigger;
 
         odometryResetButton = gamepad1.b;
         halfSpeedDriveButton = gamepad1.left_bumper;
@@ -488,6 +498,10 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void checkGrabber() {
+        if (readyToGrabOverideButton > .5) {
+            readyToGrab = true;
+        }
+
         if (liftEncoderState) {
             telemetry.addData("readyToGrab", readyToGrab);
             if (readyToGrab && !readyToRelease && liftGrabberState == 0 && grabberReturnState == 0 && emergencyStoneEjectState == 0) {
@@ -496,7 +510,7 @@ public class PowerSurgeTeleOp extends OpMode {
                     firstRunZeroLiftPosition = false;
                 }
                 currentGrabberTime = getRuntime();
-                if (currentGrabberTime - startGrabberTime > .25) {
+                if (currentGrabberTime - startGrabberTime > .75) {
                     LiftMotor.setPower(1);
                     LiftMotor.setTargetPosition(0);
                 }
@@ -533,6 +547,18 @@ public class PowerSurgeTeleOp extends OpMode {
                 }
             }
             returnGrabberArm();
+
+            if (capstoneButton > .5) {
+                if (firstPressCapstoneButton) {
+                    capstoneState = 1;
+                    LiftMotor.setTargetPosition((int)((10 * countsPerInch)));
+                    firstPressCapstoneButton = false;
+                }
+            }
+            else {
+                firstPressCapstoneButton = true;
+            }
+            scoreCapstone();
 
             if (emergencyEjectButton) {
                 if (firstPressy) {
@@ -632,9 +658,9 @@ public class PowerSurgeTeleOp extends OpMode {
             LiftMotor.setPower(1);
             LiftMotor.setTargetPosition((int)((liftHeight * (4 * countsPerInch)) + liftOffset + (1 * countsPerInch)));
             if (LiftMotor.getCurrentPosition() > (int)(liftHeight * (4 * countsPerInch) + liftOffset + (.5 * countsPerInch))) {
-                StartingXPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
-                StartingYPosition = -(globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
-                StartingRotation = -(globalPositionUpdate.returnOrientation());
+                ScoringXPosition = RobotXPosition;
+                ScoringYPosition = RobotYPosition;
+                ScoringRotation = RobotRotation;
                 grabberReturnState++;
                 startGrabberTime = getRuntime();
             }
@@ -666,6 +692,46 @@ public class PowerSurgeTeleOp extends OpMode {
                 liftDownCommand = true;
                 readyToRelease = false;
                 grabberReturnState = 0;
+            }
+        }
+    }
+
+    private void scoreCapstone() {
+        if(capstoneState == 1) {
+            if (LiftMotor.getCurrentPosition() > (int)((9.5 * countsPerInch) + liftOffset)) {
+                MoveArmServo.setPosition(.25);
+                startGrabberTime = getRuntime();
+                capstoneState++;
+            }
+        }
+        if(capstoneState == 2) {
+            if(currentGrabberTime - startGrabberTime > .5) {
+                LiftMotor.setTargetPosition((int)((8 * countsPerInch)));
+                if (LiftMotor.getCurrentPosition() < (int)((8.5 * countsPerInch) + liftOffset)) {
+                    startGrabberTime = getRuntime();
+                    GrabberServo.setPosition(grabberClosedPosition);
+                    capstoneState++;
+                }
+            }
+        }
+        if(capstoneState == 3) {
+            if (currentGrabberTime - startGrabberTime > .5) {
+                liftUpCommand = true;
+                capstoneState++;
+                startGrabberTime = getRuntime();
+            }
+        }
+        if(capstoneState == 4) {
+            if (LiftMotor.getCurrentPosition() > (int)(liftHeight * (4 * countsPerInch) + (liftOffset-(.5 * countsPerInch)))) {
+                MoveArmServo.setPosition(armOutsidePosition);
+                startGrabberTime = getRuntime();
+                capstoneState++;
+            }
+        }
+        if(capstoneState == 5) {
+            if (currentGrabberTime - startGrabberTime > 1) {
+                readyToRelease = true;
+                capstoneState++;
             }
         }
     }
@@ -736,7 +802,7 @@ public class PowerSurgeTeleOp extends OpMode {
             if (firstPressBumpers) {
                 firstPressBumpers = false;
             }
-            goToPositionMrK(0,0,1,.5, 0);
+            goToPositionMrK(ScoringXPosition,ScoringYPosition,1,.5, ScoringRotation);
         }
         else {
             firstPressBumpers = true;
@@ -1178,9 +1244,14 @@ public class PowerSurgeTeleOp extends OpMode {
             telemetry.addData("StraightenerBusy", straightenerBusy);
         }
         else {
+            OrientationServoLeft.setPosition(lDisengage);
+            OrientationServoRight.setPosition(rDisengage);
             readyToGrab = false;
             if (!straightenerBusy) {
                 stoneOrientation = "empty";
+            }
+            else {
+                straightenerBusy = false;
             }
         }
     }
