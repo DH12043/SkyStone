@@ -471,6 +471,8 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void raiseFoundationator() {
+        lFoundationator.setPosition(0);
+        rFoundationator.setPosition(foundationatorPosition);
         isWaffleStateRaised = true;
     }
 
