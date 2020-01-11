@@ -442,8 +442,6 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void raiseFoundationator() {
-        lFoundationator.setPosition(0);
-        rFoundationator.setPosition(foundationatorPosition);
         isWaffleStateRaised = true;
     }
 
@@ -1167,7 +1165,11 @@ public class PowerSurgeTeleOp extends OpMode {
             readyToGrab = false;
             if (!straightenerBusy) {
                 stoneOrientation = "empty";
+            } else {
+                straightenerBusy = false;
             }
+            OrientationServoLeft.setPosition(lDisengage);
+            OrientationServoRight.setPosition(rDisengage);
         }
     }
 

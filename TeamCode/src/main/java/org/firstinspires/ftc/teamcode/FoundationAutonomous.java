@@ -8,8 +8,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-@Autonomous (name= "AutoTest", group= "None")
-public class AutoTest extends SkystoneVuforiaNew {
+@Autonomous (name= "FoundationAutonomous", group= "None")
+public class FoundationAutonomous extends SkystoneVuforiaNew {
 
     DcMotor verticalRight, verticalLeft, horizontal;
 
@@ -25,6 +25,8 @@ public class AutoTest extends SkystoneVuforiaNew {
     private DcMotor BackRight;
     private DcMotor BackLeft;
     private Servo IntakeReleaseServo;
+    private Servo lFoundationator;
+    private Servo rFoundationator;
 
     final double COUNTS_PER_INCH = 307.699557;
     private double RobotXPosition;
@@ -38,20 +40,23 @@ public class AutoTest extends SkystoneVuforiaNew {
     private double StartingXPosition = 9;
     private double StartingYPosition = 36;
     private double StartingRotation = 90;
+    private double foundationatorPosition = .335;
     private double movement_x;
     private double movement_y;
     private double movement_turn;
     private int autoState = INIT_STATE;
     private int lastAutoState = NO_STATE;
     private boolean autoComplete = true;
-    private static final double DECELERATION_START_POINT = 96;
+    private static final double DECELERATION_START_POINT = 48;
     private static final double DECELERATION_ZERO_POINT = -6;
     private static final double TURNING_DECELERATION_START_POINT = 180;
     private static final double TURNING_DECELERATION_ZERO_POINT = -5;
     private static final double X_SPEED_MULTIPLIER = 1;
     private static final int NO_STATE = -1;
     private static final int INIT_STATE = 0;
-    private static final int PARK_STATE = 1;
+    private static final int FOUNDATION_STATE = 1;
+    private static final int LIFT_STATE = 2;
+    private static final int PARK_STATE = 3;
     private long lastUpdateTime = 0;
 
     @Override
@@ -63,7 +68,9 @@ public class AutoTest extends SkystoneVuforiaNew {
         BackRight = hardwareMap.dcMotor.get("BackRight");
         BackLeft = hardwareMap.dcMotor.get("BackLeft");
         IntakeReleaseServo = hardwareMap.get(Servo.class, "IntakeReleaseServo");
-        IntakeReleaseServo.setPosition(intakeNotReleased);
+        lFoundationator = hardwareMap.servo.get("lFoundationator");
+        rFoundationator = hardwareMap.servo.get("rFoundationator");
+//        IntakeReleaseServo.setPosition(intakeNotReleased);
         FrontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         BackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         FrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -82,14 +89,13 @@ public class AutoTest extends SkystoneVuforiaNew {
         verticalLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         verticalRight.setDirection(DcMotorSimple.Direction.REVERSE);
         horizontal.setDirection(DcMotorSimple.Direction.REVERSE);
-        StartingXPosition = 9;
-        StartingYPosition = 36;
+        StartingXPosition = 33;
+        StartingYPosition = -9;
         StartingRotation = 0;
     }
 
     @Override
     public void start() {
-
         globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 75);
         positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
@@ -97,6 +103,9 @@ public class AutoTest extends SkystoneVuforiaNew {
         globalPositionUpdate.reverseRightEncoder();
 
         checkOdometry();
+
+        lFoundationator.setPosition(0);
+        rFoundationator.setPosition(foundationatorPosition);
 
 //        RobotXPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + StartingXPosition;
 //        RobotYPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingYPosition;
@@ -110,18 +119,68 @@ public class AutoTest extends SkystoneVuforiaNew {
         RobotRotation = (globalPositionUpdate.returnOrientation()) + StartingRotation;
     }
 
-        @Override
+    @Override
     public void loop() {
         currentTime = getRuntime();
         telemetry.addData("RobotYPosition", RobotYPosition);
         telemetry.addData("RobotXPosition", RobotXPosition);
 
+//        if(autoState == INIT_STATE) {
+//            autoState = FOUNDATION_STATE;
+//            lastAutoState = INIT_STATE;
+//        }
+//        if(autoState == FOUNDATION_STATE){
+//            if(lastAutoState == INIT_STATE) {
+//                driveToPark(globalPositionUpdate);
+//            }
+//        }
+
         if(autoState == INIT_STATE) {
-            autoState = PARK_STATE;
+            autoState = FOUNDATION_STATE;
             lastAutoState = INIT_STATE;
         }
-        if(autoState == PARK_STATE){
+        if(autoState == FOUNDATION_STATE) {
+            if (lastAutoState == INIT_STATE) {
+                lFoundationator.setPosition(foundationatorPosition);
+                rFoundationator.setPosition(0);
+                //down
+                lastAutoState = FOUNDATION_STATE;
+                startTime = getRuntime();
+            } else if (startTime > currentTime - 2.5) {
+                driveToFoundation(globalPositionUpdate);
+            } else if (startTime < (currentTime - 2.5) && startTime > (currentTime - 5)) {
+                driveToBuildSite(globalPositionUpdate);
+            } else if (startTime < (currentTime - 5) && startTime > (currentTime - 6.5)) {
+                driveFoundationInBuildSite(globalPositionUpdate);
+            } else if (startTime < (currentTime - 6.6) && startTime > (currentTime - 8)) {
+                shimmyForwardFromBuildSite(globalPositionUpdate);
+            }
+//            else if (startTime < (currentTime - 6.6) && startTime > (currentTime - 8)) {
+//                lFoundationator.setPosition(0);
+//                rFoundationator.setPosition(foundationatorPosition);
+            else {
+                autoState = LIFT_STATE;
+            }
+        }
+        if(autoState == LIFT_STATE) {
+            if(lastAutoState == FOUNDATION_STATE) {
+                lFoundationator.setPosition(0);
+                rFoundationator.setPosition(foundationatorPosition);
+                lastAutoState = LIFT_STATE;
+            }
+            else {
+                autoState = PARK_STATE;
+            }
+        }
+        if(autoState == PARK_STATE) {
             if(lastAutoState == INIT_STATE) {
+//                lFoundationator.setPosition(0);
+//                rFoundationator.setPosition(foundationatorPosition);
+                //up
+                lastAutoState = FOUNDATION_STATE;
+                startTime = getRuntime();
+            }
+            else {
                 driveToPark(globalPositionUpdate);
             }
         }
@@ -134,10 +193,21 @@ public class AutoTest extends SkystoneVuforiaNew {
         globalPositionUpdate.stop();
     }
 
-    public void driveToPark(OdometryGlobalCoordinatePosition position) {
-        goToPositionMrK(9,72,.7, .5,0);
+    public void driveToFoundation(OdometryGlobalCoordinatePosition position) {
+        goToPositionMrK(14,-43,.7, .5,0);
     }
-
+    public void driveToBuildSite (OdometryGlobalCoordinatePosition position) {
+        goToPositionMrK(33, -7, .7, .5, 120); //TODO Change Y to 11 if problems
+    }
+    public void shimmyForwardFromBuildSite (OdometryGlobalCoordinatePosition position) {
+        goToPositionMrK(50, -9, .7, .5, 90);
+    }
+    public void driveFoundationInBuildSite (OdometryGlobalCoordinatePosition position) {
+        goToPositionMrK(27, -9, .7, .5, 90);
+    }
+    public void driveToPark (OdometryGlobalCoordinatePosition position) {
+        goToPositionMrK(72,-7,.7, .5,90);
+    }
 
     /**
      * Universal goToPosition method that assumes the following coordinate system for the
