@@ -8,8 +8,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-@Autonomous (name= "FoundationAutonomousRed", group= "None")
-public class FoundationAutonomousRed extends SkystoneVuforiaNew {
+@Autonomous (name= "FoundationAutoRedBridge", group= "None")
+public class FoundationAutoRedBridge extends SkystoneVuforiaNew {
 
     DcMotor verticalRight, verticalLeft, horizontal;
 
