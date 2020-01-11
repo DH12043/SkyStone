@@ -206,7 +206,7 @@ public class FoundationAutonomous extends SkystoneVuforiaNew {
         goToPositionMrK(27, -9, .7, .5, 90);
     }
     public void driveToPark (OdometryGlobalCoordinatePosition position) {
-        goToPositionMrK(72,-7,.7, .5,90);
+        goToPositionMrK(72,-36,.7, .5,90); //TODO make Y = -4 for other location
     }
 
     /**
