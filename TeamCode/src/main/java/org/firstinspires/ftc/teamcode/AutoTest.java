@@ -267,5 +267,4 @@ public class AutoTest extends SkystoneVuforiaNew {
 
         return angle;
     }
-
 }
