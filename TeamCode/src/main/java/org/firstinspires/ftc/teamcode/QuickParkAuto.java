@@ -59,6 +59,11 @@ public class QuickParkAuto extends SkystoneVuforiaNew {
     private static final int PLINE_STATE = 3;           //ParkLineState
     private long lastUpdateTime = 0;
 
+    // Calculate # of loops per second for testing
+    private int loopCount = 0;
+    private double loopStartTime = 0.0;
+    private int loopsPerSecond = 0;
+
     @Override
     public void init() {
         super.init();
@@ -110,6 +115,10 @@ public class QuickParkAuto extends SkystoneVuforiaNew {
 //        RobotXPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + StartingXPosition;
 //        RobotYPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingYPosition;
 //        RobotRotation = (globalPositionUpdate.returnOrientation() / COUNTS_PER_INCH) + StartingRotation;
+
+
+        // Calculate # of loops per second for testing
+        loopStartTime = getRuntime();
     }
 
 
@@ -121,9 +130,18 @@ public class QuickParkAuto extends SkystoneVuforiaNew {
 
     @Override
     public void loop() {
-        currentTime = getRuntime();
+        double currentTime = getRuntime();
         telemetry.addData("RobotYPosition", RobotYPosition);
         telemetry.addData("RobotXPosition", RobotXPosition);
+
+        // Calculate # of loops per second for testing
+        loopCount++;
+        if (currentTime > loopStartTime + 5) {
+            loopsPerSecond = loopCount;
+            loopCount = 0;
+            loopStartTime = currentTime;
+        }
+        telemetry.addData("LPS: ", loopsPerSecond);
 
 //        if(autoState == INIT_STATE) {
 //            autoState = FOUNDATION_STATE;
