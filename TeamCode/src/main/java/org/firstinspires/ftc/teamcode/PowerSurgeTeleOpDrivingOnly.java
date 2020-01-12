@@ -250,24 +250,24 @@ public class PowerSurgeTeleOpDrivingOnly extends OpMode {
     @Override
     public void init() {
         telemetry.addData("Version Number", "1-3-20 1000pm");
-        initializeVerticalLift();
-        initializeFoundationator();
-        initializeGrabber();
+//        initializeVerticalLift();
+//        initializeFoundationator();
+//        initializeGrabber();
         initializeDriveTrain();
         initializeOdometry();
-        initializeIntakeMechanism();
-        initializeStraightener();
-        initializeSkyStoneColorSensor();
+//        initializeIntakeMechanism();
+//        initializeStraightener();
+//        initializeSkyStoneColorSensor();
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
     }
 
     @Override
     public void start() {
-        startFoundationator();
-        startIntakeMechanism();
-        startVerticalLift();
-        startGrabber();
+//        startFoundationator();
+//        startIntakeMechanism();
+//        startVerticalLift();
+//        startGrabber();
         startOdometry();
         telemetry.addData("Status", "Odometry System has started");
         telemetry.update();
@@ -289,31 +289,31 @@ public class PowerSurgeTeleOpDrivingOnly extends OpMode {
         }
         telemetry.addData("LPS: ", loopsPerSecond);
 
-        LiftUpButton = gamepad1.right_trigger;
-        LiftDownButton = gamepad1.left_trigger;
-        LiftManualToggleButton = gamepad2.y;
-        LiftEncoderResetButton = gamepad2.x;
-        LiftOverideDownButton = gamepad2.dpad_down;
-        LiftOverideUpButton = gamepad2.dpad_up;
-        LiftHeightResetButton = gamepad2.right_bumper;
-        LiftHeightResetButton2 = gamepad2.left_bumper;
-
-        currentWaffleState = gamepad1.a;
-
-        grabStoneButton = gamepad1.right_trigger;
-        releaseStoneButton = gamepad1.left_trigger;
-        emergencyEjectButton = gamepad1.y;
-        grabberManualButton = gamepad2.b;
-        armManualButton = gamepad2.a;
-        capstoneButton = gamepad2.right_trigger;
-
-        outputButton = gamepad1.dpad_down;
-        intakeButton = gamepad1.dpad_up;
-        intakeReleaseButton = gamepad1.x;
-
-        manualLeftServoButton = gamepad2.dpad_right;
-        manualRightServoButton = gamepad2.dpad_left;
-        readyToGrabOverideButton = gamepad2.left_trigger;
+//        LiftUpButton = gamepad1.right_trigger;
+//        LiftDownButton = gamepad1.left_trigger;
+//        LiftManualToggleButton = gamepad2.y;
+//        LiftEncoderResetButton = gamepad2.x;
+//        LiftOverideDownButton = gamepad2.dpad_down;
+//        LiftOverideUpButton = gamepad2.dpad_up;
+//        LiftHeightResetButton = gamepad2.right_bumper;
+//        LiftHeightResetButton2 = gamepad2.left_bumper;
+//
+//        currentWaffleState = gamepad1.a;
+//
+//        grabStoneButton = gamepad1.right_trigger;
+//        releaseStoneButton = gamepad1.left_trigger;
+//        emergencyEjectButton = gamepad1.y;
+//        grabberManualButton = gamepad2.b;
+//        armManualButton = gamepad2.a;
+//        capstoneButton = gamepad2.right_trigger;
+//
+//        outputButton = gamepad1.dpad_down;
+//        intakeButton = gamepad1.dpad_up;
+//        intakeReleaseButton = gamepad1.x;
+//
+//        manualLeftServoButton = gamepad2.dpad_right;
+//        manualRightServoButton = gamepad2.dpad_left;
+//        readyToGrabOverideButton = gamepad2.left_trigger;
 
         odometryResetButton = gamepad1.b;
         halfSpeedDriveButton = gamepad1.left_bumper;
@@ -333,11 +333,11 @@ public class PowerSurgeTeleOpDrivingOnly extends OpMode {
         else {
             checkDriveTrain();
             checkOdometry();
-            checkVerticalLift();
-            checkFoundationator();
-            checkIntakeMechanism();
-            checkStraightener();
-            checkGrabber();
+//            checkVerticalLift();
+//            checkFoundationator();
+//            checkIntakeMechanism();
+//            checkStraightener();
+//            checkGrabber();
             telemetry.update();
         }
     }
