@@ -17,7 +17,7 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import com.qualcomm.robotcore.util.Range;
 import java.io.File;
 
-@TeleOp(name = "PowerSurgeTeleOp")
+@TeleOp(name = "PowerSurgeTeleOpDrivingOnly")
 public class PowerSurgeTeleOpDrivingOnly extends OpMode {
 
     // DRIVETRAIN AND ODOMETRY
