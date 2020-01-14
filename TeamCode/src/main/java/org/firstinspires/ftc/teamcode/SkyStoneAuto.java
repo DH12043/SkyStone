@@ -47,6 +47,13 @@ public class SkyStoneAuto extends SkystoneVuforiaNew {
     private int autoState = INIT_STATE;
     private int lastAutoState = NO_STATE;
     private boolean autoComplete = true;
+    private boolean stoneFound = false;
+    private boolean readyToDeliverSkyStone1 = false;
+    private boolean skyStone1Delivered = false;
+    private boolean foundationGrabbed = false;
+    private boolean readyToGrabSkyStone2 = false;
+    private boolean liftRetracted = false;
+
     private static final double DECELERATION_START_POINT = 48;
     private static final double DECELERATION_ZERO_POINT = -6;
     private static final double TURNING_DECELERATION_START_POINT = 180;
@@ -89,8 +96,8 @@ public class SkyStoneAuto extends SkystoneVuforiaNew {
         verticalLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         verticalRight.setDirection(DcMotorSimple.Direction.REVERSE);
         horizontal.setDirection(DcMotorSimple.Direction.REVERSE);
-        StartingXPosition = 33;
-        StartingYPosition = -9;
+        StartingXPosition = 0;
+        StartingYPosition = 0;
         StartingRotation = 0;
     }
 
@@ -125,9 +132,62 @@ public class SkyStoneAuto extends SkystoneVuforiaNew {
         telemetry.addData("RobotYPosition", RobotYPosition);
         telemetry.addData("RobotXPosition", RobotXPosition);
 
+        // robot set up so that it runs straight into the left skystone for purposes of testing
+        // intake towards the quarry
+        setIntakeReleaseServo();
+
         if (positionSkystone.equals("left")) {
-//            goToPositionMrK();
+            goToPositionMrK(0,48, .7,.5, 0);
+            //go to the left stone from the robot's perspective
+            stoneFound = true;
+
         }
+        else if (positionSkystone.equals("center")) {
+            goToPositionMrK(8, 48, .7, .5, 0);
+            // go to the center stone from the robot's perspective
+            stoneFound = true;
+        }
+        else {
+            goToPositionMrK(16, 48,.7,.5, 0);
+            // go the right stone from the robot's perspective
+            stoneFound = true;
+        }
+
+        if (stoneFound) {
+            goToPositionMrK(0, 12, .7, .5, 90);
+            readyToDeliverSkyStone1 = true;
+            // back away from row so that we clear the neutral bridge when delivering
+        }
+
+        if (readyToDeliverSkyStone1) {
+            goToPositionMrK(-48, 12, .7, .5, 180);
+            skyStone1Delivered =  true;
+            // long delivery movement to the foundation
+            // values will have to be tuned
+        }
+
+        if (skyStone1Delivered){
+            lFoundationator.setPosition(foundationatorPosition);
+            rFoundationator.setPosition(0);
+            foundationGrabbed = true;
+            // grab foundation
+            // not sure whether this can go in readyToDeliverSkyStone1 or not testing will show
+            // also insert lift code to dump here i didnt feel like doing this on the bus ride and also not familiar with what code is necessary
+        }
+
+        if (foundationGrabbed) {
+            // lift stuff to retract
+            //ready to fetch skyStone2
+            goToPositionMrK(-24, 12,.7,.5, 90);
+            liftRetracted = true;
+        }
+
+        if (liftRetracted) {
+            goToPositionMrK( 36, 12, .7, .5,0);
+            //run to fetch second skyStone
+            readyToGrabSkyStone2 = true;
+        }
+        // i am too tired to figure out how to save the values from vuforia so that we can access them here
 
 
         if(autoState == PARK_STATE) {
@@ -293,6 +353,10 @@ public class SkyStoneAuto extends SkystoneVuforiaNew {
         }
 
         return angle;
+    }
+
+    private void setIntakeReleaseServo () {
+        IntakeReleaseServo.setPosition(intakeReleased);
     }
 
 }

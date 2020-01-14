@@ -30,8 +30,8 @@ public class PowerSurgeTeleOp extends OpMode {
     private double movement_y;
     private double movement_turn;
 
-    private double rightBackupDistance;
-    private double leftBackupDistance;
+//    private double rightBackupDistance;
+//    private double leftBackupDistance;
 
     // MOTORS SERVOS SENSORS
 
@@ -53,8 +53,8 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private ModernRoboticsI2cRangeSensor OrientationSensor;
     private ModernRoboticsI2cRangeSensor StonePresenceSensor;
-    private ModernRoboticsI2cRangeSensor RightBackupSensor;
-    private ModernRoboticsI2cRangeSensor LeftBackupSensor;
+//    private ModernRoboticsI2cRangeSensor RightBackupSensor;
+//    private ModernRoboticsI2cRangeSensor LeftBackupSensor;
 
     // BUTTONS
 
@@ -684,8 +684,8 @@ public class PowerSurgeTeleOp extends OpMode {
     //
 
     private void initializeDriveTrain() {
-        RightBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "RightBackupSensor");
-        LeftBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "LeftBackupSensor");
+//        RightBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "RightBackupSensor");
+//        LeftBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "LeftBackupSensor");
         FrontRight = hardwareMap.dcMotor.get("FrontRight");
         FrontLeft = hardwareMap.dcMotor.get("FrontLeft");
         BackRight = hardwareMap.dcMotor.get("BackRight");
@@ -697,11 +697,11 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void checkDriveTrain() {
-        rightBackupDistance = RightBackupSensor.getDistance(DistanceUnit.INCH);
-        leftBackupDistance = LeftBackupSensor.getDistance(DistanceUnit.INCH);
+//        rightBackupDistance = RightBackupSensor.getDistance(DistanceUnit.INCH);
+//        leftBackupDistance = LeftBackupSensor.getDistance(DistanceUnit.INCH);
 
-        telemetry.addData("Right Backup Distance", rightBackupDistance);
-        telemetry.addData("Left Backup Distance", leftBackupDistance);
+//        telemetry.addData("Right Backup Distance", rightBackupDistance);
+//        telemetry.addData("Left Backup Distance", leftBackupDistance);
 
         movement_y = DeadModifier(-gamepad1.left_stick_y);
         movement_x = DeadModifier(gamepad1.left_stick_x);

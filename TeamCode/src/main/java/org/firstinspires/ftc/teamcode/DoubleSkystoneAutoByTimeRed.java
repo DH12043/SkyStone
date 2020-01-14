@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-@Autonomous(name= "DoubleSkystoneAutoByTime", group= "None")
-class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
+@Autonomous(name= "DoubleSkystoneAutoByTimeRed", group= "None")
+public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
 
     DcMotor verticalRight, verticalLeft, horizontal;
 
@@ -95,8 +95,8 @@ class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
         verticalLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         verticalRight.setDirection(DcMotorSimple.Direction.REVERSE);
         horizontal.setDirection(DcMotorSimple.Direction.REVERSE);
-        StartingXPosition = 144;
-        StartingYPosition = -9;
+        StartingXPosition = -144;
+        StartingYPosition = 9;
         StartingRotation = 0;
     }
 
@@ -177,6 +177,8 @@ class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
                     shimmyForwardFromBuildSite();
                 }
                 else {
+                    lFoundationator.setPosition(0);
+                    rFoundationator.setPosition(foundationatorPosition);
                     driveToPark();
                 }
             }
@@ -186,31 +188,31 @@ class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
     }
 
     private void driveToSkystoneLeft() {
-        goToPositionMrK(148, -46, .7, .5, 0);
+        goToPositionMrK(-148, 44, .4, .5, 0);
     }
     private void driveToSkystoneCenter() {
-        goToPositionMrK(144, -46, .7, .5, 0);
+        goToPositionMrK(-144, 44, .4, .5, 0);
     }
     private  void driveToSkystoneRight() {
-        goToPositionMrK(140, -46, .7, .5, 0);
+        goToPositionMrK(-140, 44, .4, .5, 0);
     }
     private void driveNearFoundation() {
-        goToPositionMrK(72, -24, .7, .5, -90);
+        goToPositionMrK(-72, 9, .7, .5, -90);
     }
     public void driveToFoundation() {
-        goToPositionMrK(52,-43,.7, .5,-180);
+        goToPositionMrK(-52,43,.7, .5,-180);
     }
     public void driveToBuildSite () {
-        goToPositionMrK(33, -7, .7, .5, 60); //TODO change if problems
+        goToPositionMrK(-33, 7, .7, .5, 60); //TODO change if problems
     }
     public void driveFoundationInBuildSite () {
-        goToPositionMrK(39, -9, .7, .5, 90);  //TODO change if problems
+        goToPositionMrK(-39, 9, .7, .5, 90);  //TODO change if problems
     }
     public void shimmyForwardFromBuildSite () {
-        goToPositionMrK(16, -9, .7, .5, 90);  //TODO change if problems
+        goToPositionMrK(-16, 9, .7, .5, 90);  //TODO change if problems
     }
     private void driveToPark() {
-        goToPositionMrK(72, -9, .7, .5, 90);
+        goToPositionMrK(-72, 9, .7, .5, 90);
     }
 
     private void goToPositionMrK(double x, double y, double maxMovementSpeed, double maxTurnSpeed, double preferredAngle) {
