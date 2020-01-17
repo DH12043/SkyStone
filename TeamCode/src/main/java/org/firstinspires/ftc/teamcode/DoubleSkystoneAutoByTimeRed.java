@@ -3,13 +3,14 @@ package org.firstinspires.ftc.teamcode;
 import android.os.SystemClock;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-@Autonomous (name= "AutoTest", group= "None")
-public class AutoTest extends SkystoneVuforiaNew {
+@Autonomous(name= "DoubleSkystoneAutoByTimeRed", group= "None")
+public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
 
     DcMotor verticalRight, verticalLeft, horizontal;
 
@@ -24,7 +25,11 @@ public class AutoTest extends SkystoneVuforiaNew {
     private DcMotor FrontLeft;
     private DcMotor BackRight;
     private DcMotor BackLeft;
+    private DcMotor IntakeMotor;
     private Servo IntakeReleaseServo;
+    private CRServo IntakeAssistServo;
+    private Servo lFoundationator;
+    private Servo rFoundationator;
 
     final double COUNTS_PER_INCH = 307.699557;
     private double RobotXPosition;
@@ -38,20 +43,24 @@ public class AutoTest extends SkystoneVuforiaNew {
     private double StartingXPosition = 9;
     private double StartingYPosition = 36;
     private double StartingRotation = 90;
+    private double foundationatorPosition = .335;
     private double movement_x;
     private double movement_y;
     private double movement_turn;
     private int autoState = INIT_STATE;
     private int lastAutoState = NO_STATE;
-    private boolean autoComplete = true;
-    private static final double DECELERATION_START_POINT = 96;
+    private boolean autoComplete = false;
+    private boolean readyToGrab = true;
+    private static final double DECELERATION_START_POINT = 48;
     private static final double DECELERATION_ZERO_POINT = -6;
     private static final double TURNING_DECELERATION_START_POINT = 180;
     private static final double TURNING_DECELERATION_ZERO_POINT = -5;
     private static final double X_SPEED_MULTIPLIER = 1;
     private static final int NO_STATE = -1;
     private static final int INIT_STATE = 0;
-    private static final int PARK_STATE = 1;
+    private static final int FOUDNATION_STATE = 1;
+    private static final int LIFT_STATE = 2;
+    private static final int PARK_STATE = 3;
     private long lastUpdateTime = 0;
 
     @Override
@@ -62,8 +71,12 @@ public class AutoTest extends SkystoneVuforiaNew {
         FrontLeft = hardwareMap.dcMotor.get("FrontLeft");
         BackRight = hardwareMap.dcMotor.get("BackRight");
         BackLeft = hardwareMap.dcMotor.get("BackLeft");
+        IntakeMotor = hardwareMap.dcMotor.get("IntakeMotor");
         IntakeReleaseServo = hardwareMap.get(Servo.class, "IntakeReleaseServo");
-        IntakeReleaseServo.setPosition(intakeNotReleased);
+        IntakeAssistServo = hardwareMap.crservo.get("IntakeAssistServo");
+        lFoundationator = hardwareMap.servo.get("lFoundationator");
+        rFoundationator = hardwareMap.servo.get("rFoundationator");
+//        IntakeReleaseServo.setPosition(intakeNotReleased);
         FrontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         BackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         FrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -82,14 +95,13 @@ public class AutoTest extends SkystoneVuforiaNew {
         verticalLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         verticalRight.setDirection(DcMotorSimple.Direction.REVERSE);
         horizontal.setDirection(DcMotorSimple.Direction.REVERSE);
-        StartingXPosition = 9;
-        StartingYPosition = 36;
+        StartingXPosition = -144;
+        StartingYPosition = 9;
         StartingRotation = 0;
     }
 
     @Override
     public void start() {
-
         globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 75);
         positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
@@ -97,6 +109,9 @@ public class AutoTest extends SkystoneVuforiaNew {
         globalPositionUpdate.reverseRightEncoder();
 
         checkOdometry();
+
+        lFoundationator.setPosition(0);
+        rFoundationator.setPosition(foundationatorPosition);
 
 //        RobotXPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + StartingXPosition;
 //        RobotYPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingYPosition;
@@ -110,58 +125,96 @@ public class AutoTest extends SkystoneVuforiaNew {
         RobotRotation = (globalPositionUpdate.returnOrientation()) + StartingRotation;
     }
 
-        @Override
+    @Override
     public void loop() {
         currentTime = getRuntime();
-        telemetry.addData("RobotYPosition", RobotYPosition);
-        telemetry.addData("RobotXPosition", RobotXPosition);
-
-        if(autoState == INIT_STATE) {
-            autoState = PARK_STATE;
-            lastAutoState = INIT_STATE;
+        if (autoState == INIT_STATE) {
+            if (lastAutoState == NO_STATE) {
+                lastAutoState = INIT_STATE;
+                startTime = getRuntime();
+            }
+            else {
+                if (startTime > currentTime - 3) {
+                    IntakeMotor.setPower(1);
+                    IntakeReleaseServo.setPosition(.6);
+                    IntakeAssistServo.setPower(0);
+                    if (positionSkystone.equals("Left")) {
+                        driveToSkystoneLeft();
+                    }
+                    else if (positionSkystone.equals("Center")) {
+                        driveToSkystoneCenter();
+                    }
+                    else if (positionSkystone.equals("Right")) {
+                        driveToSkystoneRight();
+                    }
+                }
+                else {
+                    autoState = FOUDNATION_STATE;
+                }
+            }
         }
-        if(autoState == PARK_STATE){
-            if(lastAutoState == INIT_STATE) {
-                driveToPark(globalPositionUpdate);
+        else if (autoState == FOUDNATION_STATE) {
+            if (lastAutoState == INIT_STATE) {
+                lastAutoState = FOUDNATION_STATE;
+                startTime = getRuntime();
+                lFoundationator.setPosition(foundationatorPosition);
+                rFoundationator.setPosition(0);
+            }
+            else {
+                if (startTime > currentTime - 1.5) {
+                    driveNearFoundation();
+                }
+                else if ( startTime < (currentTime - 1.5) && startTime > (currentTime - 3.5) ) {
+                    driveToFoundation();
+                }
+                else if (startTime < (currentTime - 3.5) && startTime > (currentTime - 6)) {
+                    driveToBuildSite();
+                }
+                else if (startTime < (currentTime - 6) && startTime > (currentTime - 7.5)) {
+                    driveFoundationInBuildSite();
+                }
+                else if (startTime < (currentTime - 7.6) && startTime > (currentTime - 8.6)) {
+                    shimmyForwardFromBuildSite();
+                }
+                else {
+                    lFoundationator.setPosition(0);
+                    rFoundationator.setPosition(foundationatorPosition);
+                    driveToPark();
+                }
             }
         }
 
         checkOdometry();
     }
 
-    @Override
-    public void stop() {
-        globalPositionUpdate.stop();
+    private void driveToSkystoneLeft() {
+        goToPositionMrK(-148, 44, .4, .5, 0);
+    }
+    private void driveToSkystoneCenter() {
+        goToPositionMrK(-144, 44, .4, .5, 0);
+    }
+    private  void driveToSkystoneRight() {
+        goToPositionMrK(-140, 44, .4, .5, 0);
+    }
+    private void driveNearFoundation() {
+        goToPositionMrK(-72, 9, .7, .5, -90);
+    }
+    public void driveToFoundation() {
+        goToPositionMrK(-52,43,.7, .5,-180);
+    }
+    public void driveToBuildSite () {
+        goToPositionMrK(-33, 7, .7, .5, 60); //TODO change if problems
+    }
+    public void driveFoundationInBuildSite () {
+        goToPositionMrK(-39, 9, .7, .5, 90);  //TODO change if problems
+    }
+    public void shimmyForwardFromBuildSite () {
+        goToPositionMrK(-16, 9, .7, .5, 90);  //TODO change if problems
+    }
+    private void driveToPark() {
+        goToPositionMrK(-72, 9, .7, .5, 90);
     }
 
-    public void driveToPark(OdometryGlobalCoordinatePosition position) {
-        goToPositionMrK(9,72,.7, .5,0);
-    }
-
-
-    /**
-     * Universal goToPosition method that assumes the following coordinate system for the
-     * odometry output values: , RobotYPosition, and :
-     * RobotRotation: 0*->360* rotation values, where 0* and 360* are straight forward
-     * RobotXPosition: Positive X would be strafing to the right
-     * RobotYPosition: Positive Y would be moving forwards
-     * Method generates three values indicating the immediate motion needed to move the
-     * robot towards the global position requested:
-     * movement_turn: Positive value to turn clockwise, negative for counterclockwise
-     * movement_x: Positive value indicates strafe to the right proportionally
-     * movement_y: Positive value indicates drive forward proportionally
-     * These values can be used as inputs to a method that typically accepts joystick control,
-     * in some cases the 'y' value must be negated.
-     *
-     * author: Original code by FTC Team 11115 Gluten Free, modified by Travis Kuiper.
-     * date: 2020/01/01
-     *
-     * @param x global target coordinate 'x' component
-     * @param y global target coordinate 'y' component
-     * @param maxMovementSpeed max speed value to be given to any one drivetrain direction of motion
-     * @param maxTurnSpeed max turning speed to be given to drivetrain rotation
-     * @param preferredAngle global target coordinate theta component
-     */
     private void goToPositionMrK(double x, double y, double maxMovementSpeed, double maxTurnSpeed, double preferredAngle) {
         double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
         double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
@@ -204,6 +257,9 @@ public class AutoTest extends SkystoneVuforiaNew {
 
         applyMovement();
     }
+
+
+
 
     /**
      * Converts movement_y, movement_x, movement_turn into motor powers.
@@ -267,4 +323,5 @@ public class AutoTest extends SkystoneVuforiaNew {
 
         return angle;
     }
+
 }
