@@ -71,8 +71,8 @@ public class PowerSurgeTeleOp extends OpMode {
     private double movement_y;
     private double movement_turn;
 
-    private double rightBackupDistance;
-    private double leftBackupDistance;
+//    private double rightBackupDistance;
+//    private double leftBackupDistance;
 
     OdometryGlobalCoordinatePosition globalPositionUpdate;
     Thread positionThread;
@@ -97,8 +97,8 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private ModernRoboticsI2cRangeSensor OrientationSensor;
     private ModernRoboticsI2cRangeSensor StonePresenceSensor;
-    private ModernRoboticsI2cRangeSensor RightBackupSensor;
-    private ModernRoboticsI2cRangeSensor LeftBackupSensor;
+//    private ModernRoboticsI2cRangeSensor RightBackupSensor;
+//    private ModernRoboticsI2cRangeSensor LeftBackupSensor;
 
     // BUTTONS
 
@@ -779,8 +779,8 @@ public class PowerSurgeTeleOp extends OpMode {
     //
 
     private void initializeDriveTrain() {
-        RightBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "RightBackupSensor");
-        LeftBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "LeftBackupSensor");
+//        RightBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "RightBackupSensor");
+//        LeftBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "LeftBackupSensor");
         FrontRight = hardwareMap.dcMotor.get("FrontRight");
         FrontLeft = hardwareMap.dcMotor.get("FrontLeft");
         BackRight = hardwareMap.dcMotor.get("BackRight");
@@ -792,11 +792,11 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void checkDriveTrain() {
-        rightBackupDistance = RightBackupSensor.getDistance(DistanceUnit.INCH);
-        leftBackupDistance = LeftBackupSensor.getDistance(DistanceUnit.INCH);
+//        rightBackupDistance = RightBackupSensor.getDistance(DistanceUnit.INCH);
+//        leftBackupDistance = LeftBackupSensor.getDistance(DistanceUnit.INCH);
 
-        telemetry.addData("Right Backup Distance", rightBackupDistance);
-        telemetry.addData("Left Backup Distance", leftBackupDistance);
+//        telemetry.addData("Right Backup Distance", rightBackupDistance);
+//        telemetry.addData("Left Backup Distance", leftBackupDistance);
 
         if (autoDriveButton) {
             if (firstPressBumpers) {
@@ -852,7 +852,7 @@ public class PowerSurgeTeleOp extends OpMode {
      * date: 2020/01/01
      *
      * @param x global target coordinate 'x' component
-     * @param y global target coordinate 'x' component
+     * @param y global target coordinate 'y' component
      * @param maxMovementSpeed max speed value to be given to any one drivetrain direction of motion
      * @param maxTurnSpeed max turning speed to be given to drivetrain rotation
      * @param preferredAngle global target coordinate theta component
@@ -951,13 +951,6 @@ public class PowerSurgeTeleOp extends OpMode {
         BackRight.setPower(-br_power_raw);
         FrontRight.setPower(-fr_power_raw);
     }
-
-    /**
-     * wrap angle to -180 to 180
-     * @param angle angle to be wrapped in radians
-     * @return new angle in radians
-     */
-
     private static double AngleWrap(double angle){
 
         while(angle < -Math.PI){
