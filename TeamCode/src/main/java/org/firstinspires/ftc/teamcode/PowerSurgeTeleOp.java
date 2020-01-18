@@ -59,20 +59,17 @@ public class PowerSurgeTeleOp extends OpMode {
     private static final double GRABBERSERVOCLOSEDPOSITION = 0;
     private static final double GRABBERSERVOOPENPOSITION = .5;
 
-    private static final double DECELERATION_START_POINT = 96;
+    private static final double DECELERATION_START_POINT = 48;
     private static final double DECELERATION_ZERO_POINT = -6;
     private static final double TURNING_DECELERATION_START_POINT = 180;
     private static final double TURNING_DECELERATION_ZERO_POINT = -5;
-    private static final double X_SPEED_MULTIPLIER = 1; // Compensates for slower movement while strafing was 1.2
+    private static final double X_SPEED_MULTIPLIER = 1;
 
     private double lastDistanceToTarget = 0;
 
     private double movement_x;
     private double movement_y;
     private double movement_turn;
-
-    private double rightBackupDistance;
-    private double leftBackupDistance;
 
     OdometryGlobalCoordinatePosition globalPositionUpdate;
     Thread positionThread;
@@ -113,6 +110,9 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private double grabStoneButton;
     private double releaseStoneButton;
+    private int loopCount;
+    private double loopStartTime;
+    private int loopsPerSecond;
     private boolean emergencyEjectButton;
     private double capstoneButton;
     private boolean grabberManualButton;
@@ -268,6 +268,14 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        double currentTime = getRuntime();
+        loopCount++;
+        if (currentTime > loopStartTime + 5) {
+            loopsPerSecond = loopCount;
+            loopCount = 0;
+            loopStartTime = currentTime;
+        }
+        telemetry.addData("LPS: ", loopsPerSecond);
         LiftUpButton = gamepad1.right_trigger;
         LiftDownButton = gamepad1.left_trigger;
         LiftManualToggleButton = gamepad2.y;
@@ -848,7 +856,7 @@ public class PowerSurgeTeleOp extends OpMode {
      * date: 2020/01/01
      *
      * @param x global target coordinate 'x' component
-     * @param y global target coordinate 'x' component
+     * @param y global target coordinate 'y' component
      * @param maxMovementSpeed max speed value to be given to any one drivetrain direction of motion
      * @param maxTurnSpeed max turning speed to be given to drivetrain rotation
      * @param preferredAngle global target coordinate theta component
@@ -947,13 +955,6 @@ public class PowerSurgeTeleOp extends OpMode {
         BackRight.setPower(-br_power_raw);
         FrontRight.setPower(-fr_power_raw);
     }
-
-    /**
-     * wrap angle to -180 to 180
-     * @param angle angle to be wrapped in radians
-     * @return new angle in radians
-     */
-
     private static double AngleWrap(double angle){
 
         while(angle < -Math.PI){

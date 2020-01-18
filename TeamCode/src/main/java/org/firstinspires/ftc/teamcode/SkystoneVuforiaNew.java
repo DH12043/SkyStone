@@ -283,9 +283,9 @@ public abstract class SkystoneVuforiaNew extends OpMode {
 
             if (yPosition >= 1.5) {
                 positionSkystone = "Right";
-            } else if (yPosition <= 1.5 && yPosition >= -1.5) {
+            } else if (yPosition <= 1.5 && yPosition >= -2) {
                 positionSkystone = "Center";
-            } else if (yPosition <= -1.5) {
+            } else if (yPosition <= -2) {
                 positionSkystone = "Left";
             }
 
