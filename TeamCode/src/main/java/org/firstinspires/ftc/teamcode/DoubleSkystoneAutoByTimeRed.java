@@ -130,6 +130,7 @@ public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
     public void loop() {
         currentTime = getRuntime();
         IntakeAssistServo.setPower(-1);
+        positionSkystone.equals("Left");
         if (autoState == INIT_STATE) {
             if (lastAutoState == NO_STATE) {
                 lastAutoState = INIT_STATE;
