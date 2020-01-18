@@ -114,7 +114,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private double loopStartTime;
     private int loopsPerSecond;
     private boolean emergencyEjectButton;
-    private double capstoneButton;
+    //private double capstoneButton;
     private boolean grabberManualButton;
     private boolean armManualButton;
 
@@ -292,7 +292,7 @@ public class PowerSurgeTeleOp extends OpMode {
         emergencyEjectButton = gamepad1.y;
         grabberManualButton = gamepad2.b;
         armManualButton = gamepad2.a;
-        capstoneButton = gamepad2.right_trigger;
+        //capstoneButton = gamepad2.right_trigger;
 
         outputButton = gamepad1.dpad_down;
         intakeButton = gamepad1.dpad_up;
@@ -553,7 +553,7 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             returnGrabberArm();
 
-            if (capstoneButton > .5) {
+            /*if (capstoneButton > .5) {
                 if (firstPressCapstoneButton) {
                     capstoneState = 1;
                     LiftMotor.setTargetPosition((int)((10 * countsPerInch)));
@@ -562,7 +562,7 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             else {
                 firstPressCapstoneButton = true;
-            }
+            }*/
             scoreCapstone();
 
             if (emergencyEjectButton) {
@@ -1105,44 +1105,76 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void intake(boolean intakeButton) {
-        if (intakeButton) {
-            if (firstPressDpadUp) {
+        if (stoneDistance < 1.5) {
+            IntakeMotor.setPower(0);
+        }
+
+        if (!readyToGrab && !readyToRelease && liftGrabberState == 0 && emergencyStoneEjectState == 0) {
+            IntakeMotor.setPower(1);
+            IntakeAssistServo.setPower(-1);
+        }
+        else {
+            if (intakeButton) {
+                if (firstPressDpadUp) {
+                    if (intakeState == 1) {
+                        intakeState = 0;
+                    } else {
+                        intakeState = 1;
+                    }
+                    firstPressDpadUp = false;
+                }
+            } else {
+                firstPressDpadUp = true;
+            }
+            if (outputButton) {
+                IntakeMotor.setPower(-1);
+                IntakeAssistServo.setPower(1);
+            } else {
                 if (intakeState == 1) {
-                    intakeState = 0;
+                    IntakeMotor.setPower(1);
+                    IntakeAssistServo.setPower(-1);
+                } else if (intakeState == 0) {
+                    IntakeMotor.setPower(0);
+                    IntakeAssistServo.setPower(0);
                 }
-                else {
-                    intakeState = 1;
-                }
-                firstPressDpadUp = false;
             }
         }
-        else {
-            firstPressDpadUp = true;
-        }
-        if (outputButton) {
-            IntakeMotor.setPower(-1);
-            IntakeAssistServo.setPower(1);
-        }
-        else {
-            if (intakeState == 1) {
-                IntakeMotor.setPower(1);
-                IntakeAssistServo.setPower(-1);
-            }
-            else if (intakeState == 0) {
-                IntakeMotor.setPower(0);
-                IntakeAssistServo.setPower(0);
-            }
-        }
-        if (!intakeButton && !outputButton) {
-            if (stoneDistance < 1.5) {
-                IntakeMotor.setPower(0);
-                IntakeAssistServo.setPower(0);
-            }
-            if (!readyToGrab && !readyToRelease && grabberReturnState == 0 && liftGrabberState == 0 && capstoneState == 0 && emergencyStoneEjectState == 0) {
-                IntakeMotor.setPower(1);
-                IntakeAssistServo.setPower(-1);
-            }
-        }
+
+        //        if (intakeButton || outputButton) {
+//            if (intakeButton) {
+//                if (firstPressDpadUp) {
+//                    if (intakeState == 1) {
+//                        intakeState = 0;
+//                    } else {
+//                        intakeState = 1;
+//                    }
+//                    firstPressDpadUp = false;
+//                }
+//            } else {
+//                firstPressDpadUp = true;
+//            }
+//            if (outputButton) {
+//                IntakeMotor.setPower(-1);
+//                IntakeAssistServo.setPower(1);
+//            } else {
+//                if (intakeState == 1) {
+//                    IntakeMotor.setPower(1);
+//                    IntakeAssistServo.setPower(-1);
+//                } else if (intakeState == 0) {
+//                    IntakeMotor.setPower(0);
+//                    IntakeAssistServo.setPower(0);
+//                }
+//            }
+//        }
+//        else {
+//            if (stoneDistance < 1.5) {
+//                IntakeMotor.setPower(0);
+//            }
+//            if (!readyToGrab && !readyToRelease && liftGrabberState == 0 && emergencyStoneEjectState == 0) {
+//                IntakeMotor.setPower(1);
+//                IntakeAssistServo.setPower(-1);
+//            }
+//        }
     }
 
     //
