@@ -145,11 +145,49 @@ public class PickRandomStone extends SkystoneVuforiaNew {
                     if (startTime > currentTime - 1.5) {
                         driveToDrop();
                     }
-                    else if (startTime > currentTime - 4) {
+                    else if (startTime > currentTime - 3) {
                         driveToSkystoneLeft();
                     }
-                    else if (startTime > currentTime - 7){
+                    else if (startTime > currentTime - 6){
                         driveNearFoundation();
+                    }
+                    else if (startTime > currentTime - 8) {
+                        driveToFoundation();
+                        lFoundationator.setPosition(0);
+                        rFoundationator.setPosition(foundationatorPosition);
+                        //put the lift out
+                    }
+                    else if (startTime > currentTime - 13) {
+                        //place
+                    }
+                    else if (startTime > currentTime - 13.5) {
+                        driveToBuildSite();
+                    }
+                    else if (startTime > currentTime - 15) {
+                        driveFoundationInBuildSite();
+                        //somewhere between place and shimmyForwardFromBuildSite retract the arm
+                    }
+                    else if(startTime > currentTime - 16) {
+                        shimmyForwardFromBuildSite();
+                    }
+                    else if(startTime > currentTime - 16.5) {
+                        lFoundationator.setPosition(foundationatorPosition);
+                        rFoundationator.setPosition(0);
+                    }
+                    else if(startTime > currentTime - 17) {
+                        driveToSkystoneCenter();
+                    }
+                    else if(startTime > currentTime - 21) {
+                        driveToFoundation();
+                    }
+                    else if(startTime > currentTime - 25) {
+                        //dump
+                    }
+                    else if (startTime > currentTime - 28.5) {
+                        //let go and return arm to robot all the way down
+                    }
+                    else {
+                        driveToPark();
                     }
 //                    }
 //                    else if (positionSkystone.equals("Center")) {
@@ -168,36 +206,36 @@ public class PickRandomStone extends SkystoneVuforiaNew {
                 }
             }
         }
-        else if (autoState == FOUDNATION_STATE) {
-            if (lastAutoState == INIT_STATE) {
-                lastAutoState = FOUDNATION_STATE;
-                startTime = getRuntime();
-                lFoundationator.setPosition(foundationatorPosition);
-                rFoundationator.setPosition(0);
-            }
-            else {
-                if (startTime > currentTime - 1.5) {
-                    driveNearFoundation();
-                }
-                else if ( startTime < (currentTime - 1.5) && startTime > (currentTime - 3.5) ) {
-                    driveToFoundation();
-                }
-                else if (startTime < (currentTime - 3.5) && startTime > (currentTime - 6)) {
-                    driveToBuildSite();
-                }
-                else if (startTime < (currentTime - 6) && startTime > (currentTime - 7.5)) {
-                    driveFoundationInBuildSite();
-                }
-                else if (startTime < (currentTime - 7.6) && startTime > (currentTime - 8.6)) {
-                    shimmyForwardFromBuildSite();
-                }
-                else {
-                    lFoundationator.setPosition(0);
-                    rFoundationator.setPosition(foundationatorPosition);
-                    driveToPark();
-                }
-            }
-        }
+//        else if (autoState == FOUDNATION_STATE) {
+//            if (lastAutoState == INIT_STATE) {
+//                lastAutoState = FOUDNATION_STATE;
+//                startTime = getRuntime();
+////                lFoundationator.setPosition(foundationatorPosition);
+////                rFoundationator.setPosition(0);
+//            }
+//            else {
+//                if (startTime > currentTime - 1.5) {
+//                    driveNearFoundation();
+//                }
+//                else if ( startTime < (currentTime - 1.5) && startTime > (currentTime - 3.5) ) {
+//                    driveToFoundation();
+//                }
+//                else if (startTime < (currentTime - 3.5) && startTime > (currentTime - 6)) {
+//                    driveToBuildSite();
+//                }
+//                else if (startTime < (currentTime - 6) && startTime > (currentTime - 7.5)) {
+//                    driveFoundationInBuildSite();
+//                }
+//                else if (startTime < (currentTime - 7.6) && startTime > (currentTime - 8.6)) {
+//                    shimmyForwardFromBuildSite();
+//                }
+//                else {
+//                    lFoundationator.setPosition(0);
+//                    rFoundationator.setPosition(foundationatorPosition);
+//                    driveToPark();
+//                }
+//            }
+//        }
 
         checkOdometry();
     }
@@ -206,7 +244,7 @@ public class PickRandomStone extends SkystoneVuforiaNew {
         goToPositionMrK(-3, 30, .4, .5, 0);
     }
     private void driveToSkystoneCenter() {
-        goToPositionMrK(8, 30, .7, .5, 0);
+        goToPositionMrK(-3, 44, .8, .5, 45);
     }
     private  void driveToSkystoneRight() {
         goToPositionMrK(19, 30, .7, .5, 0);
