@@ -97,8 +97,6 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private ModernRoboticsI2cRangeSensor OrientationSensor;
     private ModernRoboticsI2cRangeSensor StonePresenceSensor;
-    private ModernRoboticsI2cRangeSensor RightBackupSensor;
-    private ModernRoboticsI2cRangeSensor LeftBackupSensor;
 
     // BUTTONS
 
@@ -316,8 +314,8 @@ public class PowerSurgeTeleOp extends OpMode {
             checkOdometry();
             checkVerticalLift();
             checkFoundationator();
-            checkIntakeMechanism();
             checkStraightener();
+            checkIntakeMechanism();
             checkGrabber();
             telemetry.update();
         }
@@ -337,7 +335,7 @@ public class PowerSurgeTeleOp extends OpMode {
         LiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
     private void startVerticalLift() {
-        LiftMotor.setTargetPosition((int)( 2 * countsPerInch));
+        LiftMotor.setTargetPosition((int)(3 * countsPerInch));
     }
 
     private void checkVerticalLift() {
@@ -430,7 +428,7 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             else if (liftDownCommand) {
                 LiftMotor.setPower(.5);
-                LiftMotor.setTargetPosition((int)(2 * countsPerInch));
+                LiftMotor.setTargetPosition((int)(3 * countsPerInch));
                 liftDownCommand = false;
             }
 
@@ -504,7 +502,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
         if (liftEncoderState) {
             telemetry.addData("readyToGrab", readyToGrab);
-            if (readyToGrab && !readyToRelease && liftGrabberState == 0 && grabberReturnState == 0 && emergencyStoneEjectState == 0) {
+            /*if (readyToGrab && !readyToRelease && liftGrabberState == 0 && grabberReturnState == 0 && emergencyStoneEjectState == 0) {
                 if (firstRunZeroLiftPosition) {
                     startGrabberTime = getRuntime();
                     firstRunZeroLiftPosition = false;
@@ -517,12 +515,11 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             else {
                 firstRunZeroLiftPosition = true;
-            }
-
-            if (readyToGrab) {
+            }*/
+            if (liftGrabberState == 0 && grabberReturnState == 0 && emergencyStoneEjectState == 0 && capstoneState == 0 && !readyToRelease) {
                 if (grabStoneButton > .5) {
                     if (firstPressRightTrigger) {
-                        GrabberServo.setPosition(grabberClosedPosition);
+                        LiftMotor.setTargetPosition(0);
                         liftGrabberState = 1;
                         startGrabberTime = getRuntime();
                         firstPressRightTrigger = false;
@@ -605,13 +602,20 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private void grabRotateRaiseStone() {
         if(liftGrabberState == 1) {
+            if (LiftMotor.getCurrentPosition() < (int)(.25*countsPerInch)) {
+                startGrabberTime = getRuntime();
+                GrabberServo.setPosition(grabberClosedPosition);
+                liftGrabberState++;
+            }
+        }
+        if(liftGrabberState == 2) {
             currentGrabberTime = getRuntime();
             if (currentGrabberTime - startGrabberTime > .5) {
                 liftGrabberState++;
                 startGrabberTime = getRuntime();
             }
         }
-        else if(liftGrabberState == 2) {
+        else if(liftGrabberState == 3) {
             currentGrabberTime = getRuntime();
             if (liftHeight <= 1) {
                 LiftMotor.setPower(1);
@@ -631,13 +635,13 @@ public class PowerSurgeTeleOp extends OpMode {
                 startGrabberTime = getRuntime();
             }
         }
-        else if(liftGrabberState == 3) {
+        else if(liftGrabberState == 4) {
             currentGrabberTime = getRuntime();
             if (LiftMotor.getCurrentPosition() > (int)(liftHeight * (4 * countsPerInch) + (liftOffset-(.5 * countsPerInch)))) {
                 liftGrabberState++;
             }
         }
-        else if(liftGrabberState == 4) {
+        else if(liftGrabberState == 5) {
             MoveArmServo.setPosition(armOutsidePosition);
             readyToRelease = true;
             liftGrabberState = 0;
@@ -779,8 +783,6 @@ public class PowerSurgeTeleOp extends OpMode {
     //
 
     private void initializeDriveTrain() {
-        RightBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "RightBackupSensor");
-        LeftBackupSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor .class, "LeftBackupSensor");
         FrontRight = hardwareMap.dcMotor.get("FrontRight");
         FrontLeft = hardwareMap.dcMotor.get("FrontLeft");
         BackRight = hardwareMap.dcMotor.get("BackRight");
@@ -792,12 +794,6 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void checkDriveTrain() {
-        rightBackupDistance = RightBackupSensor.getDistance(DistanceUnit.INCH);
-        leftBackupDistance = LeftBackupSensor.getDistance(DistanceUnit.INCH);
-
-        telemetry.addData("Right Backup Distance", rightBackupDistance);
-        telemetry.addData("Left Backup Distance", leftBackupDistance);
-
         if (autoDriveButton) {
             if (firstPressBumpers) {
                 firstPressBumpers = false;
@@ -1136,6 +1132,16 @@ public class PowerSurgeTeleOp extends OpMode {
                 IntakeAssistServo.setPower(0);
             }
         }
+        if (!intakeButton && !outputButton) {
+            if (stoneDistance < 1.5) {
+                IntakeMotor.setPower(0);
+                IntakeAssistServo.setPower(0);
+            }
+            if (!readyToGrab && !readyToRelease && grabberReturnState == 0 && liftGrabberState == 0 && capstoneState == 0 && emergencyStoneEjectState == 0) {
+                IntakeMotor.setPower(1);
+                IntakeAssistServo.setPower(-1);
+            }
+        }
     }
 
     //
@@ -1155,6 +1161,9 @@ public class PowerSurgeTeleOp extends OpMode {
         stoneDistance = StonePresenceSensor.getDistance(DistanceUnit.INCH);
         telemetry.addData("Stone Distance", stoneDistance);
         stoneFullyInStraightener = stoneDistance < 1.5;
+        if (stoneDistance < 1.5) {
+            IntakeMotor.setPower(0);
+        }
 
         orientStone();
         manualOverride();
