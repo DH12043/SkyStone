@@ -51,10 +51,11 @@ public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
     private int lastAutoState = NO_STATE;
     private boolean autoComplete = false;
     private boolean readyToGrab = true;
+    private boolean LiftFall = true;
     private static final double DECELERATION_START_POINT = 48;
-    private static final double DECELERATION_ZERO_POINT = -6;
+    private static final double DECELERATION_ZERO_POINT = -6;   // -6
     private static final double TURNING_DECELERATION_START_POINT = 180;
-    private static final double TURNING_DECELERATION_ZERO_POINT = -5;
+    private static final double TURNING_DECELERATION_ZERO_POINT = -5; // -5
     private static final double X_SPEED_MULTIPLIER = 1;
     private static final int NO_STATE = -1;
     private static final int INIT_STATE = 0;
@@ -95,8 +96,8 @@ public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
         verticalLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         verticalRight.setDirection(DcMotorSimple.Direction.REVERSE);
         horizontal.setDirection(DcMotorSimple.Direction.REVERSE);
-        StartingXPosition = -144;
-        StartingYPosition = 9;
+        StartingXPosition = 0;
+        StartingYPosition = 0;
         StartingRotation = 0;
     }
 
@@ -128,24 +129,31 @@ public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
     @Override
     public void loop() {
         currentTime = getRuntime();
+        IntakeAssistServo.setPower(-1);
         if (autoState == INIT_STATE) {
             if (lastAutoState == NO_STATE) {
                 lastAutoState = INIT_STATE;
                 startTime = getRuntime();
+                IntakeReleaseServo.setPosition(.6);
+                IntakeAssistServo.setPower(0);
             }
             else {
-                if (startTime > currentTime - 3) {
+                if (startTime > currentTime - 32) {           //TODO CHANGE
                     IntakeMotor.setPower(1);
-                    IntakeReleaseServo.setPosition(.6);
-                    IntakeAssistServo.setPower(0);
                     if (positionSkystone.equals("Left")) {
-                        driveToSkystoneLeft();
+                        if (startTime > currentTime - 5) {
+                            driveToSkystoneLeft();
+                        }
                     }
                     else if (positionSkystone.equals("Center")) {
-                        driveToSkystoneCenter();
+                        if (startTime > currentTime - 5) {
+                            driveToSkystoneCenter();
+                        }
                     }
                     else if (positionSkystone.equals("Right")) {
-                        driveToSkystoneRight();
+                        if (startTime > currentTime - 5) {
+                            driveToSkystoneRight();
+                        }
                     }
                 }
                 else {
@@ -188,13 +196,13 @@ public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
     }
 
     private void driveToSkystoneLeft() {
-        goToPositionMrK(-148, 44, .4, .5, 0);
+        goToPositionMrK(-3, 30, .7, .5, 0);
     }
     private void driveToSkystoneCenter() {
-        goToPositionMrK(-144, 44, .4, .5, 0);
+        goToPositionMrK(8, 30, .7, .5, 0);
     }
     private  void driveToSkystoneRight() {
-        goToPositionMrK(-140, 44, .4, .5, 0);
+        goToPositionMrK(19, 30, .7, .5, 0);
     }
     private void driveNearFoundation() {
         goToPositionMrK(-72, 9, .7, .5, -90);

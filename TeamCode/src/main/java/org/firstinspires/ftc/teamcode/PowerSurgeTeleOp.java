@@ -59,11 +59,11 @@ public class PowerSurgeTeleOp extends OpMode {
     private static final double GRABBERSERVOCLOSEDPOSITION = 0;
     private static final double GRABBERSERVOOPENPOSITION = .5;
 
-    private static final double DECELERATION_START_POINT = 96;
+    private static final double DECELERATION_START_POINT = 48;
     private static final double DECELERATION_ZERO_POINT = -6;
     private static final double TURNING_DECELERATION_START_POINT = 180;
     private static final double TURNING_DECELERATION_ZERO_POINT = -5;
-    private static final double X_SPEED_MULTIPLIER = 1; // Compensates for slower movement while strafing was 1.2
+    private static final double X_SPEED_MULTIPLIER = 1;
 
     private double lastDistanceToTarget = 0;
 
@@ -115,6 +115,9 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private double grabStoneButton;
     private double releaseStoneButton;
+    private int loopCount;
+    private double loopStartTime;
+    private int loopsPerSecond;
     private boolean emergencyEjectButton;
     private double capstoneButton;
     private boolean grabberManualButton;
@@ -270,6 +273,14 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        double currentTime = getRuntime();
+        loopCount++;
+        if (currentTime > loopStartTime + 5) {
+            loopsPerSecond = loopCount;
+            loopCount = 0;
+            loopStartTime = currentTime;
+        }
+        telemetry.addData("LPS: ", loopsPerSecond);
         LiftUpButton = gamepad1.right_trigger;
         LiftDownButton = gamepad1.left_trigger;
         LiftManualToggleButton = gamepad2.y;
