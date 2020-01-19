@@ -38,6 +38,10 @@ public class PowerSurgeTeleOp extends OpMode {
     private double StartingYPosition;
     private double StartingRotation;
 
+    private double StartingFoundationXPosition;
+    private double StartingFoundationYPosition;
+    private double StartingFoundationRotation;
+
     private double ScoringXPosition;
     private double ScoringYPosition;
     private double ScoringRotation;
@@ -47,23 +51,14 @@ public class PowerSurgeTeleOp extends OpMode {
     private File startingθpositionFile = AppUtil.getInstance().getSettingsFile("startingθposition.txt");
 
     final double COUNTS_PER_INCH = 307.699557;
-    private static final int PreFoundationXPosition = 36;
-    private static final int PreFoundationYPosition = 95;
-    private static final int FoundationXPosition = 48;
-    private static final int FoundationYPosition = 107;
-    private static final int BuildSiteXPosition = 9;
-    private static final int BuildSiteYPosition = 111;
-    private static final int ParkLineXPosition = 9;
-    private static final int ParkLineYPosition = 72;
-
-    private static final double GRABBERSERVOCLOSEDPOSITION = 0;
-    private static final double GRABBERSERVOOPENPOSITION = .5;
 
     private static final double DECELERATION_START_POINT = 48;
     private static final double DECELERATION_ZERO_POINT = -6;
     private static final double TURNING_DECELERATION_START_POINT = 180;
     private static final double TURNING_DECELERATION_ZERO_POINT = -5;
     private static final double X_SPEED_MULTIPLIER = 1;
+
+    private boolean firstRunRemoveFoundation = true;
 
     private double lastDistanceToTarget = 0;
 
@@ -126,9 +121,9 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean manualRightServoButton;
     private double readyToGrabOverideButton;
 
-    private boolean odometryResetButton;
     private boolean halfSpeedDriveButton;
     private boolean autoDriveButton;
+    private boolean autoRemoveFoundationButton;
 
     private boolean killSwitch;
     private boolean killSwitch2;
@@ -302,9 +297,9 @@ public class PowerSurgeTeleOp extends OpMode {
         manualRightServoButton = gamepad2.dpad_left;
         readyToGrabOverideButton = gamepad2.left_trigger;
 
-        odometryResetButton = gamepad1.b;
         halfSpeedDriveButton = gamepad1.left_bumper;
         autoDriveButton = gamepad1.right_bumper;
+        autoRemoveFoundationButton = gamepad1.b;
 
         killSwitch = gamepad1.dpad_right;
         killSwitch2 = gamepad1.dpad_left;
@@ -395,33 +390,6 @@ public class PowerSurgeTeleOp extends OpMode {
         if (liftEncoderState) {
             LiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             LiftMotor.setPower(1);
-            /*telemetry.addData("LiftMotorDistance",LiftMotor.getCurrentPosition() - LiftMotor.getTargetPosition());
-            //setting the Target position if we press the right bumper
-            if (LiftUpButton > .5) {
-                if (firstLiftUpButton) {
-                    liftUpCommand = true;
-                    firstLiftUpButton = false;
-                }
-                else {
-                    liftUpCommand = false;
-                }
-            }
-            else {
-                firstLiftUpButton = true;
-            }
-
-            if (LiftDownButton > .5) {
-                if (firstLiftDownButton) {
-                    liftDownCommand = true;
-                    firstLiftDownButton = false;
-                }
-                else {
-                    liftDownCommand = false;
-                }
-            }
-            else {
-                firstLiftDownButton = true;
-            }*/
 
             if (liftUpCommand) {
                 if (liftHeight >= 10) {
@@ -810,6 +778,26 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         else {
             firstPressBumpers = true;
+        }
+
+        if (autoRemoveFoundationButton) {
+            if (firstRunRemoveFoundation) {
+                lowerFoundationator();
+                StartingFoundationXPosition = RobotXPosition;
+                StartingFoundationYPosition = RobotYPosition;
+                StartingFoundationRotation = RobotRotation;
+                firstRunRemoveFoundation = false;
+            }
+            else {
+                goToPositionMrK((StartingFoundationXPosition + 24), (StartingFoundationYPosition - 24), .3, .25, 90);
+            }
+        }
+        else {
+            firstRunRemoveFoundation = true;
+        }
+
+        if (!autoDriveButton && !autoRemoveFoundationButton) {
+
 
             movement_y = DeadModifier(-gamepad1.left_stick_y);
             movement_x = DeadModifier(gamepad1.left_stick_x);
@@ -1015,6 +1003,10 @@ public class PowerSurgeTeleOp extends OpMode {
         StartingXPosition = 0;
         StartingYPosition = 0;
         StartingRotation = 0;
+
+        StartingFoundationXPosition = 0;
+        StartingFoundationYPosition = 0;
+        StartingFoundationRotation = 0;
     }
 
     private void startOdometry() {
@@ -1029,18 +1021,6 @@ public class PowerSurgeTeleOp extends OpMode {
         RobotXPosition = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingXPosition;
         RobotYPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + StartingYPosition;
         RobotRotation = (globalPositionUpdate.returnOrientation()) + StartingRotation;
-
-        if (odometryResetButton) {
-            if (firstPressb2) {
-                firstPressb2 = false;
-                StartingXPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
-                StartingYPosition = -(globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
-                StartingRotation = -(globalPositionUpdate.returnOrientation());
-            }
-        }
-        else {
-            firstPressb2 = true;
-        }
 
         if (RobotRotation < 0){
             RobotRotation += 360;
@@ -1075,7 +1055,7 @@ public class PowerSurgeTeleOp extends OpMode {
     }
     private void startIntakeMechanism() {
         IntakeReleaseServo.setPosition(.6);
-        IntakeAssistServo.setPower(0);
+        IntakeAssistServo.setPower(-1);
     }
 
     private void checkIntakeMechanism() {
@@ -1111,7 +1091,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
         if (!readyToGrab && !readyToRelease && liftGrabberState == 0 && emergencyStoneEjectState == 0) {
             IntakeMotor.setPower(1);
-            IntakeAssistServo.setPower(-1);
+
         }
         else {
             if (intakeButton) {
@@ -1128,53 +1108,14 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             if (outputButton) {
                 IntakeMotor.setPower(-1);
-                IntakeAssistServo.setPower(1);
             } else {
                 if (intakeState == 1) {
                     IntakeMotor.setPower(1);
-                    IntakeAssistServo.setPower(-1);
                 } else if (intakeState == 0) {
                     IntakeMotor.setPower(0);
-                    IntakeAssistServo.setPower(0);
                 }
             }
         }
-
-        //        if (intakeButton || outputButton) {
-//            if (intakeButton) {
-//                if (firstPressDpadUp) {
-//                    if (intakeState == 1) {
-//                        intakeState = 0;
-//                    } else {
-//                        intakeState = 1;
-//                    }
-//                    firstPressDpadUp = false;
-//                }
-//            } else {
-//                firstPressDpadUp = true;
-//            }
-//            if (outputButton) {
-//                IntakeMotor.setPower(-1);
-//                IntakeAssistServo.setPower(1);
-//            } else {
-//                if (intakeState == 1) {
-//                    IntakeMotor.setPower(1);
-//                    IntakeAssistServo.setPower(-1);
-//                } else if (intakeState == 0) {
-//                    IntakeMotor.setPower(0);
-//                    IntakeAssistServo.setPower(0);
-//                }
-//            }
-//        }
-//        else {
-//            if (stoneDistance < 1.5) {
-//                IntakeMotor.setPower(0);
-//            }
-//            if (!readyToGrab && !readyToRelease && liftGrabberState == 0 && emergencyStoneEjectState == 0) {
-//                IntakeMotor.setPower(1);
-//                IntakeAssistServo.setPower(-1);
-//            }
-//        }
     }
 
     //
