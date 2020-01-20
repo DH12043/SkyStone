@@ -176,6 +176,8 @@ public class PowerSurgeTeleOp extends OpMode {
     static final double countsPerInch           = (countsPerMotor * gearReduction) / (wheelDiameter * Math.PI);
     static final double liftOffset = (2.5 * countsPerInch);
 
+    static final double bottomLiftPosition = 2.5; //measured in inches
+
     // ORIENTER STUFF
 
     private String stoneOrientation = "empty";
@@ -345,7 +347,7 @@ public class PowerSurgeTeleOp extends OpMode {
         LiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
     private void startVerticalLift() {
-        LiftMotor.setTargetPosition((int)(3 * countsPerInch));
+        LiftMotor.setTargetPosition((int)(bottomLiftPosition * countsPerInch));
     }
 
     private void checkVerticalLift() {
@@ -411,7 +413,7 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             else if (liftDownCommand) {
                 LiftMotor.setPower(.5);
-                LiftMotor.setTargetPosition((int)(3 * countsPerInch));
+                LiftMotor.setTargetPosition((int)(bottomLiftPosition * countsPerInch));
                 liftDownCommand = false;
             }
 
@@ -633,9 +635,9 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private void returnGrabberArm() {
         if (grabberReturnState == 1) {
-            LiftMotor.setPower(.5);
+            LiftMotor.setPower(.25); //was .5
             LiftMotor.setTargetPosition((int)((liftHeight * (4 * countsPerInch)) + liftOffset - (2 * countsPerInch)));
-            if (LiftMotor.getCurrentPosition() < (int)(liftHeight * (4 * countsPerInch) + liftOffset - (1.5 * countsPerInch))) {
+            if (LiftMotor.getCurrentPosition() < (int)(liftHeight * (4 * countsPerInch) + liftOffset - (1.75 * countsPerInch))) { //was 1.5
                 GrabberServo.setPosition(grabberOpenPosition);
                 grabberReturnState++;
                 startGrabberTime = getRuntime();
