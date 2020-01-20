@@ -77,6 +77,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private DcMotor BackLeft;
     private DcMotor IntakeMotor;
     private DcMotor LiftMotor;
+    private DcMotor TapeMeasureMotor;
     private Servo lFoundationator;
     private Servo rFoundationator;
     private Servo GrabberServo;
@@ -115,7 +116,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private boolean outputButton;
     private boolean intakeButton;
-    private boolean intakeReleaseButton;
+    private double intakeReleaseButton;
 
     private boolean manualLeftServoButton;
     private boolean manualRightServoButton;
@@ -124,6 +125,8 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean halfSpeedDriveButton;
     private boolean autoDriveButton;
     private boolean autoRemoveFoundationButton;
+
+    private double tapeMeasureButton;
 
     private boolean killSwitch;
     private boolean killSwitch2;
@@ -246,6 +249,7 @@ public class PowerSurgeTeleOp extends OpMode {
         initializeIntakeMechanism();
         initializeStraightener();
         initializeSkyStoneColorSensor();
+        initializeTapeMeasure();
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
     }
@@ -287,11 +291,11 @@ public class PowerSurgeTeleOp extends OpMode {
         emergencyEjectButton = gamepad1.y;
         grabberManualButton = gamepad2.b;
         armManualButton = gamepad2.a;
-        //capstoneButton = gamepad2.right_trigger;
+        //capstoneButton = gamepad1.x;
 
         outputButton = gamepad1.dpad_down;
         intakeButton = gamepad1.dpad_up;
-        intakeReleaseButton = gamepad1.x;
+        intakeReleaseButton = gamepad2.right_trigger;
 
         manualLeftServoButton = gamepad2.dpad_right;
         manualRightServoButton = gamepad2.dpad_left;
@@ -300,6 +304,8 @@ public class PowerSurgeTeleOp extends OpMode {
         halfSpeedDriveButton = gamepad1.left_bumper;
         autoDriveButton = gamepad1.right_bumper;
         autoRemoveFoundationButton = gamepad1.b;
+
+        tapeMeasureButton = gamepad1.left_stick_y;
 
         killSwitch = gamepad1.dpad_right;
         killSwitch2 = gamepad1.dpad_left;
@@ -320,6 +326,7 @@ public class PowerSurgeTeleOp extends OpMode {
             checkStraightener();
             checkIntakeMechanism();
             checkGrabber();
+            checkTapeMeasure();
             telemetry.update();
         }
     }
@@ -1061,7 +1068,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private void checkIntakeMechanism() {
         intake(intakeButton);
 
-        if (intakeReleaseButton) {
+        if (intakeReleaseButton > .5) {
             if (firstPressx2) {
                 if (intakeReleaseState == 1) {
                     intakeReleaseState = 0;
@@ -1320,5 +1327,15 @@ public class PowerSurgeTeleOp extends OpMode {
         else {
             isSkyStoneInView = false;
         }
+    }
+
+    private void initializeTapeMeasure() {
+        TapeMeasureMotor = hardwareMap.dcMotor.get("TapeMeasureMotor");
+        TapeMeasureMotor.setPower(0);
+        TapeMeasureMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
+    private void checkTapeMeasure() {
+        TapeMeasureMotor.setPower(tapeMeasureButton);
     }
 }

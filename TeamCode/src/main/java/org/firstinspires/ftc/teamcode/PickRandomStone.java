@@ -250,17 +250,16 @@ public class PickRandomStone extends SkystoneVuforiaNew {
                         driveToFoundation();
                         lFoundationator.setPosition(0);
                         rFoundationator.setPosition(foundationatorPosition);
-                        //put the lift out
                     }
                     else if (startTime > currentTime - 13) {
-                        //place
+                        grabRotateStoneCommand = true;
                     }
                     else if (startTime > currentTime - 13.5) {
                         driveToBuildSite();
                     }
                     else if (startTime > currentTime - 15) {
                         driveFoundationInBuildSite();
-                        //somewhere between place and shimmyForwardFromBuildSite retract the arm
+                        releaseStoneCommand = true;
                     }
                     else if(startTime > currentTime - 16) {
                         shimmyForwardFromBuildSite();
@@ -276,10 +275,10 @@ public class PickRandomStone extends SkystoneVuforiaNew {
                         driveFoundationInBuildSite();
                     }
                     else if(startTime > currentTime - 25) {
-                        //dump
+                        grabRotateStoneCommand = true;
                     }
                     else if (startTime > currentTime - 28.5) {
-                        //let go and return arm to robot all the way down
+                        releaseStoneCommand = true;
                     }
                     else {
                         driveToPark();
@@ -339,7 +338,7 @@ public class PickRandomStone extends SkystoneVuforiaNew {
     private void driveToSkystoneCenter() {
         goToPositionMrK(-3, 44, .8, .5, 45);
     }
-    private  void driveToSkystoneRight() {
+    private void driveToSkystoneRight() {
         goToPositionMrK(19, 30, .7, .5, 0);
     }
     private void driveNearFoundation() { goToPositionMrK(-72, 9, .8, .5, -90); }
