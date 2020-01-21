@@ -622,7 +622,7 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         else if(liftGrabberState == 4) {
             currentGrabberTime = getRuntime();
-            if (LiftMotor.getCurrentPosition() > (int)(liftHeight * (4 * countsPerInch) + (liftOffset-(.5 * countsPerInch)))) {
+            if (LiftMotor.getCurrentPosition() > (int)(liftHeight * (4 * countsPerInch) + (liftOffset-(1 * countsPerInch)))) {
                 liftGrabberState++;
             }
         }
@@ -656,7 +656,7 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         if (grabberReturnState == 3) {
             currentGrabberTime = getRuntime();
-
+            readyToRelease = false;
             if(currentGrabberTime - startGrabberTime > .5) {
                 if (liftHeight <= 1) {
                     LiftMotor.setPower(1);
@@ -679,7 +679,6 @@ public class PowerSurgeTeleOp extends OpMode {
             currentGrabberTime = getRuntime();
             if(currentGrabberTime - startGrabberTime > 1.5) {
                 liftDownCommand = true;
-                readyToRelease = false;
                 grabberReturnState = 0;
             }
         }
@@ -798,7 +797,15 @@ public class PowerSurgeTeleOp extends OpMode {
                 firstRunRemoveFoundation = false;
             }
             else {
-                goToPositionMrK((StartingFoundationXPosition + 24), (StartingFoundationYPosition - 24), .3, .25, 90);
+                if (readyToRelease) {
+                    LiftMotor.setTargetPosition((int)((liftHeight * (4 * countsPerInch)) + liftOffset - (2 * countsPerInch)));
+                    if (LiftMotor.getCurrentPosition() < (int)(liftHeight * (4 * countsPerInch) + liftOffset - (1.75 * countsPerInch))) { //was 1.5
+                        goToPositionMrK((StartingFoundationXPosition + 24), (StartingFoundationYPosition - 24), .3, .25, 45);
+                    }
+                }
+                else {
+                    goToPositionMrK((StartingFoundationXPosition + 24), (StartingFoundationYPosition - 24), .3, .25, 45);
+                }
             }
         }
         else {
@@ -806,32 +813,17 @@ public class PowerSurgeTeleOp extends OpMode {
         }
 
         if (!autoDriveButton && !autoRemoveFoundationButton) {
-
-
             movement_y = DeadModifier(-gamepad1.left_stick_y);
             movement_x = DeadModifier(gamepad1.left_stick_x);
             movement_turn = DeadModifier(gamepad1.right_stick_x);
 
-            if (halfSpeedDriveButton) {
+            if (halfSpeedDriveButton || readyToRelease) {
                 movement_y = movement_y / 5;
                 movement_x = movement_x / 3;
                 movement_turn = movement_turn / 5;
             }
 
             applyMovement();
-
-            //double forwardButton = gamepad1.left_stick_y;
-            //double sidewaysButton = gamepad1.left_stick_x;
-            //double spinningButton = gamepad1.right_stick_x;
-
-            //FrontRight.setDirection(DcMotor.Direction.REVERSE);
-            //BackLeft.setDirection(DcMotor.Direction.REVERSE);
-
-            //forwardButton = DeadModifier(forwardButton);
-            //sidewaysButton = DeadModifier(sidewaysButton);
-            //spinningButton = DeadModifier(spinningButton);
-
-            //Drive(forwardButton, sidewaysButton, spinningButton);
         }
     }
 
@@ -1100,7 +1092,6 @@ public class PowerSurgeTeleOp extends OpMode {
 
         if (!readyToGrab && !readyToRelease && liftGrabberState == 0 && emergencyStoneEjectState == 0) {
             IntakeMotor.setPower(1);
-
         }
         else {
             if (intakeButton) {
