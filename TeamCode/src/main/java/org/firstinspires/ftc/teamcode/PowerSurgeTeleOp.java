@@ -894,11 +894,13 @@ public class PowerSurgeTeleOp extends OpMode {
         }
 
         if (deliverStoneButton) {
-            if (firstDeliverStoneButton) {
-                LiftMotor.setTargetPosition(0);
-                autoDeliverStoneState = 1;
-                startGrabberTime = getRuntime();
-                firstDeliverStoneButton = false;
+            if (readyToGrab) {
+                if (firstDeliverStoneButton) {
+                    LiftMotor.setTargetPosition(0);
+                    autoDeliverStoneState = 1;
+                    startGrabberTime = getRuntime();
+                    firstDeliverStoneButton = false;
+                }
             }
         }
         else {
