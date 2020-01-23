@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.os.SystemClock;
 import android.view.View;
+import android.graphics.Color;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -234,9 +235,16 @@ public class PowerSurgeTeleOp extends OpMode {
 
     public boolean isSkyStoneInView = false;
 
+    float hsvValues[] = {0F, 0F, 0F};
+
+    final float values[] = hsvValues;
+
+    final double SCALE_FACTOR = 255;
+
     public float redValues = 0;
     public float blueValues = 0;
     public float greenValues = 0;
+    public float alphaValues = 0;
 
     public boolean red = false;
     public boolean blue = false;
@@ -503,7 +511,7 @@ public class PowerSurgeTeleOp extends OpMode {
             else {
                 firstRunZeroLiftPosition = true;
             }*/
-            if (liftGrabberState == 0 && grabberReturnState == 0 && emergencyStoneEjectState == 0 && capstoneState == 0 && !readyToRelease) {
+            if (liftGrabberState == 0 && grabberReturnState == 0 && emergencyStoneEjectState == 0 && capstoneState == 0 && !readyToRelease && !readyToReleaseFromDelivery) {
                 if (grabStoneButton > .5) {
                     if (firstPressRightTrigger) {
                         LiftMotor.setTargetPosition(0);
@@ -518,7 +526,7 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             grabRotateRaiseStone();
 
-            if (readyToRelease) {
+            if (readyToRelease || readyToReleaseFromDelivery) {
                 if (releaseStoneButton > .5) {
                     if (firstPressLeftTrigger) {
                         GrabberServo.setPosition(grabberOpenPosition);
@@ -664,7 +672,6 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             if (grabberReturnState == 3) {
                 currentGrabberTime = getRuntime();
-                readyToRelease = false;
                 if (currentGrabberTime - startGrabberTime > .5) {
                     if (liftHeight <= 1) {
                         LiftMotor.setPower(1);
@@ -683,7 +690,8 @@ public class PowerSurgeTeleOp extends OpMode {
 
             } else if (grabberReturnState == 4) {
                 currentGrabberTime = getRuntime();
-                if (currentGrabberTime - startGrabberTime > 1.5) {
+                if (currentGrabberTime - startGrabberTime > 1) {
+                    readyToRelease = false;
                     liftDownCommand = true;
                     grabberReturnState = 0;
                     grabberReturnType = 2;
@@ -700,7 +708,6 @@ public class PowerSurgeTeleOp extends OpMode {
             if (grabberReturnState == 2) {
                 currentGrabberTime = getRuntime();
                 if (currentGrabberTime - startGrabberTime > .5) {
-                    readyToReleaseFromDelivery = false;
                     LiftMotor.setPower(1);
                     LiftMotor.setTargetPosition((int) ((6 * countsPerInch) + liftOffset));
                     if (LiftMotor.getCurrentPosition() > (int) ((5 * countsPerInch) + liftOffset)) {
@@ -712,7 +719,8 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             if (grabberReturnState == 3) {
                 currentGrabberTime = getRuntime();
-                if (currentGrabberTime - startGrabberTime > 1.5) {
+                if (currentGrabberTime - startGrabberTime > 1) {
+                    readyToReleaseFromDelivery = false;
                     liftDownCommand = true;
                     grabberReturnState = 0;
                     grabberReturnType = 2;
@@ -868,11 +876,11 @@ public class PowerSurgeTeleOp extends OpMode {
                 if (readyToRelease) {
                     LiftMotor.setTargetPosition((int)((liftHeight * (4 * countsPerInch)) + liftOffset - (2 * countsPerInch)));
                     if (LiftMotor.getCurrentPosition() < (int)(liftHeight * (4 * countsPerInch) + liftOffset - (1.75 * countsPerInch))) { //was 1.5
-                        goToPositionMrK((StartingFoundationXPosition + 24), (StartingFoundationYPosition - 24), .3, .25, (AngleWrap(StartingFoundationRotation+45)));
+                        goToPositionMrK((StartingFoundationXPosition - 24), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation-50))));
                     }
                 }
                 else {
-                    goToPositionMrK((StartingFoundationXPosition + 24), (StartingFoundationYPosition - 24), .3, .25, (AngleWrap(StartingFoundationRotation+45)));
+                    goToPositionMrK((StartingFoundationXPosition - 24), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation-50))));
                 }
             }
         }
@@ -888,7 +896,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
         if (driveAndDeliverStoneButton) {
             if (DepotXPosition != 0) {
-                goToPositionMrK(DepotXPosition + 24, DepotYPosition - 96, .75, .75, AngleWrap(DepotRotation+Math.toRadians(90)));
+                goToPositionMrK(DepotXPosition + 24, DepotYPosition - 96, 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(90 + DepotRotation))));
             }
             deliverStoneButton = true;
         }
@@ -1385,10 +1393,21 @@ public class PowerSurgeTeleOp extends OpMode {
         redValues = SkyStoneValues.red;
         blueValues = SkyStoneValues.blue;
         greenValues = SkyStoneValues.green;
+        alphaValues = SkyStoneValues.alpha;
+
+        Color.RGBToHSV((int) (SkyStoneValues.red * SCALE_FACTOR),
+                (int) (SkyStoneValues.green * SCALE_FACTOR),
+                (int) (SkyStoneValues.blue * SCALE_FACTOR),
+                hsvValues);
 
         telemetry.addData("red", SkyStoneValues.red);
         telemetry.addData("green", SkyStoneValues.green);
         telemetry.addData("blue", SkyStoneValues.blue);
+        telemetry.addData("alpha", SkyStoneValues.alpha);
+        telemetry.addData("Hue", hsvValues[0]);
+        telemetry.addData("Saturation", hsvValues[1]);
+        telemetry.addData("Value", hsvValues[2]);
+
         telemetry.addData("skystone", isSkyStoneInView);
         telemetry.addData("red bool", red);
 
