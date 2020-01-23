@@ -874,8 +874,8 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             else {
                 if (readyToRelease) {
-                    LiftMotor.setTargetPosition((int)((liftHeight * (4 * countsPerInch)) + liftOffset - (2 * countsPerInch)));
-                    if (LiftMotor.getCurrentPosition() < (int)(liftHeight * (4 * countsPerInch) + liftOffset - (1.75 * countsPerInch))) { //was 1.5
+                    LiftMotor.setTargetPosition((int)((liftHeight * (4 * countsPerInch)) + liftOffset - (2.5 * countsPerInch)));
+                    if (LiftMotor.getCurrentPosition() < (int)(liftHeight * (4 * countsPerInch) + liftOffset - (2.25 * countsPerInch))) { //was 1.5
                         goToPositionMrK((StartingFoundationXPosition - 24), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation-50))));
                     }
                 }
