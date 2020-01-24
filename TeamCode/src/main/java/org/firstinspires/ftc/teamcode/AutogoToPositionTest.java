@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-@Autonomous(name= "DoubleSkystoneAutoByTimeRed", group= "None")
-public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
+@Autonomous(name= "AutogoToPositionTest", group= "None")
+public class AutogoToPositionTest extends SkystoneVuforiaNew {
 
     DcMotor verticalRight, verticalLeft, horizontal;
 
@@ -32,26 +32,21 @@ public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
     private Servo rFoundationator;
 
     final double COUNTS_PER_INCH = 307.699557;
+    private double lastDistanceToTarget = 0;
+    private double foundationatorPosition = .335;
+    private double StartingXPosition = 0;
+    private double StartingYPosition = 0;
+    private double StartingRotation = 0;
     private double RobotXPosition;
     private double RobotYPosition;
     private double RobotRotation;
     private double startTime;
     private double currentTime;
-    private double intakeNotReleased = .6;
-    private double intakeReleased = .15;
-    private double lastDistanceToTarget = 0;
-    private double StartingXPosition = 9;
-    private double StartingYPosition = 36;
-    private double StartingRotation = 90;
-    private double foundationatorPosition = .335;
     private double movement_x;
     private double movement_y;
     private double movement_turn;
-    private int autoState = SKYSTONE_STATE;
+    private int autoState = INIT_STATE;
     private int lastAutoState = NO_STATE;
-    private boolean autoComplete = false;
-    private boolean readyToGrab = true;
-    private boolean LiftFall = true;
     private static final double DECELERATION_START_POINT = 48;
     private static final double DECELERATION_ZERO_POINT = -6;   // -6
     private static final double TURNING_DECELERATION_START_POINT = 180;
@@ -59,10 +54,9 @@ public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
     private static final double X_SPEED_MULTIPLIER = 1;
     private static final int NO_STATE = -2;
     private static final int INIT_STATE = -1;
-    private static final int SKYSTONE_STATE = 0;
-    private static final int FOUDNATION_STATE = 1;
-    private static final int LIFT_STATE = 2;
-    private static final int PARK_STATE = 3;
+    private static final int FIRST_MOVE_SKYSTONE_STATE = 0;
+    private static final int SECOND_MOVE_SKYSTONE_STATE = 1;
+    private static final int PARK_STATE = 2;
     private long lastUpdateTime = 0;
 
     @Override
@@ -78,7 +72,6 @@ public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
         IntakeAssistServo = hardwareMap.crservo.get("IntakeAssistServo");
         lFoundationator = hardwareMap.servo.get("lFoundationator");
         rFoundationator = hardwareMap.servo.get("rFoundationator");
-//        IntakeReleaseServo.setPosition(intakeNotReleased);
         FrontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         BackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         FrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -114,12 +107,9 @@ public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
 
         lFoundationator.setPosition(0);
         rFoundationator.setPosition(foundationatorPosition);
-
-//        RobotXPosition = (globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH) + StartingXPosition;
-//        RobotYPosition = -(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingYPosition;
-//        RobotRotation = (globalPositionUpdate.returnOrientation() / COUNTS_PER_INCH) + StartingRotation;
+        autoState = FIRST_MOVE_SKYSTONE_STATE;
+        lastAutoState = INIT_STATE;
     }
-
 
     private void checkOdometry() {
         RobotXPosition = (globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH) + StartingXPosition;
@@ -131,101 +121,36 @@ public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
     public void loop() {
         currentTime = getRuntime();
         IntakeAssistServo.setPower(-1);
-        positionSkystone.equals("Left");
-        if (autoState == SKYSTONE_STATE) {
-            if (lastAutoState == NO_STATE) {
-                lastAutoState = SKYSTONE_STATE;
-                startTime = getRuntime();
-                IntakeReleaseServo.setPosition(.6);
-                IntakeAssistServo.setPower(0);
-            }
-            else {
-                if (startTime > currentTime - 32) {           //TODO CHANGE
-                    IntakeMotor.setPower(1);
-                    if (positionSkystone.equals("Left")) {
-                        if (startTime > currentTime - 5) {
-                            driveToSkystoneLeft();
-                        }
-                    }
-                    else if (positionSkystone.equals("Center")) {
-                        if (startTime > currentTime - 5) {
-                            driveToSkystoneCenter();
-                        }
-                    }
-                    else if (positionSkystone.equals("Right")) {
-                        if (startTime > currentTime - 5) {
-                            driveToSkystoneRight();
-                        }
-                    }
-                }
-                else {
-                    autoState = FOUDNATION_STATE;
-                }
-            }
-        }
-        else if (autoState == FOUDNATION_STATE) {
-            if (lastAutoState == SKYSTONE_STATE) {
-                lastAutoState = FOUDNATION_STATE;
-                startTime = getRuntime();
-                lFoundationator.setPosition(foundationatorPosition);
-                rFoundationator.setPosition(0);
-            }
-            else {
-                if (startTime > currentTime - 1.5) {
-                    driveNearFoundation();
-                }
-                else if ( startTime < (currentTime - 1.5) && startTime > (currentTime - 3.5) ) {
-                    driveToFoundation();
-                }
-                else if (startTime < (currentTime - 3.5) && startTime > (currentTime - 6)) {
-                    driveToBuildSite();
-                }
-                else if (startTime < (currentTime - 6) && startTime > (currentTime - 7.5)) {
-                    driveFoundationInBuildSite();
-                }
-                else if (startTime < (currentTime - 7.6) && startTime > (currentTime - 8.6)) {
-                    shimmyForwardFromBuildSite();
-                }
-                else {
-                    lFoundationator.setPosition(0);
-                    rFoundationator.setPosition(foundationatorPosition);
-                    driveToPark();
-                }
-            }
-        }
+        goToPositionByTime(-3, 0, 0, 2, FIRST_MOVE_SKYSTONE_STATE, SECOND_MOVE_SKYSTONE_STATE);
+        IntakeStone();
+        goToPositionByTime(-3, 30, 0, 2, SECOND_MOVE_SKYSTONE_STATE, PARK_STATE);
 
         checkOdometry();
     }
 
-    private void driveToSkystoneLeft() {
-        goToPositionMrK(-3, 30, .7, .5, 0);
-    }
-    private void driveToSkystoneCenter() {
-        goToPositionMrK(8, 30, .7, .5, 0);
-    }
-    private  void driveToSkystoneRight() {
-        goToPositionMrK(19, 30, .7, .5, 0);
-    }
-    private void driveNearFoundation() {
-        goToPositionMrK(-72, 9, .7, .5, -90);
-    }
-    public void driveToFoundation() {
-        goToPositionMrK(-52,43,.7, .5,-180);
-    }
-    public void driveToBuildSite () {
-        goToPositionMrK(-33, 7, .7, .5, 60); //TODO change if problems
-    }
-    public void driveFoundationInBuildSite () {
-        goToPositionMrK(-39, 9, .7, .5, 90);  //TODO change if problems
-    }
-    public void shimmyForwardFromBuildSite () {
-        goToPositionMrK(-16, 9, .7, .5, 90);  //TODO change if problems
-    }
-    private void driveToPark() {
-        goToPositionMrK(-72, 9, .7, .5, 90);
+    private void IntakeStone() {
+        if (autoState == SECOND_MOVE_SKYSTONE_STATE) {
+            IntakeMotor.setPower(1);
+        }
     }
 
-    private void goToPositionMrK(double x, double y, double maxMovementSpeed, double maxTurnSpeed, double preferredAngle) {
+    private void goToPositionByTime(double x, double y, double preferredAngle, double timeout, int thisState, int nextState) {
+        // exit method if auto is not in this state
+        if (autoState != thisState) {
+            return;
+        }
+
+        if (lastAutoState != thisState) {
+            startTime = getRuntime();
+            lastAutoState = thisState;
+        }
+
+        // setup timer, set startTime variable
+
+
+        if (currentTime - timeout > startTime) {
+            autoState = nextState;
+        }
         double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
         double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
         double relativeAngleToPoint = AngleWrap(-absoluteAngleToTarget
@@ -245,6 +170,8 @@ public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
         double turnDecelLimiter = Range.clip((Math.abs(Math.toDegrees(relativeTurnAngle)) - TURNING_DECELERATION_ZERO_POINT)
                 / (TURNING_DECELERATION_START_POINT - TURNING_DECELERATION_ZERO_POINT), 0, 1);
 
+        double maxMovementSpeed = 1;
+        double maxTurnSpeed = 1;
         movement_x = movementXPower * Range.clip(maxMovementSpeed, -xDecelLimiter, xDecelLimiter);
         movement_y = movementYPower * Range.clip(maxMovementSpeed, -yDecelLimiter, yDecelLimiter);
 
@@ -267,21 +194,6 @@ public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
 
         applyMovement();
     }
-
-
-
-
-    /**
-     * Converts movement_y, movement_x, movement_turn into motor powers.
-     *
-     * author: Original code by FTC Team 7571 Alumineers, modified by Travis Kuiper
-     * date: 2020/01/01
-     *
-     * movement_turn: Positive value to turn clockwise, negative for counterclockwise
-     * movement_x: Positive value indicates strafe to the right proportionally
-     * movement_y: Positive value indicates drive forward proportionally
-     */
-    // Code comes from 11115 Peter and 7571 Alumineers
     private void applyMovement() {
         long currTime = SystemClock.uptimeMillis();
         if(currTime - lastUpdateTime < 16){
@@ -333,5 +245,4 @@ public class DoubleSkystoneAutoByTimeRed extends SkystoneVuforiaNew {
 
         return angle;
     }
-
 }
