@@ -1057,11 +1057,6 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         lastUpdateTime = currTime;
 
-        //double fl_power_raw = movement_y-movement_turn+movement_x;
-        //double bl_power_raw = movement_y-movement_turn-movement_x;
-        //double br_power_raw = -movement_y-movement_turn-movement_x;
-        //double fr_power_raw = -movement_y-movement_turn+movement_x;
-
         double fl_power_raw = movement_y+movement_turn+movement_x;
         double bl_power_raw = movement_y+movement_turn-movement_x;
         double br_power_raw = -movement_y+movement_turn-movement_x;
@@ -1090,6 +1085,7 @@ public class PowerSurgeTeleOp extends OpMode {
         BackRight.setPower(-br_power_raw);
         FrontRight.setPower(-fr_power_raw);
     }
+
     private static double AngleWrap(double angle){
 
         while(angle < -Math.PI){
