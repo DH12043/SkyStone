@@ -3,10 +3,10 @@ package org.firstinspires.ftc.teamcode;
 import android.os.SystemClock;
 import android.view.View;
 import android.graphics.Color;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
@@ -86,6 +86,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private DcMotor IntakeMotor;
     private DcMotor LiftMotor;
     private DcMotor TapeMeasureMotor;
+    private DcMotor IntakeAssistMotor;
     private Servo lFoundationator;
     private Servo rFoundationator;
     private Servo GrabberServo;
@@ -93,11 +94,13 @@ public class PowerSurgeTeleOp extends OpMode {
     private Servo MoveArmServo;
     private Servo OrientationServoLeft;
     private Servo OrientationServoRight;
-    private CRServo IntakeAssistServo;
     private Servo IntakeReleaseServo;
 
     private ModernRoboticsI2cRangeSensor OrientationSensor;
     private ModernRoboticsI2cRangeSensor StonePresenceSensor;
+
+    RevBlinkinLedDriver blinkinLedDriver;
+    RevBlinkinLedDriver.BlinkinPattern pattern;
 
     private TouchSensor AllianceSwitch;
 
@@ -110,7 +113,6 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean LiftOverideDownButton;
     private boolean LiftOverideUpButton;
     private boolean LiftHeightResetButton;
-    private boolean LiftHeightResetButton2;
 
     private boolean currentWaffleState;
 
@@ -120,7 +122,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private double loopStartTime;
     private int loopsPerSecond;
     private boolean emergencyEjectButton;
-    //private double capstoneButton;
+    private boolean capstoneButton;
     private boolean grabberManualButton;
     private boolean armManualButton;
 
@@ -140,7 +142,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private double tapeMeasureButton;
 
-    private boolean killSwitch;
+    private boolean switchPositionButton;
 
     // FIRST PRESS AND RUN
 
@@ -162,6 +164,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean firstPressLiftHeightReset = true;
     private boolean firstPressCapstoneButton = true;
     private boolean firstDeliverStoneButton = true;
+    private boolean firstSwitchPositionButton = true;
 
     // WAFFLE STUFF
 
@@ -221,6 +224,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private int grabberReturnState = 0;
     private int grabberReturnType = 2;
     private int emergencyStoneEjectState = 0;
+    private double grabberWideOpenPosition = .6;
     private double grabberOpenPosition = .4;
     private double grabberClosedPosition = 0;
     private double armInsidePosition = 1;
@@ -230,6 +234,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean readyToRelease = false;
     private boolean readyToReleaseFromDelivery = false;
     private int capstoneState = 0;
+    private boolean readyToReleaseStone = false;
 
     //last update time
     private long lastUpdateTime = 0;
@@ -256,6 +261,8 @@ public class PowerSurgeTeleOp extends OpMode {
     public boolean blue = false;
     public boolean green = false;
 
+    private boolean switchIsInverted = false;
+
     @Override
     public void init() {
         telemetry.addData("Version Number", "1-3-20 1000pm");
@@ -269,6 +276,12 @@ public class PowerSurgeTeleOp extends OpMode {
         initializeSkyStoneColorSensor();
         initializeTapeMeasure();
         AllianceSwitch = hardwareMap.touchSensor.get("AllianceSwitch");
+
+        blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
+        //pattern = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_RAINBOW_PALETTE;
+        pattern = RevBlinkinLedDriver.BlinkinPattern.CP1_2_COLOR_WAVES;
+        blinkinLedDriver.setPattern(pattern);
+
         telemetry.addData("Status", "Init Complete");
         telemetry.update();
     }
@@ -295,13 +308,35 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         telemetry.addData("LPS: ", loopsPerSecond);
 
-        if (AllianceSwitch.isPressed()) {
-            telemetry.addData("Switch Position", "Blue");
-            robotAlliance = "Blue";
+        switchPositionButton = gamepad2.right_bumper;
+
+        if (switchPositionButton) {
+            if (firstSwitchPositionButton) {
+                switchIsInverted = !switchIsInverted;
+                firstSwitchPositionButton = false;
+            }
         }
         else {
-            telemetry.addData("Switch Position", "Red");
-            robotAlliance = "Red";
+            firstSwitchPositionButton = true;
+        }
+
+        if (!switchIsInverted) {
+            if (AllianceSwitch.isPressed()) {
+                telemetry.addData("Switch Position", "Blue");
+                robotAlliance = "Blue";
+            } else {
+                telemetry.addData("Switch Position", "Red");
+                robotAlliance = "Red";
+            }
+        }
+        else {
+            if (AllianceSwitch.isPressed()) {
+                telemetry.addData("Switch Position", "Red");
+                robotAlliance = "Red";
+            } else {
+                telemetry.addData("Switch Position", "Blue");
+                robotAlliance = "Blue";
+            }
         }
 
         LiftUpButton = gamepad1.right_trigger;
@@ -310,8 +345,7 @@ public class PowerSurgeTeleOp extends OpMode {
         LiftEncoderResetButton = gamepad2.x;
         LiftOverideDownButton = gamepad2.dpad_down;
         LiftOverideUpButton = gamepad2.dpad_up;
-        LiftHeightResetButton = gamepad2.right_bumper;
-        LiftHeightResetButton2 = gamepad2.left_bumper;
+        LiftHeightResetButton = gamepad2.left_bumper;
 
         currentWaffleState = gamepad1.a;
 
@@ -320,7 +354,7 @@ public class PowerSurgeTeleOp extends OpMode {
         emergencyEjectButton = gamepad1.y;
         grabberManualButton = gamepad2.b;
         armManualButton = gamepad2.a;
-        //capstoneButton = gamepad1.x;
+        capstoneButton = gamepad1.x;
 
         intakeButton = gamepad1.dpad_up;
         outtakeButton = gamepad1.dpad_down;
@@ -333,33 +367,19 @@ public class PowerSurgeTeleOp extends OpMode {
         autoDriveButton = gamepad1.right_bumper;
         autoRemoveFoundationButton = gamepad1.b;
         setDepotPositionButton = gamepad2.right_trigger;
-        //driveAndDeliverStoneButton = gamepad1.dpad_up;
         deliverStoneButton = gamepad2.right_stick_y;
 
         tapeMeasureButton = gamepad2.left_stick_y;
 
-        killSwitch = gamepad2.left_bumper;
-
-        if (killSwitch) {
-            FrontRight.setPower(0);
-            BackRight.setPower(0);
-            FrontLeft.setPower(0);
-            BackLeft.setPower(0);
-            LiftMotor.setPower(0);
-            IntakeMotor.setPower(0);
-            TapeMeasureMotor.setPower(0);
-        }
-        else {
-            checkDriveTrain();
-            checkOdometry();
-            checkVerticalLift();
-            checkFoundationator();
-            checkStraightener();
-            checkIntakeMechanism();
-            checkGrabber();
-            checkTapeMeasure();
-            telemetry.update();
-        }
+        checkDriveTrain();
+        checkOdometry();
+        checkVerticalLift();
+        checkFoundationator();
+        checkStraightener();
+        checkIntakeMechanism();
+        checkGrabber();
+        checkTapeMeasure();
+        telemetry.update();
     }
 
     //
@@ -415,7 +435,7 @@ public class PowerSurgeTeleOp extends OpMode {
             firstPressUp = true;
         }
 
-        if (LiftHeightResetButton && LiftHeightResetButton2) {
+        if (LiftHeightResetButton) {
             if (firstPressLiftHeightReset) {
                 liftHeight = -1;
                 firstPressLiftHeightReset = false;
@@ -545,7 +565,25 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             grabRotateRaiseStone();
 
-            if (readyToRelease || readyToReleaseFromDelivery) {
+            if (readyToRelease) {
+                if (releaseStoneButton > .5) {
+                    if (firstPressLeftTrigger) {
+                        if (grabberReturnState == 0) {
+                            liftGrabberState = 0;
+                            grabberReturnState = 1;
+                            startGrabberTime = getRuntime();
+                            firstPressLeftTrigger = false;
+                        }
+                        else if (grabberReturnState == 1 && readyToReleaseStone) {
+                            GrabberServo.setPosition(grabberOpenPosition);
+                            grabberReturnState = 2;
+                        }
+                    }
+                } else {
+                    firstPressLeftTrigger = true;
+                }
+            }
+            else if (readyToReleaseFromDelivery) {
                 if (releaseStoneButton > .5) {
                     if (firstPressLeftTrigger) {
                         GrabberServo.setPosition(grabberOpenPosition);
@@ -560,17 +598,18 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             returnGrabberArm();
 
-            /*if (capstoneButton > .5) {
-                if (firstPressCapstoneButton) {
-                    capstoneState = 1;
-                    LiftMotor.setTargetPosition((int)((10 * countsPerInch)));
-                    firstPressCapstoneButton = false;
-                }
+            if (capstoneButton) {
+                GrabberServo.setPosition(grabberWideOpenPosition);
+//                if (firstPressCapstoneButton) {
+//                    capstoneState = 1;
+//                    LiftMotor.setTargetPosition((int)((10 * countsPerInch)));
+//                    firstPressCapstoneButton = false;
+//                }
+//            }
+//            else {
+//                firstPressCapstoneButton = true;
             }
-            else {
-                firstPressCapstoneButton = true;
-            }*/
-            scoreCapstone();
+//            scoreCapstone();
 
             if (emergencyEjectButton) {
                 if (firstPressy) {
@@ -669,13 +708,13 @@ public class PowerSurgeTeleOp extends OpMode {
                 LiftMotor.setPower(.25); //was .5
                 LiftMotor.setTargetPosition((int) ((liftHeight * (4 * countsPerInch)) + liftOffset - (2 * countsPerInch)));
                 if (LiftMotor.getCurrentPosition() < (int) (liftHeight * (4 * countsPerInch) + liftOffset - (1.75 * countsPerInch))) { //was 1.5
-                    GrabberServo.setPosition(grabberOpenPosition);
-                    grabberReturnState++;
                     startGrabberTime = getRuntime();
+                    readyToReleaseStone = true;
                 }
                 grabberReturnType = 0;
             }
             if (grabberReturnState == 2) {
+                readyToReleaseStone = false;
                 currentGrabberTime = getRuntime();
                 if (currentGrabberTime - startGrabberTime > .5) {
                     LiftMotor.setPower(1);
@@ -896,22 +935,22 @@ public class PowerSurgeTeleOp extends OpMode {
                     if (readyToRelease) {
                         LiftMotor.setTargetPosition((int)((liftHeight * (4 * countsPerInch)) + liftOffset - (2.5 * countsPerInch)));
                         if (LiftMotor.getCurrentPosition() < (int)(liftHeight * (4 * countsPerInch) + liftOffset - (2.25 * countsPerInch))) { //was 1.5
-                            goToPositionMrK((StartingFoundationXPosition - 36), (StartingFoundationYPosition + 36), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation-60))));
+                            goToPositionMrK((StartingFoundationXPosition + 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation+60))));
                         }
                     }
                     else {
-                        goToPositionMrK((StartingFoundationXPosition - 36), (StartingFoundationYPosition + 36), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation-60))));
+                        goToPositionMrK((StartingFoundationXPosition + 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation+60))));
                     }
                 }
                 else if (robotAlliance.equals("Red")) {
                     if (readyToRelease) {
                         LiftMotor.setTargetPosition((int)((liftHeight * (4 * countsPerInch)) + liftOffset - (2.5 * countsPerInch)));
                         if (LiftMotor.getCurrentPosition() < (int)(liftHeight * (4 * countsPerInch) + liftOffset - (2.25 * countsPerInch))) { //was 1.5
-                            goToPositionMrK((StartingFoundationXPosition + 36), (StartingFoundationYPosition + 36), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation+60))));
+                            goToPositionMrK((StartingFoundationXPosition - 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation-60))));
                         }
                     }
                     else {
-                        goToPositionMrK((StartingFoundationXPosition + 36), (StartingFoundationYPosition + 36), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation+60))));
+                        goToPositionMrK((StartingFoundationXPosition - 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation-60))));
                     }
                 }
             }
@@ -1057,11 +1096,6 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         lastUpdateTime = currTime;
 
-        //double fl_power_raw = movement_y-movement_turn+movement_x;
-        //double bl_power_raw = movement_y-movement_turn-movement_x;
-        //double br_power_raw = -movement_y-movement_turn-movement_x;
-        //double fr_power_raw = -movement_y-movement_turn+movement_x;
-
         double fl_power_raw = movement_y+movement_turn+movement_x;
         double bl_power_raw = movement_y+movement_turn-movement_x;
         double br_power_raw = -movement_y+movement_turn-movement_x;
@@ -1199,14 +1233,17 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private void initializeIntakeMechanism() {
         IntakeMotor = hardwareMap.dcMotor.get("IntakeMotor");
-        IntakeAssistServo = hardwareMap.crservo.get("IntakeAssistServo");
+        //IntakeAssistServo = hardwareMap.crservo.get("IntakeAssistServo");
+        IntakeAssistMotor = hardwareMap.dcMotor.get("IntakeAssistMotor");
         IntakeReleaseServo = hardwareMap.servo.get("IntakeReleaseServo");
         IntakeMotor.setPower(0);
-        IntakeAssistServo.setPower(0);
+        //IntakeAssistServo.setPower(0);
+        IntakeAssistMotor.setPower(0);
     }
     private void startIntakeMechanism() {
         IntakeReleaseServo.setPosition(.6);
-        IntakeAssistServo.setPower(-1);
+        IntakeAssistMotor.setPower(-1);
+        //IntakeAssistServo.setPower(-1);
     }
 
     private void checkIntakeMechanism() {
@@ -1215,7 +1252,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private void intake(boolean intakeButton, boolean outtakeButton) {
         if (intakeButton || outtakeButton) {
-            if (outtakeButton) {
+            if (intakeButton) {
                 if (firstPressDpadUp) {
                     if (intakeState == 1) {
                         intakeState = 0;
@@ -1227,7 +1264,7 @@ public class PowerSurgeTeleOp extends OpMode {
             } else {
                 firstPressDpadUp = true;
             }
-            if (intakeButton) {
+            if (outtakeButton) {
                 IntakeMotor.setPower(-1);
             } else {
                 if (intakeState == 1) {
@@ -1282,18 +1319,6 @@ public class PowerSurgeTeleOp extends OpMode {
         // this is true for the servos as well; left and right are assigned relative to the back
 
         if(!straightenerBusy) {
-            /*if (orientDistance > .25 && orientDistance <= .55) {
-                stoneOrientation = "left";
-            }
-            else if (orientDistance > .75 && orientDistance <= 2.3) {
-                stoneOrientation = "center";
-            }
-            else if (orientDistance > 4) {
-                stoneOrientation = "empty";
-            }
-            else if (orientDistance > 2.5 && orientDistance < 3){
-                stoneOrientation = "right";
-            }*/
 
             if (orientDistance > .35 && orientDistance <= .6) {
                 stoneOrientation = "left";
@@ -1468,6 +1493,6 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void checkTapeMeasure() {
-        TapeMeasureMotor.setPower(tapeMeasureButton);
+        TapeMeasureMotor.setPower(-tapeMeasureButton);
     }
 }
