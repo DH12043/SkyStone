@@ -20,7 +20,6 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
-import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.FRONT;
 
 @TeleOp(name = "New Test Vuforia")
 public abstract class SkystoneVuforiaNew extends OpMode {
@@ -235,6 +234,11 @@ public abstract class SkystoneVuforiaNew extends OpMode {
         robotFromCamera = OpenGLMatrix
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
+
+        com.vuforia.CameraDevice.getInstance().setFlashTorchMode(true);
+
+        com.vuforia.CameraDevice.getInstance().setField("opti-zoom", "opti-zoom-on");
+        com.vuforia.CameraDevice.getInstance().setField("zoom", "30");
 
     }
 

@@ -74,6 +74,8 @@ public class PowerSurgeTeleOp extends OpMode {
     private double movement_y;
     private double movement_turn;
 
+    private double distanceToTarget;
+
     OdometryGlobalCoordinatePosition globalPositionUpdate;
     Thread positionThread;
 
@@ -171,6 +173,8 @@ public class PowerSurgeTeleOp extends OpMode {
     private boolean lastWaffleState = false;
     private boolean isWaffleStateRaised = false;
 
+    private boolean foundationNotInPosition = true;
+
     // INTAKE STUFF
 
     private int intakeState = 0;
@@ -185,7 +189,7 @@ public class PowerSurgeTeleOp extends OpMode {
     static final double countsPerInch           = (countsPerMotor * gearReduction) / (wheelDiameter * Math.PI);
     static final double liftOffset = (2.5 * countsPerInch);
 
-    static final double bottomLiftPosition = 2.5; //measured in inches
+    static final double bottomLiftPosition = 2; //measured in inches was 2.5
 
     // ORIENTER STUFF
 
@@ -536,20 +540,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
         if (liftEncoderState) {
             telemetry.addData("readyToGrab", readyToGrab);
-            /*if (readyToGrab && !readyToRelease && liftGrabberState == 0 && grabberReturnState == 0 && emergencyStoneEjectState == 0) {
-                if (firstRunZeroLiftPosition) {
-                    startGrabberTime = getRuntime();
-                    firstRunZeroLiftPosition = false;
-                }
-                currentGrabberTime = getRuntime();
-                if (currentGrabberTime - startGrabberTime > .75) {
-                    LiftMotor.setPower(1);
-                    LiftMotor.setTargetPosition(0);
-                }
-            }
-            else {
-                firstRunZeroLiftPosition = true;
-            }*/
+
             if (liftGrabberState == 0 && grabberReturnState == 0 && emergencyStoneEjectState == 0 && capstoneState == 0 && !readyToRelease && !readyToReleaseFromDelivery) {
                 if (grabStoneButton > .5) {
                     if (firstPressRightTrigger) {
@@ -625,28 +616,32 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         else {
             if (grabberManualButton) {
-                firstPressGrabberManual = false;
-                if (grabberManualClosed) {
-                    GrabberServo.setPosition(grabberOpenPosition);
+                if (firstPressGrabberManual) {
+                    firstPressGrabberManual = false;
+                    if (grabberManualClosed) {
+                        GrabberServo.setPosition(grabberOpenPosition);
+                    }
+                    else {
+                        GrabberServo.setPosition(grabberClosedPosition);
+                    }
+                    grabberManualClosed = !grabberManualClosed;
                 }
-                else {
-                    GrabberServo.setPosition(grabberClosedPosition);
-                }
-                grabberManualClosed = !grabberManualClosed;
             }
             else {
                 firstPressGrabberManual = true;
             }
 
             if (armManualButton) {
-                firstPressArmManual = false;
-                if (armManualClosed) {
-                    MoveArmServo.setPosition(armOutsidePosition);
+                if (firstPressArmManual) {
+                    firstPressArmManual = false;
+                    if (armManualClosed) {
+                        MoveArmServo.setPosition(armOutsidePosition);
+                    }
+                    else {
+                        MoveArmServo.setPosition(armInsidePosition);
+                    }
+                    armManualClosed = !armManualClosed;
                 }
-                else {
-                    MoveArmServo.setPosition(armInsidePosition);
-                }
-                armManualClosed = !armManualClosed;
             }
             else {
                 firstPressArmManual = true;
@@ -703,7 +698,11 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void returnGrabberArm() {
-        if (readyToRelease || grabberReturnType == 0) {
+        if (readyToRelease && grabberReturnState == 0) {
+            LiftMotor.setPower(.5);
+            LiftMotor.setTargetPosition((int)(liftHeight * (4 * countsPerInch) + liftOffset));
+        }
+        else if (readyToRelease || grabberReturnType == 0) {
             if (grabberReturnState == 1) {
                 LiftMotor.setPower(.25); //was .5
                 LiftMotor.setTargetPosition((int) ((liftHeight * (4 * countsPerInch)) + liftOffset - (2 * countsPerInch)));
@@ -929,28 +928,40 @@ public class PowerSurgeTeleOp extends OpMode {
                 StartingFoundationYPosition = RobotYPosition;
                 StartingFoundationRotation = RobotRotation;
                 firstRunRemoveFoundation = false;
+                foundationNotInPosition = true;
             }
             else {
-                if (robotAlliance.equals("Blue")) {
-                    if (readyToRelease) {
-                        LiftMotor.setTargetPosition((int)((liftHeight * (4 * countsPerInch)) + liftOffset - (2.5 * countsPerInch)));
-                        if (LiftMotor.getCurrentPosition() < (int)(liftHeight * (4 * countsPerInch) + liftOffset - (2.25 * countsPerInch))) { //was 1.5
-                            goToPositionMrK((StartingFoundationXPosition + 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation+60))));
+                if (foundationNotInPosition) {
+                    if (robotAlliance.equals("Blue")) {
+                        if (readyToRelease) {
+                            LiftMotor.setTargetPosition((int) ((liftHeight * (4 * countsPerInch)) + liftOffset - (2.5 * countsPerInch)));
+                            if (LiftMotor.getCurrentPosition() < (int) (liftHeight * (4 * countsPerInch) + liftOffset - (2.25 * countsPerInch))) { //was 1.5
+                                goToPositionMrK((StartingFoundationXPosition + 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation + 60))));
+                                if (Math.abs(distanceToTarget) < 1) {
+                                    foundationNotInPosition = false;
+                                }
+                            }
+                        } else {
+                            goToPositionMrK((StartingFoundationXPosition + 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation + 60))));
                         }
-                    }
-                    else {
-                        goToPositionMrK((StartingFoundationXPosition + 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation+60))));
+                    } else if (robotAlliance.equals("Red")) {
+                        if (readyToRelease) {
+                            LiftMotor.setTargetPosition((int) ((liftHeight * (4 * countsPerInch)) + liftOffset - (2.5 * countsPerInch)));
+                            if (LiftMotor.getCurrentPosition() < (int) (liftHeight * (4 * countsPerInch) + liftOffset - (2.25 * countsPerInch))) { //was 1.5
+                                goToPositionMrK((StartingFoundationXPosition - 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation - 60))));
+                                if (Math.abs(distanceToTarget) < 1) {
+                                    foundationNotInPosition = false;
+                                }
+                            }
+                        } else {
+                            goToPositionMrK((StartingFoundationXPosition - 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation - 60))));
+                        }
                     }
                 }
-                else if (robotAlliance.equals("Red")) {
-                    if (readyToRelease) {
-                        LiftMotor.setTargetPosition((int)((liftHeight * (4 * countsPerInch)) + liftOffset - (2.5 * countsPerInch)));
-                        if (LiftMotor.getCurrentPosition() < (int)(liftHeight * (4 * countsPerInch) + liftOffset - (2.25 * countsPerInch))) { //was 1.5
-                            goToPositionMrK((StartingFoundationXPosition - 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation-60))));
-                        }
-                    }
-                    else {
-                        goToPositionMrK((StartingFoundationXPosition - 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation-60))));
+                else {
+                    releaseStoneButton = 1;
+                    if (grabberReturnState >= 2) {
+                        raiseFoundationator();
                     }
                 }
             }
@@ -1036,7 +1047,7 @@ public class PowerSurgeTeleOp extends OpMode {
      * @param preferredAngle global target coordinate theta component
      */
     private void goToPositionMrK(double x, double y, double maxMovementSpeed, double maxTurnSpeed, double preferredAngle) {
-        double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
+        distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
         double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
         double relativeAngleToPoint = AngleWrap(-absoluteAngleToTarget
                 - Math.toRadians(RobotRotation) + Math.toRadians(90));
