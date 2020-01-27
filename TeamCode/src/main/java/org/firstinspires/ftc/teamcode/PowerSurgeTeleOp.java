@@ -977,7 +977,7 @@ public class PowerSurgeTeleOp extends OpMode {
         }
 
         if (robotAlliance.equals("Blue")) {
-            if (deliverStoneButton > .5) {
+            if (deliverStoneButton < -.5) {
                 if (DepotXPosition != 0) {
                     goToPositionMrK(DepotXPosition + 24, DepotYPosition - 96, 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(DepotRotation + 90))));
                 }
@@ -985,7 +985,7 @@ public class PowerSurgeTeleOp extends OpMode {
             }
         }
         else if (robotAlliance.equals("Red")) {
-            if (deliverStoneButton > .5) {
+            if (deliverStoneButton < -.5) {
                 if (DepotXPosition != 0) {
                     goToPositionMrK(DepotXPosition - 24, DepotYPosition - 96, 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(DepotRotation - 90))));
                 }
@@ -993,7 +993,7 @@ public class PowerSurgeTeleOp extends OpMode {
             }
         }
 
-        if (deliverStoneButton < -.5) {
+        if (deliverStoneButton > .5) {
             if (readyToGrab) {
                 if (firstDeliverStoneButton) {
                     LiftMotor.setTargetPosition(0);
@@ -1008,7 +1008,7 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         autoDeliverStone();
 
-        if (!autoDriveButton && !autoRemoveFoundationButton) {
+        if (!autoDriveButton && !autoRemoveFoundationButton && Math.abs(deliverStoneButton) < .5) {
             movement_y = DeadModifier(-gamepad1.left_stick_y);
             movement_x = DeadModifier(gamepad1.left_stick_x);
             movement_turn = DeadModifier(gamepad1.right_stick_x);
