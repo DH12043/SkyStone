@@ -282,7 +282,6 @@ public class PowerSurgeTeleOp extends OpMode {
         AllianceSwitch = hardwareMap.touchSensor.get("AllianceSwitch");
 
         blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
-        //pattern = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_RAINBOW_PALETTE;
         pattern = RevBlinkinLedDriver.BlinkinPattern.CP1_2_COLOR_WAVES;
         blinkinLedDriver.setPattern(pattern);
 
