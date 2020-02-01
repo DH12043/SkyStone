@@ -76,7 +76,11 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
     private static final int FOUNDATION_STATE = 3;
     private static final int SECOND_FOUNDATION_STATE = 4;
     private static final int BUILD_SITE_STATE = 5;
-    private static final int PARK_STATE = 6;
+    private static final int SECOND_SKYSTONE_STATE = 6;
+    private static final int SECOND_SKYSTONE_TAKE = 7;
+    private static final int SECOND_SKYSTONE_TAKE2 = 8;
+    private static final int SECOND_SKYSTONE_TAKE3 = 9;
+    private static final int PARK_STATE = 10;
     private long lastUpdateTime = 0;
 
     static final double countsPerMotor          = 383.6;
@@ -220,7 +224,7 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
         IntakeAssistMotor.setPower(-1);
         IntakeReleaseServo.setPosition(.6);
 
-//        skyStoneCheck();
+        skyStoneCheck();
         goToPositionByTime(StartingXPosition, StartingYPosition + 10, StartingRotation, .5, INIT_STATE, FIRST_MOVE_TO_SKYSTONE_STATE);
         IntakeOn();
         goToPositionByTime(SkyStonePosition, 41, .2, .5, 0, 2, FIRST_MOVE_TO_SKYSTONE_STATE, FIRST_SKYSTONE_PLACE);   //Slowing Down to Grab Stone
@@ -231,24 +235,32 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
         FoundationDown();
         goToPositionByTime(26, 50, 180, 1.5, SECOND_FOUNDATION_STATE, BUILD_SITE_STATE);
 //        grabRotateStone();
-        goToPositionByTime(20, 9,90, 1.2, BUILD_SITE_STATE, PARK_STATE);
+        goToPositionByTime(20, 9,90, 1.2, BUILD_SITE_STATE, SECOND_SKYSTONE_STATE);
         FoundationUp();
-        goToPositionByTime(72,9, 90, 1.5, PARK_STATE, PARK_STATE);
+        goToPositionByTime(20, 35, 90, 1, SECOND_SKYSTONE_STATE, PARK_STATE);           //TODO CHANGE TO SECOND_SKYSTONE_TAKE Instead of PARK_STATE
+//        goToPositionByTime(SkyStonePosition + 24, 35, 90, 2, SECOND_SKYSTONE_TAKE, SECOND_SKYSTONE_TAKE2);
+//        goToPositionByTime(SkyStonePosition + 24, 35, 0, .7, SECOND_SKYSTONE_TAKE2, SECOND_SKYSTONE_TAKE3);
+//        goToPositionByTime(SkyStonePosition + 24, 41, .2, .5, 0, 2, SECOND_SKYSTONE_TAKE3, PARK_STATE);
+//        IntakeOn();
+        goToPositionByTime(72,35, 90, 1.5, PARK_STATE, PARK_STATE);
     }
 
     private void skyStoneCheck() {
-        if (positionSkystone.equals("left")) {
-            SkyStonePosition = 96;
-        }
-        else if (positionSkystone.equals("Center")) {
-            SkyStonePosition = 88;
-        }
-        else if (positionSkystone.equals("Right")) {
-            SkyStonePosition = 82;
+        if (autoState == INIT_STATE) {
+            if (positionSkystone.equals("left")) {
+                SkyStonePosition = 96;
+            } else if (positionSkystone.equals("Center")) {
+                SkyStonePosition = 88;
+            } else if (positionSkystone.equals("Right")) {
+                SkyStonePosition = 82;
+            }
         }
     }
     private void IntakeOn() {
         if (autoState == FIRST_MOVE_TO_SKYSTONE_STATE) {
+            IntakeMotor.setPower(1);
+        }
+        if (autoState == SECOND_SKYSTONE_TAKE3) {
             IntakeMotor.setPower(1);
         }
     }
@@ -282,7 +294,7 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
     }
 
     private void FoundationUp() {
-        if (autoState == PARK_STATE) {
+        if (autoState == SECOND_SKYSTONE_STATE) {
             lFoundationator.setPosition(0);
             rFoundationator.setPosition(foundationatorPosition);
         }
