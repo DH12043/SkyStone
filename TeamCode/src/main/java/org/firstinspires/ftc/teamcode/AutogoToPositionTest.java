@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -45,6 +46,15 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
     private ModernRoboticsI2cRangeSensor OrientationSensor;
     private ModernRoboticsI2cRangeSensor StonePresenceSensor;
 
+    private VoltageSensor batteryVoltageSensor;
+    private double batteryVoltage;
+    private double DEFAULT_MOVEMENT_SPEED = 1.0;
+    private double DEFAULT_TURN_SPEED = 1.0;
+    private static final double BATTERY_VOLTAGE_COMP_X1 = 13.0;
+    private static final double BATTERY_VOLTAGE_COMP_X2 = 14.0;
+    private static final double BATTERY_VOLTAGE_COMP_Y1 = 1.0;
+    private static final double BATTERY_VOLTAGE_COMP_Y2 = 0.8;
+
     final double COUNTS_PER_INCH = 307.699557;
     private double lastDistanceToTarget = 0;
     private double foundationatorPosition = .335;
@@ -76,11 +86,12 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
     private static final int FOUNDATION_STATE = 3;
     private static final int SECOND_FOUNDATION_STATE = 4;
     private static final int BUILD_SITE_STATE = 5;
-    private static final int SECOND_SKYSTONE_STATE = 6;
-    private static final int SECOND_SKYSTONE_TAKE = 7;
-    private static final int SECOND_SKYSTONE_TAKE2 = 8;
-    private static final int SECOND_SKYSTONE_TAKE3 = 9;
-    private static final int PARK_STATE = 10;
+    private static final int BUILD_SITE_STATE2 = 6;
+    private static final int SECOND_SKYSTONE_STATE = 7;
+    private static final int SECOND_SKYSTONE_TAKE = 8;
+    private static final int SECOND_SKYSTONE_TAKE2 = 9;
+    private static final int SECOND_SKYSTONE_TAKE3 = 10;
+    private static final int PARK_STATE = 11;
     private long lastUpdateTime = 0;
 
     static final double countsPerMotor          = 383.6;
@@ -176,9 +187,10 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
         verticalLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         verticalRight.setDirection(DcMotorSimple.Direction.REVERSE);
         horizontal.setDirection(DcMotorSimple.Direction.REVERSE);
-        StartingXPosition = 96;
+        StartingXPosition = 95;
         StartingYPosition = 9;
         StartingRotation = 0;
+        batteryVoltageSensor = hardwareMap.voltageSensor.get("Expansion Hub 2");
         initializeStraightener();
         initializeSkyStoneColorSensor();
         initializeVerticalLift();
@@ -201,6 +213,20 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
         rFoundationator.setPosition(foundationatorPosition);
         autoState = INIT_STATE;
         lastAutoState = NO_STATE;
+
+        batteryVoltage = batteryVoltageSensor.getVoltage();
+
+        // Max motor power is decreased if battery voltage is greater than a certain threshold,
+        // and is linearly decreased at a larger amount as voltage increases.
+        if(batteryVoltage > BATTERY_VOLTAGE_COMP_X1) {
+            DEFAULT_MOVEMENT_SPEED = ((BATTERY_VOLTAGE_COMP_Y2 - BATTERY_VOLTAGE_COMP_Y1)
+                    / (BATTERY_VOLTAGE_COMP_X2 - BATTERY_VOLTAGE_COMP_X1))
+                    * (batteryVoltage - BATTERY_VOLTAGE_COMP_X1) + BATTERY_VOLTAGE_COMP_Y1;
+            DEFAULT_TURN_SPEED = DEFAULT_MOVEMENT_SPEED;
+        } else {
+            DEFAULT_MOVEMENT_SPEED = 1.0;
+            DEFAULT_TURN_SPEED = 1.0;
+        }
     }
 
     private void checkOdometry() {
@@ -212,11 +238,14 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
     @Override
     public void loop() {
         checkStraightener();
-        if (RobotXPosition < 60 || RobotXPosition > 84) {
+        if (RobotXPosition < 60) {
             checkVerticalLift();
         }
-        else {
+        else if (grabRotateStoneCommand == false){
             checkStoneLiftCondition();
+        }
+        else {
+            grabRotateStoneCommand = true;
         }
         checkGrabber();
         checkOdometry();
@@ -227,22 +256,23 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
         skyStoneCheck();
         goToPositionByTime(StartingXPosition, StartingYPosition + 10, StartingRotation, .5, INIT_STATE, FIRST_MOVE_TO_SKYSTONE_STATE);
         IntakeOn();
-        goToPositionByTime(SkyStonePosition, 41, .2, .5, 0, 2, FIRST_MOVE_TO_SKYSTONE_STATE, FIRST_SKYSTONE_PLACE);   //Slowing Down to Grab Stone
+        goToPositionByTime(SkyStonePosition - 2, 41, .2, .5, 0, 2, FIRST_MOVE_TO_SKYSTONE_STATE, FIRST_SKYSTONE_PLACE);   //Slowing Down to Grab Stone
         IntakeOff();
-        goToPositionByTime(SkyStonePosition, 33, 80, .5, FIRST_SKYSTONE_PLACE, ALIGN_FOUNDATION_STATE);
-        goToPositionByTime(26, 30, 90, 1.3, ALIGN_FOUNDATION_STATE, FOUNDATION_STATE);
-        goToPositionByTime(26, 20, 180, 1.5, FOUNDATION_STATE, SECOND_FOUNDATION_STATE);
+        goToPositionByTime(SkyStonePosition, 33, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 80, .5, FIRST_SKYSTONE_PLACE, ALIGN_FOUNDATION_STATE);
+        goToPositionByTime(26, 30, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.3, ALIGN_FOUNDATION_STATE, FOUNDATION_STATE);
+        goToPositionByTime(26, 20, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 180, 1.5, FOUNDATION_STATE, SECOND_FOUNDATION_STATE);
         FoundationDown();
-        goToPositionByTime(26, 50, 180, 1.5, SECOND_FOUNDATION_STATE, BUILD_SITE_STATE);
+        goToPositionByTime(26, 50, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 180, 1.5, SECOND_FOUNDATION_STATE, BUILD_SITE_STATE);
 //        grabRotateStone();
-        goToPositionByTime(20, 9,90, 1.2, BUILD_SITE_STATE, SECOND_SKYSTONE_STATE);
+        goToPositionByTime(20, 0, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.2, BUILD_SITE_STATE2, SECOND_SKYSTONE_STATE);
+        goToPositionByTime(30, 15, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.2, BUILD_SITE_STATE, BUILD_SITE_STATE2);
         FoundationUp();
-        goToPositionByTime(20, 35, 90, 1, SECOND_SKYSTONE_STATE, PARK_STATE);           //TODO CHANGE TO SECOND_SKYSTONE_TAKE Instead of PARK_STATE
-//        goToPositionByTime(SkyStonePosition + 24, 35, 90, 2, SECOND_SKYSTONE_TAKE, SECOND_SKYSTONE_TAKE2);
-//        goToPositionByTime(SkyStonePosition + 24, 35, 0, .7, SECOND_SKYSTONE_TAKE2, SECOND_SKYSTONE_TAKE3);
-//        goToPositionByTime(SkyStonePosition + 24, 41, .2, .5, 0, 2, SECOND_SKYSTONE_TAKE3, PARK_STATE);
+        goToPositionByTime(20, 40, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1, SECOND_SKYSTONE_STATE, PARK_STATE);           //TODO CHANGE TO SECOND_SKYSTONE_TAKE Instead of PARK_STATE
+//        goToPositionByTime(SkyStonePosition + 22, 35, .7, .7, 90, 2, SECOND_SKYSTONE_TAKE, SECOND_SKYSTONE_TAKE2);
+//        goToPositionByTime(SkyStonePosition + 22, 35, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, -30, .7, SECOND_SKYSTONE_TAKE2, SECOND_SKYSTONE_TAKE3);
+//        goToPositionByTime(SkyStonePosition + 22, 41, .2, .5, DEFAULT_MOVEMENT_SPEED. DEFAULT_TURN_SPEED-30, 2, SECOND_SKYSTONE_TAKE3, PARK_STATE);
 //        IntakeOn();
-        goToPositionByTime(72,35, .5, .7, 90, 1.5, PARK_STATE, PARK_STATE);
+        goToPositionByTime(72,40, .5, .7, 90, 1.5, PARK_STATE, PARK_STATE);
     }
 
     private void skyStoneCheck() {
@@ -291,6 +321,7 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
             }
             else {
                 releaseStoneCommand = true;
+                grabRotateStoneCommand = false;
             }
         }
     }
@@ -656,7 +687,7 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
 
     private void checkStoneLiftCondition() {
         if (autoState != FIRST_MOVE_TO_SKYSTONE_STATE) {
-            LiftMotor.setTargetPosition((int)(3 * countsPerInch));
+            LiftMotor.setTargetPosition((int)(0 * countsPerInch));
         }
     }
 
