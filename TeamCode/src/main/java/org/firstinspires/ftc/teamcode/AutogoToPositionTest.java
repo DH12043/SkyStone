@@ -242,7 +242,7 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
 //        goToPositionByTime(SkyStonePosition + 24, 35, 0, .7, SECOND_SKYSTONE_TAKE2, SECOND_SKYSTONE_TAKE3);
 //        goToPositionByTime(SkyStonePosition + 24, 41, .2, .5, 0, 2, SECOND_SKYSTONE_TAKE3, PARK_STATE);
 //        IntakeOn();
-        goToPositionByTime(72,35, 90, 1.5, PARK_STATE, PARK_STATE);
+        goToPositionByTime(72,35, .5, .7, 90, 1.5, PARK_STATE, PARK_STATE);
     }
 
     private void skyStoneCheck() {
