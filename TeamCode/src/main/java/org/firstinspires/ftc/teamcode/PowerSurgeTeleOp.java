@@ -572,6 +572,14 @@ public class PowerSurgeTeleOp extends OpMode {
                 } else {
                     firstPressLeftTrigger = true;
                 }
+                if (grabStoneButton > .5) {
+                    if (grabberReturnState == 1 && readyToReleaseStone) {
+                        LiftMotor.setPower(.5);
+                        LiftMotor.setTargetPosition((int)(liftHeight * (4 * countsPerInch) + liftOffset));
+                        grabberReturnState = 0;
+                        readyToReleaseStone = false;
+                    }
+                }
             }
             else if (readyToReleaseFromDelivery) {
                 if (releaseStoneButton > .5) {
@@ -941,6 +949,9 @@ public class PowerSurgeTeleOp extends OpMode {
                         }
                     } else {
                         goToPositionMrK((StartingFoundationXPosition), (StartingFoundationYPosition + 30), .75, .25, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation))));
+                        if (Math.abs(distanceToTarget) < 1) {
+                            foundationNotInPosition = false;
+                        }
                     }
                 }
                 else {
@@ -1263,16 +1274,20 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             if (outtakeButton) {
                 IntakeMotor.setPower(-1);
-            } else {
-                if (intakeState == 1) {
-                    IntakeMotor.setPower(1);
-                } else if (intakeState == 0) {
-                    IntakeMotor.setPower(0);
-                }
             }
+            else if (intakeButton) {
+                IntakeMotor.setPower(1);
+            }
+//            else {
+//                if (intakeState == 1) {
+//                    IntakeMotor.setPower(1);
+//                } else if (intakeState == 0) {
+//                    IntakeMotor.setPower(0);
+//                }
+//            }
         }
         else {
-            if (stoneDistance < 1.5) {
+            if (stoneDistance < 1.5 && stoneDistance != 0.0) {
                 IntakeMotor.setPower(0);
             } else if (!readyToGrab && !readyToRelease && liftGrabberState == 0 && emergencyStoneEjectState == 0) {
                 IntakeMotor.setPower(1);
@@ -1341,49 +1356,47 @@ public class PowerSurgeTeleOp extends OpMode {
         senseOrientation();
         senseSkyStone();
 
-        if (!straightenerBusy) {
-            OrientationServoLeft.setPosition(lDisengage);
-            OrientationServoRight.setPosition(rDisengage);
-        }
+        if (!manualLeftServoButton && !manualRightServoButton) {
 
-        if (stoneFullyInStraightener) {
-            if (stoneOrientation.equals("right")) {
-                runLeftServo();
-                readyToGrab = false;
-            }
-            else if (stoneOrientation.equals("left")) {
-                runRightServo();
-                readyToGrab = false;
-            }
-            else if (stoneOrientation.equals("empty")) {
-                readyToGrab = false;
-                OrientationServoLeft.setPosition(lDisengage);
-                OrientationServoRight.setPosition(rDisengage);
-            }
-            else if(stoneOrientation.equals("center")) {
-                readyToGrab = true;
-                OrientationServoLeft.setPosition(lDisengage);
-                OrientationServoRight.setPosition(rDisengage);
-            }
-            else if (stoneOrientation.equals("notInThreshold")) {
-                readyToGrab = false;
-                OrientationServoLeft.setPosition(lDisengage);
-                OrientationServoRight.setPosition(rDisengage);
-            }
-            telemetry.addData("actualLeftTime", actualLeftTime);
-            telemetry.addData("actualRightTime", actualRightTime);
-            telemetry.addData("target time", targetTime);
-            telemetry.addData("orientPosition", stoneOrientation);
-            telemetry.addData("StraightenerBusy", straightenerBusy);
-        }
-        else {
-            OrientationServoLeft.setPosition(lDisengage);
-            OrientationServoRight.setPosition(rDisengage);
-            readyToGrab = false;
             if (!straightenerBusy) {
-                stoneOrientation = "empty";
+                OrientationServoLeft.setPosition(lDisengage);
+                OrientationServoRight.setPosition(rDisengage);
+            }
+
+            if (stoneFullyInStraightener) {
+                if (stoneOrientation.equals("right")) {
+                    runLeftServo();
+                    readyToGrab = false;
+                } else if (stoneOrientation.equals("left")) {
+                    runRightServo();
+                    readyToGrab = false;
+                } else if (stoneOrientation.equals("empty")) {
+                    readyToGrab = false;
+                    OrientationServoLeft.setPosition(lDisengage);
+                    OrientationServoRight.setPosition(rDisengage);
+                } else if (stoneOrientation.equals("center")) {
+                    readyToGrab = true;
+                    OrientationServoLeft.setPosition(lDisengage);
+                    OrientationServoRight.setPosition(rDisengage);
+                } else if (stoneOrientation.equals("notInThreshold")) {
+                    readyToGrab = false;
+                    OrientationServoLeft.setPosition(lDisengage);
+                    OrientationServoRight.setPosition(rDisengage);
+                }
+                telemetry.addData("actualLeftTime", actualLeftTime);
+                telemetry.addData("actualRightTime", actualRightTime);
+                telemetry.addData("target time", targetTime);
+                telemetry.addData("orientPosition", stoneOrientation);
+                telemetry.addData("StraightenerBusy", straightenerBusy);
             } else {
-                straightenerBusy = false;
+                OrientationServoLeft.setPosition(lDisengage);
+                OrientationServoRight.setPosition(rDisengage);
+                readyToGrab = false;
+                if (!straightenerBusy) {
+                    stoneOrientation = "empty";
+                } else {
+                    straightenerBusy = false;
+                }
             }
         }
     }
