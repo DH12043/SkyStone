@@ -5,7 +5,6 @@ import android.view.View;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
@@ -55,6 +54,7 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
     private double RobotXPosition;
     private double RobotYPosition;
     private double RobotRotation;
+    private double SkyStonePosition;
     private double GrabRotateTime;
     private double startTime;
     private double currentTime;
@@ -122,11 +122,11 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
     private int liftGrabberState = 0;
     private int grabberReturnState = 0;
     private int emergencyStoneEjectState = 0;
+    private int capstoneState = 0;
     private double grabberOpenPosition = .4;
     private double grabberClosedPosition = 0;
     private double armInsidePosition = 1;
     private double armOutsidePosition = 0;
-    private int capstoneState = 0;
     private boolean grabRotateStoneCommand = false;
     private boolean releaseStoneCommand;
     private NormalizedColorSensor SkyStoneSensor;
@@ -208,28 +208,45 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
     @Override
     public void loop() {
         checkStraightener();
-        checkVerticalLift();
+        if (RobotXPosition < 60 || RobotXPosition > 84) {
+            checkVerticalLift();
+        }
+        else {
+            checkStoneLiftCondition();
+        }
         checkGrabber();
         checkOdometry();
         currentTime = getRuntime();
         IntakeAssistMotor.setPower(-1);
         IntakeReleaseServo.setPosition(.6);
 
-        goToPositionByTime(StartingXPosition, StartingYPosition, StartingRotation, 1, INIT_STATE, FIRST_MOVE_TO_SKYSTONE_STATE);
+//        skyStoneCheck();
+        goToPositionByTime(StartingXPosition, StartingYPosition + 10, StartingRotation, .5, INIT_STATE, FIRST_MOVE_TO_SKYSTONE_STATE);
         IntakeOn();
-        goToPositionByTime(96, 39, 0, 2, FIRST_MOVE_TO_SKYSTONE_STATE, FIRST_SKYSTONE_PLACE);
+        goToPositionByTime(SkyStonePosition, 41, .2, .5, 0, 2, FIRST_MOVE_TO_SKYSTONE_STATE, FIRST_SKYSTONE_PLACE);   //Slowing Down to Grab Stone
         IntakeOff();
-        goToPositionByTime(96, 36, 80, .5, FIRST_SKYSTONE_PLACE, ALIGN_FOUNDATION_STATE);
-        goToPositionByTime(26, 32, 90, 1.3, ALIGN_FOUNDATION_STATE, FOUNDATION_STATE);
+        goToPositionByTime(SkyStonePosition, 33, 80, .5, FIRST_SKYSTONE_PLACE, ALIGN_FOUNDATION_STATE);
+        goToPositionByTime(26, 30, 90, 1.3, ALIGN_FOUNDATION_STATE, FOUNDATION_STATE);
         goToPositionByTime(26, 20, 180, 1.5, FOUNDATION_STATE, SECOND_FOUNDATION_STATE);
-        Foundation();
-        goToPositionByTime(26, 39, 180, .5, SECOND_FOUNDATION_STATE, BUILD_SITE_STATE);
+        FoundationDown();
+        goToPositionByTime(26, 50, 180, 1.5, SECOND_FOUNDATION_STATE, BUILD_SITE_STATE);
 //        grabRotateStone();
-        goToPositionByTime(20, 9, 290, 1.5, BUILD_SITE_STATE, PARK_STATE);
+        goToPositionByTime(20, 9,90, 1.2, BUILD_SITE_STATE, PARK_STATE);
         FoundationUp();
-        goToPositionByTime(72,9, 270, 1.5, PARK_STATE, PARK_STATE);
+        goToPositionByTime(72,9, 90, 1.5, PARK_STATE, PARK_STATE);
     }
 
+    private void skyStoneCheck() {
+        if (positionSkystone.equals("left")) {
+            SkyStonePosition = 96;
+        }
+        else if (positionSkystone.equals("Center")) {
+            SkyStonePosition = 88;
+        }
+        else if (positionSkystone.equals("Right")) {
+            SkyStonePosition = 82;
+        }
+    }
     private void IntakeOn() {
         if (autoState == FIRST_MOVE_TO_SKYSTONE_STATE) {
             IntakeMotor.setPower(1);
@@ -242,7 +259,7 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
         }
     }
 
-    private void Foundation() {
+    private void FoundationDown() {
         if (autoState == SECOND_FOUNDATION_STATE) {
             lFoundationator.setPosition(foundationatorPosition);
             rFoundationator.setPosition(0);
@@ -266,12 +283,19 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
 
     private void FoundationUp() {
         if (autoState == PARK_STATE) {
-            lFoundationator.setPosition(foundationatorPosition);
-            rFoundationator.setPosition(0);
+            lFoundationator.setPosition(0);
+            rFoundationator.setPosition(foundationatorPosition);
         }
     }
 
     private void goToPositionByTime(double x, double y, double preferredAngle, double timeout, int thisState, int nextState) {
+        double maxMovementSpeed = 1.0;
+        double maxTurnSpeed = 1.0;
+
+        goToPositionByTime(x, y, maxMovementSpeed, maxTurnSpeed, preferredAngle, timeout, thisState, nextState);
+    }
+
+    private void goToPositionByTime(double x, double y, double maxMovementSpeed, double maxTurnSpeed, double preferredAngle, double timeout, int thisState, int nextState) {
         // exit method if auto is not in this state
         if (autoState != thisState) {
             return;
@@ -288,6 +312,10 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
         if (currentTime - timeout > startTime) {
             autoState = nextState;
         }
+        goToPositionMrK(x, y, maxMovementSpeed, maxTurnSpeed, preferredAngle);
+    }
+
+    private void goToPositionMrK(double x, double y, double maxMovementSpeed, double maxTurnSpeed, double preferredAngle) {
         double distanceToTarget = Math.hypot(x-RobotXPosition, y-RobotYPosition);
         double absoluteAngleToTarget = Math.atan2(y-RobotYPosition, x-RobotXPosition);
         double relativeAngleToPoint = AngleWrap(-absoluteAngleToTarget
@@ -307,8 +335,6 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
         double turnDecelLimiter = Range.clip((Math.abs(Math.toDegrees(relativeTurnAngle)) - TURNING_DECELERATION_ZERO_POINT)
                 / (TURNING_DECELERATION_START_POINT - TURNING_DECELERATION_ZERO_POINT), 0, 1);
 
-        double maxMovementSpeed = 1;
-        double maxTurnSpeed = 1;
         movement_x = movementXPower * Range.clip(maxMovementSpeed, -xDecelLimiter, xDecelLimiter);
         movement_y = movementYPower * Range.clip(maxMovementSpeed, -yDecelLimiter, yDecelLimiter);
 
@@ -331,6 +357,7 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
 
         applyMovement();
     }
+
     private void applyMovement() {
         long currTime = SystemClock.uptimeMillis();
         if(currTime - lastUpdateTime < 16){
@@ -586,7 +613,7 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
         LiftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
     private void startVerticalLift() {
-        LiftMotor.setTargetPosition((int)(3 * countsPerInch));
+        LiftMotor.setTargetPosition((int)(0 * countsPerInch));
     }
 
     private void checkVerticalLift() {
@@ -611,6 +638,12 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
         }
 
         telemetry.addData("Lift Height", liftHeight);
+    }
+
+    private void checkStoneLiftCondition() {
+        if (autoState != FIRST_MOVE_TO_SKYSTONE_STATE) {
+            LiftMotor.setTargetPosition((int)(3 * countsPerInch));
+        }
     }
 
     //
