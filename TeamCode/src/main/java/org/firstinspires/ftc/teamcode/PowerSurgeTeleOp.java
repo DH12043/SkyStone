@@ -185,7 +185,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     static final double countsPerMotor          = 383.6;
     static final double gearReduction           = 1.0 ;
-    static final double wheelDiameter           = 1.71; //1.771653543307087
+    static final double wheelDiameter           = 1.7;
     static final double countsPerInch           = (countsPerMotor * gearReduction) / (wheelDiameter * Math.PI);
     static final double liftOffset = (2.5 * countsPerInch);
 
@@ -269,7 +269,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     @Override
     public void init() {
-        telemetry.addData("Version Number", "1-3-20 1000pm");
+        telemetry.addData("Version Number", "1-30-20 500pm");
         initializeVerticalLift();
         initializeFoundationator();
         initializeGrabber();
@@ -282,7 +282,6 @@ public class PowerSurgeTeleOp extends OpMode {
         AllianceSwitch = hardwareMap.touchSensor.get("AllianceSwitch");
 
         blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
-        //pattern = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_RAINBOW_PALETTE;
         pattern = RevBlinkinLedDriver.BlinkinPattern.CP1_2_COLOR_WAVES;
         blinkinLedDriver.setPattern(pattern);
 
@@ -572,6 +571,14 @@ public class PowerSurgeTeleOp extends OpMode {
                     }
                 } else {
                     firstPressLeftTrigger = true;
+                }
+                if (grabStoneButton > .5) {
+                    if (grabberReturnState == 1 && readyToReleaseStone) {
+                        LiftMotor.setPower(.5);
+                        LiftMotor.setTargetPosition((int)(liftHeight * (4 * countsPerInch) + liftOffset));
+                        grabberReturnState = 0;
+                        readyToReleaseStone = false;
+                    }
                 }
             }
             else if (readyToReleaseFromDelivery) {
@@ -932,29 +939,18 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             else {
                 if (foundationNotInPosition) {
-                    if (robotAlliance.equals("Blue")) {
-                        if (readyToRelease) {
-                            LiftMotor.setTargetPosition((int) ((liftHeight * (4 * countsPerInch)) + liftOffset - (2.5 * countsPerInch)));
-                            if (LiftMotor.getCurrentPosition() < (int) (liftHeight * (4 * countsPerInch) + liftOffset - (2.25 * countsPerInch))) { //was 1.5
-                                goToPositionMrK((StartingFoundationXPosition + 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation + 60))));
-                                if (Math.abs(distanceToTarget) < 1) {
-                                    foundationNotInPosition = false;
-                                }
+                    if (readyToRelease) {
+                        LiftMotor.setTargetPosition((int) ((liftHeight * (4 * countsPerInch)) + liftOffset - (2.5 * countsPerInch)));
+                        if (LiftMotor.getCurrentPosition() < (int) (liftHeight * (4 * countsPerInch) + liftOffset - (2.25 * countsPerInch))) { //was 1.5
+                            goToPositionMrK((StartingFoundationXPosition), (StartingFoundationYPosition + 30), .75, .25, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation))));
+                            if (Math.abs(distanceToTarget) < 1) {
+                                foundationNotInPosition = false;
                             }
-                        } else {
-                            goToPositionMrK((StartingFoundationXPosition + 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation + 60))));
                         }
-                    } else if (robotAlliance.equals("Red")) {
-                        if (readyToRelease) {
-                            LiftMotor.setTargetPosition((int) ((liftHeight * (4 * countsPerInch)) + liftOffset - (2.5 * countsPerInch)));
-                            if (LiftMotor.getCurrentPosition() < (int) (liftHeight * (4 * countsPerInch) + liftOffset - (2.25 * countsPerInch))) { //was 1.5
-                                goToPositionMrK((StartingFoundationXPosition - 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation - 60))));
-                                if (Math.abs(distanceToTarget) < 1) {
-                                    foundationNotInPosition = false;
-                                }
-                            }
-                        } else {
-                            goToPositionMrK((StartingFoundationXPosition - 36), (StartingFoundationYPosition + 24), 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation - 60))));
+                    } else {
+                        goToPositionMrK((StartingFoundationXPosition), (StartingFoundationYPosition + 30), .75, .25, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation))));
+                        if (Math.abs(distanceToTarget) < 1) {
+                            foundationNotInPosition = false;
                         }
                     }
                 }
@@ -979,7 +975,7 @@ public class PowerSurgeTeleOp extends OpMode {
         if (robotAlliance.equals("Blue")) {
             if (deliverStoneButton < -.5) {
                 if (DepotXPosition != 0) {
-                    goToPositionMrK(DepotXPosition + 24, DepotYPosition - 96, 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(DepotRotation + 90))));
+                    goToPositionMrK(DepotXPosition - 37, DepotYPosition - 73, 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(DepotRotation + 45))));
                 }
                 deliverStoneButton = -1;
             }
@@ -987,7 +983,7 @@ public class PowerSurgeTeleOp extends OpMode {
         else if (robotAlliance.equals("Red")) {
             if (deliverStoneButton < -.5) {
                 if (DepotXPosition != 0) {
-                    goToPositionMrK(DepotXPosition - 24, DepotYPosition - 96, 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(DepotRotation - 90))));
+                    goToPositionMrK(DepotXPosition + 37, DepotYPosition - 73, 1, 1, Math.toDegrees(AngleWrap(Math.toRadians(DepotRotation - 45))));
                 }
                 deliverStoneButton = -1;
             }
@@ -1013,10 +1009,10 @@ public class PowerSurgeTeleOp extends OpMode {
             movement_x = DeadModifier(gamepad1.left_stick_x);
             movement_turn = DeadModifier(gamepad1.right_stick_x);
 
-            if (halfSpeedDriveButton || readyToRelease) {
-                movement_y = movement_y / 5;
+            if (halfSpeedDriveButton || readyToRelease || liftGrabberState >= 1) {
+                movement_y = movement_y / 3;
                 movement_x = movement_x / 3;
-                movement_turn = movement_turn / 5;
+                movement_turn = movement_turn / 3;
             }
 
             applyMovement();
@@ -1278,16 +1274,20 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             if (outtakeButton) {
                 IntakeMotor.setPower(-1);
-            } else {
-                if (intakeState == 1) {
-                    IntakeMotor.setPower(1);
-                } else if (intakeState == 0) {
-                    IntakeMotor.setPower(0);
-                }
             }
+            else if (intakeButton) {
+                IntakeMotor.setPower(1);
+            }
+//            else {
+//                if (intakeState == 1) {
+//                    IntakeMotor.setPower(1);
+//                } else if (intakeState == 0) {
+//                    IntakeMotor.setPower(0);
+//                }
+//            }
         }
         else {
-            if (stoneDistance < 1.5) {
+            if (stoneDistance < 1.5 && stoneDistance != 0.0) {
                 IntakeMotor.setPower(0);
             } else if (!readyToGrab && !readyToRelease && liftGrabberState == 0 && emergencyStoneEjectState == 0) {
                 IntakeMotor.setPower(1);
@@ -1356,49 +1356,47 @@ public class PowerSurgeTeleOp extends OpMode {
         senseOrientation();
         senseSkyStone();
 
-        if (!straightenerBusy) {
-            OrientationServoLeft.setPosition(lDisengage);
-            OrientationServoRight.setPosition(rDisengage);
-        }
+        if (!manualLeftServoButton && !manualRightServoButton) {
 
-        if (stoneFullyInStraightener) {
-            if (stoneOrientation.equals("right")) {
-                runLeftServo();
-                readyToGrab = false;
-            }
-            else if (stoneOrientation.equals("left")) {
-                runRightServo();
-                readyToGrab = false;
-            }
-            else if (stoneOrientation.equals("empty")) {
-                readyToGrab = false;
-                OrientationServoLeft.setPosition(lDisengage);
-                OrientationServoRight.setPosition(rDisengage);
-            }
-            else if(stoneOrientation.equals("center")) {
-                readyToGrab = true;
-                OrientationServoLeft.setPosition(lDisengage);
-                OrientationServoRight.setPosition(rDisengage);
-            }
-            else if (stoneOrientation.equals("notInThreshold")) {
-                readyToGrab = false;
-                OrientationServoLeft.setPosition(lDisengage);
-                OrientationServoRight.setPosition(rDisengage);
-            }
-            telemetry.addData("actualLeftTime", actualLeftTime);
-            telemetry.addData("actualRightTime", actualRightTime);
-            telemetry.addData("target time", targetTime);
-            telemetry.addData("orientPosition", stoneOrientation);
-            telemetry.addData("StraightenerBusy", straightenerBusy);
-        }
-        else {
-            OrientationServoLeft.setPosition(lDisengage);
-            OrientationServoRight.setPosition(rDisengage);
-            readyToGrab = false;
             if (!straightenerBusy) {
-                stoneOrientation = "empty";
+                OrientationServoLeft.setPosition(lDisengage);
+                OrientationServoRight.setPosition(rDisengage);
+            }
+
+            if (stoneFullyInStraightener) {
+                if (stoneOrientation.equals("right")) {
+                    runLeftServo();
+                    readyToGrab = false;
+                } else if (stoneOrientation.equals("left")) {
+                    runRightServo();
+                    readyToGrab = false;
+                } else if (stoneOrientation.equals("empty")) {
+                    readyToGrab = false;
+                    OrientationServoLeft.setPosition(lDisengage);
+                    OrientationServoRight.setPosition(rDisengage);
+                } else if (stoneOrientation.equals("center")) {
+                    readyToGrab = true;
+                    OrientationServoLeft.setPosition(lDisengage);
+                    OrientationServoRight.setPosition(rDisengage);
+                } else if (stoneOrientation.equals("notInThreshold")) {
+                    readyToGrab = false;
+                    OrientationServoLeft.setPosition(lDisengage);
+                    OrientationServoRight.setPosition(rDisengage);
+                }
+                telemetry.addData("actualLeftTime", actualLeftTime);
+                telemetry.addData("actualRightTime", actualRightTime);
+                telemetry.addData("target time", targetTime);
+                telemetry.addData("orientPosition", stoneOrientation);
+                telemetry.addData("StraightenerBusy", straightenerBusy);
             } else {
-                straightenerBusy = false;
+                OrientationServoLeft.setPosition(lDisengage);
+                OrientationServoRight.setPosition(rDisengage);
+                readyToGrab = false;
+                if (!straightenerBusy) {
+                    stoneOrientation = "empty";
+                } else {
+                    straightenerBusy = false;
+                }
             }
         }
     }

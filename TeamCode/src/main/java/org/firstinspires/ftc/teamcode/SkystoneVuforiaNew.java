@@ -1,7 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Color;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -73,6 +77,29 @@ public abstract class SkystoneVuforiaNew extends OpMode {
     private float zPosition;
     OpenGLMatrix robotFromCamera;
     VuforiaLocalizer.Parameters parameters;
+
+    private NormalizedColorSensor VuforiaSensor1;
+    private NormalizedColorSensor VuforiaSensor0;
+
+    public float redVuforiaValues1 = 0;
+    public float blueVuforiaValues1 = 0;
+    public float greenVuforiaValues1 = 0;
+    public float alphaVuforiaValues1 = 0;
+
+    public float redVuforiaValues0 = 0;
+    public float blueVuforiaValues0 = 0;
+    public float greenVuforiaValues0 = 0;
+    public float alphaVuforiaValues0 = 0;
+
+    float hsvValues1[] = {0F, 0F, 0F};
+
+    final float values1[] = hsvValues1;
+
+    float hsvValues0[] = {0F, 0F, 0F};
+
+    final float values0[] = hsvValues0;
+
+    final double SCALE_FACTOR = 255;
 
     public SkystoneVuforiaNew() {
         super();
@@ -240,10 +267,52 @@ public abstract class SkystoneVuforiaNew extends OpMode {
         com.vuforia.CameraDevice.getInstance().setField("opti-zoom", "opti-zoom-on");
         com.vuforia.CameraDevice.getInstance().setField("zoom", "30");
 
+        VuforiaSensor1 =  hardwareMap.get(NormalizedColorSensor.class, "VuforiaSensor1");
+        VuforiaSensor0 =  hardwareMap.get(NormalizedColorSensor.class, "VuforiaSensor0");
+
     }
 
     @Override
     public void init_loop() {
+        NormalizedRGBA VuforiaValues0 = VuforiaSensor0.getNormalizedColors();
+        NormalizedRGBA VuforiaValues1 = VuforiaSensor1.getNormalizedColors();
+
+        redVuforiaValues0 = VuforiaValues0.red;
+        blueVuforiaValues0 = VuforiaValues0.blue;
+        greenVuforiaValues0 = VuforiaValues0.green;
+        alphaVuforiaValues0 = VuforiaValues0.alpha;
+
+        Color.RGBToHSV((int) (redVuforiaValues0 * SCALE_FACTOR),
+                (int) (greenVuforiaValues0 * SCALE_FACTOR),
+                (int) (blueVuforiaValues0 * SCALE_FACTOR),
+                hsvValues0);
+
+        telemetry.addData("red0", redVuforiaValues0);
+        telemetry.addData("green0", greenVuforiaValues0);
+        telemetry.addData("blue0", blueVuforiaValues0);
+        telemetry.addData("alpha0", alphaVuforiaValues0);
+        telemetry.addData("Hue0", hsvValues0[0]);
+        telemetry.addData("Saturation0", hsvValues0[1]);
+        telemetry.addData("Value0", hsvValues0[2]);
+
+
+        redVuforiaValues1 = VuforiaValues1.red;
+        blueVuforiaValues1 = VuforiaValues1.blue;
+        greenVuforiaValues1 = VuforiaValues1.green;
+        alphaVuforiaValues1 = VuforiaValues1.alpha;
+
+        Color.RGBToHSV((int) (redVuforiaValues1 * SCALE_FACTOR),
+                (int) (greenVuforiaValues1 * SCALE_FACTOR),
+                (int) (blueVuforiaValues1 * SCALE_FACTOR),
+                hsvValues1);
+
+        telemetry.addData("red1", redVuforiaValues1);
+        telemetry.addData("green1", greenVuforiaValues1);
+        telemetry.addData("blue1", blueVuforiaValues1);
+        telemetry.addData("alpha1", alphaVuforiaValues1);
+        telemetry.addData("Hue1", hsvValues1[0]);
+        telemetry.addData("Saturation1", hsvValues1[1]);
+        telemetry.addData("Value1", hsvValues1[2]);
 
         VuforiaTrackable stoneTrackable = targetsSkyStone.get(0);
         VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) stoneTrackable.getListener();
@@ -275,22 +344,28 @@ public abstract class SkystoneVuforiaNew extends OpMode {
             yPosition = translation.get(1) / mmPerInch;
             zPosition = translation.get(2) / mmPerInch;
 
-            /*if (yPosition >= 1.5 && xPosition <= -25 && xPosition >= -35 && zPosition >= 0 && zPosition <= 15) {
-                positionSkystone = "Right";
-            }
-            else if (yPosition <= 1.5 && yPosition >= -1.5 && xPosition <= -25 && xPosition >= -35 && zPosition >= 0 && zPosition <= 15) {
-                positionSkystone = "Center";
-            }
-            else if (yPosition <= -1.5 && xPosition <= -25 && xPosition >= -35 && zPosition >= 0 && zPosition <= 15) {
-                positionSkystone = "Left";
-            }*/
+//            if (yPosition >= 1.5) {
+//                positionSkystone = "Right";
+//            } else if (yPosition <= 1.5 && yPosition >= -2) {
+//                positionSkystone = "Center";
+//            } else if (yPosition <= -2) {
+//                positionSkystone = "Left";
+//            }
 
-            if (yPosition >= 1.5) {
-                positionSkystone = "Right";
-            } else if (yPosition <= 1.5 && yPosition >= -2) {
-                positionSkystone = "Center";
-            } else if (yPosition <= -2) {
+            if (hsvValues1[0] >= 120 && hsvValues1[0] > hsvValues0[0]) {
+                //sensor 1 is greater than skystone threshold and sensor one is greater than sensor 0
+                // = left
                 positionSkystone = "Left";
+            }
+            else if (hsvValues0[0] >= 120 && hsvValues0[0] > hsvValues1[0]) {
+                //sensor 0 is greater than skystone threshold and sensor one is greater than sensor 1
+                // = center
+                positionSkystone = "Center";
+            }
+            else {
+                // neither sensor is greater than skyStone sensor or both are equal, in which case it will default to third stone
+                // = right
+                positionSkystone = "Right";
             }
 
             // express the rotation of the robot in degrees.
