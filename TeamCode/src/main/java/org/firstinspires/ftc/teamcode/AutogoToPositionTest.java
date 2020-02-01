@@ -253,6 +253,8 @@ public class AutogoToPositionTest extends SkystoneVuforiaNew {
                 SkyStonePosition = 88;
             } else if (positionSkystone.equals("Right")) {
                 SkyStonePosition = 82;
+            } else {
+                SkyStonePosition = 96;
             }
         }
     }
