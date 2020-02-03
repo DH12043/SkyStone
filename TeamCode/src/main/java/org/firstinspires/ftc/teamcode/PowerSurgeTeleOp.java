@@ -97,6 +97,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private Servo OrientationServoLeft;
     private Servo OrientationServoRight;
     private Servo IntakeReleaseServo;
+    private Servo LiftSlapServo;
 
     private ModernRoboticsI2cRangeSensor OrientationSensor;
     private ModernRoboticsI2cRangeSensor StonePresenceSensor;
@@ -233,12 +234,16 @@ public class PowerSurgeTeleOp extends OpMode {
     private double grabberClosedPosition = 0;
     private double armInsidePosition = 1;
     private double armOutsidePosition = 0;
+    private double slapDownPosition = 0;
+    private double slapUpPosition = 0;
     private boolean grabberManualClosed = false;
     private boolean armManualClosed = true;
     private boolean readyToRelease = false;
     private boolean readyToReleaseFromDelivery = false;
     private int capstoneState = 0;
     private boolean readyToReleaseStone = false;
+    private double slapCurrentTime;
+    private double slapStartTime;
 
     //last update time
     private long lastUpdateTime = 0;
@@ -522,19 +527,27 @@ public class PowerSurgeTeleOp extends OpMode {
     //
 
     private void initializeGrabber() {
-        GrabberServo =  hardwareMap.servo.get("GrabberServo");
+        LiftSlapServo = hardwareMap.servo.get("LiftSlapServo");
+        GrabberServo = hardwareMap.servo.get("GrabberServo");
         OrientStoneServo = hardwareMap.servo.get("OrientStoneServo");
         MoveArmServo = hardwareMap.servo.get("MoveArmServo");
     }
 
     private void startGrabber() {
+        LiftSlapServo.setPosition(slapDownPosition);
         MoveArmServo.setPosition(armInsidePosition);
         GrabberServo.setPosition(grabberOpenPosition);
+        slapStartTime = getRuntime();
     }
 
     private void checkGrabber() {
         if (readyToGrabOverideButton > .5) {
             readyToGrab = true;
+        }
+
+        slapCurrentTime = getRuntime();
+        if (slapCurrentTime - slapStartTime > 1) {
+            LiftSlapServo.setPosition(slapUpPosition);
         }
 
         if (liftEncoderState) {
