@@ -5,6 +5,7 @@ import android.graphics.Color;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -27,6 +28,8 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 
 @TeleOp(name = "New Test Vuforia")
 public abstract class SkystoneVuforiaNew extends OpMode {
+
+    private TouchSensor AllianceSwitch;
 
     // IMPORTANT:  For Phone Camera, set 1) the camera source and 2) the orientation, based on how your phone is mounted:
     // 1) Camera Source.  Valid choices are:  BACK (behind screen) or FRONT (selfie side)
@@ -110,8 +113,12 @@ public abstract class SkystoneVuforiaNew extends OpMode {
 
     int numberOfTimesUpdated = 0;
 
+    private String robotAlliance = "null";
+
     @Override
     public void init() {
+        AllianceSwitch = hardwareMap.touchSensor.get("AllianceSwitch");
+
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
 
@@ -350,14 +357,21 @@ public abstract class SkystoneVuforiaNew extends OpMode {
 //                positionSkystone = "Center";
 //            } else if (yPosition <= -2) {
 //                positionSkystone = "Left";
-//            }
 
-            if (hsvValues1[0] >= 120 && hsvValues1[0] > hsvValues0[0]) {
+                if (AllianceSwitch.isPressed()) {
+                    telemetry.addData("Switch Position", "Red");
+                    robotAlliance = "Red";
+                } else {
+                    telemetry.addData("Switch Position", "Blue");
+                    robotAlliance = "Blue";
+                }
+
+            if (hsvValues1[0] == 0 && (hsvValues0[0] == 60 || hsvValues0[0] == 120)) {
                 //sensor 1 is greater than skystone threshold and sensor one is greater than sensor 0
                 // = left
                 positionSkystone = "Left";
             }
-            else if (hsvValues0[0] >= 120 && hsvValues0[0] > hsvValues1[0]) {
+            else if (hsvValues0[0] == 0 && (hsvValues1[0] == 60 || hsvValues1[0] == 120)) {
                 //sensor 0 is greater than skystone threshold and sensor one is greater than sensor 1
                 // = center
                 positionSkystone = "Center";
