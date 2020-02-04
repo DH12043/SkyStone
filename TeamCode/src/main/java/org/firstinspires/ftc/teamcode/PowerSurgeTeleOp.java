@@ -186,7 +186,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     static final double countsPerMotor          = 383.6;
     static final double gearReduction           = 1.0 ;
-    static final double wheelDiameter           = 1.7;
+    static final double wheelDiameter           = 1.71;
     static final double countsPerInch           = (countsPerMotor * gearReduction) / (wheelDiameter * Math.PI);
     static final double liftOffset = (2.5 * countsPerInch);
 
@@ -625,7 +625,7 @@ public class PowerSurgeTeleOp extends OpMode {
             if (emergencyEjectButton) {
                 if (firstPressy) {
                     emergencyStoneEjectState = 1;
-                    GrabberServo.setPosition(grabberClosedPosition);
+                    //GrabberServo.setPosition(grabberClosedPosition);
                     startGrabberTime = getRuntime();
                     firstPressy = false;
                 }
@@ -851,6 +851,7 @@ public class PowerSurgeTeleOp extends OpMode {
             LiftMotor.setPower(.5);
             LiftMotor.setTargetPosition(0);
             if(LiftMotor.getCurrentPosition() < (int)(countsPerInch / 4)) {
+                GrabberServo.setPosition(grabberClosedPosition);
                 emergencyStoneEjectState++;
             }
         }
@@ -955,13 +956,13 @@ public class PowerSurgeTeleOp extends OpMode {
                     if (readyToRelease) {
                         LiftMotor.setTargetPosition((int) ((liftHeight * (4 * countsPerInch)) + liftOffset - (2.5 * countsPerInch)));
                         if (LiftMotor.getCurrentPosition() < (int) (liftHeight * (4 * countsPerInch) + liftOffset - (2.25 * countsPerInch))) { //was 1.5
-                            goToPositionMrK((StartingFoundationXPosition), (StartingFoundationYPosition + 30), .75, .25, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation))));
+                            goToPositionMrK((StartingFoundationXPosition), (StartingFoundationYPosition + 30), .25, 0, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation))));
                             if (Math.abs(distanceToTarget) < 1) {
                                 foundationNotInPosition = false;
                             }
                         }
                     } else {
-                        goToPositionMrK((StartingFoundationXPosition), (StartingFoundationYPosition + 30), .75, .25, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation))));
+                        goToPositionMrK((StartingFoundationXPosition), (StartingFoundationYPosition + 30), .25, 0, Math.toDegrees(AngleWrap(Math.toRadians(StartingFoundationRotation))));
                         if (Math.abs(distanceToTarget) < 1) {
                             foundationNotInPosition = false;
                         }
