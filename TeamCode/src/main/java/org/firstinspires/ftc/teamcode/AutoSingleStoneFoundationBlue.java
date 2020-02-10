@@ -278,7 +278,7 @@ public class AutoSingleStoneFoundationBlue extends SkystoneVuforiaNew {
         goToPositionByTime(SkyStonePosition - 22, 35, .7, .7, 90, 2, SECOND_SKYSTONE_TAKE, SECOND_SKYSTONE_TAKE2);
         goToPositionByTime(SkyStonePosition - 22, 35, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 30, .7, SECOND_SKYSTONE_TAKE2, SECOND_SKYSTONE_TAKE3);
         goToPositionByTime(SkyStonePosition - 22, 47, .2, .5, 30, 2, SECOND_SKYSTONE_TAKE3, PARK_STATE);
-        goToPositionByTime(68,40, .5, .7, -90, 1.5, PARK_STATE, PARK_STATE);
+        goToPositionByTime(68,40, .5, .7, 90, 1.5, PARK_STATE, PARK_STATE);
 //        goToPositionByTime(20, 0, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.2, SECOND_SKYSTONE_PLACE, SECON
         lowerLiftDuringState(PARK_STATE);
     }
