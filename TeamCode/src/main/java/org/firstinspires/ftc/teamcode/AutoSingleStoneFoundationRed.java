@@ -273,12 +273,12 @@ public class AutoSingleStoneFoundationRed extends SkystoneVuforiaNew {
         releaseStoneAtBeginningOfState(BUILD_SITE_STATE2);
         goToPositionByTime(20, 0, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2.5, BUILD_SITE_STATE2, SECOND_SKYSTONE_STATE);
         FoundationUp();
-        goToPositionByTime(20, 40, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1, SECOND_SKYSTONE_STATE, PARK_STATE);           //TODO CHANGE TO SECOND_SKYSTONE_TAKE Instead of PARK_STATE
-//        lowerLiftDuringState(SECOND_SKYSTONE_TAKE);
-//        goToPositionByTime(SkyStonePosition + 6, 35, .7, .7, 90, 2, SECOND_SKYSTONE_TAKE, SECOND_SKYSTONE_TAKE2);
-//        goToPositionByTime(SkyStonePosition + 6, 35, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, -30, .7, SECOND_SKYSTONE_TAKE2, SECOND_SKYSTONE_TAKE3);
-//        goToPositionByTime(SkyStonePosition + 6, 47, .2, .5, -30, 2, SECOND_SKYSTONE_TAKE3, PARK_STATE);
-        goToPositionByTime(76,40, .5, .7, 90, 1.5, PARK_STATE, PARK_STATE);
+        goToPositionByTime(20, 40, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1, SECOND_SKYSTONE_STATE, SECOND_SKYSTONE_TAKE);           //TODO CHANGE TO SECOND_SKYSTONE_TAKE Instead of PARK_STATE
+        lowerLiftDuringState(SECOND_SKYSTONE_TAKE);
+        goToPositionByTime(SkyStonePosition + 22, 35, .7, .7, 90, 2, SECOND_SKYSTONE_TAKE, SECOND_SKYSTONE_TAKE2);
+        goToPositionByTime(SkyStonePosition + 22, 35, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 30, .7, SECOND_SKYSTONE_TAKE2, SECOND_SKYSTONE_TAKE3);
+        goToPositionByTime(SkyStonePosition + 22, 47, .2, .5, 30, 2, SECOND_SKYSTONE_TAKE3, PARK_STATE);
+        goToPositionByTime(76,40, .5, .7, -90, 1.5, PARK_STATE, PARK_STATE);
 //        goToPositionByTime(20, 0, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.2, SECOND_SKYSTONE_PLACE, SECON
         lowerLiftDuringState(PARK_STATE);
     }
