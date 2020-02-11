@@ -1515,8 +1515,8 @@ public class PowerSurgeTeleOp extends OpMode {
         telemetry.addData("skystone", isSkyStoneInView);
         telemetry.addData("red bool", red);
 
-        if (hsvValues[0] > 110 && hsvValues[1] > .2) {
-            //just changed from .4 to .2 02/08/20 if problems flipping normal stone turn it back to .4
+        if (hsvValues[0] > 110 && hsvValues[1] > .25) {
+            //just changed from .4 to .25 02/09/20 if problems flipping normal stone turn it back to .4
             isSkyStoneInView = true;
         }
         else {
