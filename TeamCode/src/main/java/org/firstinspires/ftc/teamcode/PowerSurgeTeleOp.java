@@ -347,6 +347,10 @@ public class PowerSurgeTeleOp extends OpMode {
             }
         }
 
+        if (capstoneState != 0) {
+            telemetry.addData("CAPSTONE", "READY TO RELEASE");
+        }
+
         LiftUpButton = gamepad1.right_trigger;
         LiftDownButton = gamepad1.left_trigger;
         LiftManualToggleButton = gamepad2.y;
@@ -470,7 +474,7 @@ public class PowerSurgeTeleOp extends OpMode {
                     liftHeight++;
                 }
                 LiftMotor.setPower(1);
-                LiftMotor.setTargetPosition((int)(liftHeight * (4 * countsPerInch) + liftOffset));
+                LiftMotor.setTargetPosition((int)(liftHeight * (4 * countsPerInch) + liftOffset + (1*countsPerInch)));
                 liftUpCommand = false;
             }
             else if (liftDownCommand) {
@@ -549,7 +553,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private void checkGrabber() {
         slapCurrentTime = getRuntime();
-        if (slapCurrentTime - slapStartTime > .75 && slapServoButton < .5) {
+        if (slapCurrentTime - slapStartTime > 1 && slapServoButton < .5) {
             LiftSlapServo.setPower(slapDownPower);
         }
         else {
@@ -559,6 +563,10 @@ public class PowerSurgeTeleOp extends OpMode {
             else {
                 LiftSlapServo.setPower(slapMidPower);
             }
+        }
+
+        if (SlapUpSensor.isPressed()) {
+            telemetry.addData("SlapUpSensor", "Is Pressed");
         }
 
         if (liftEncoderState) {
@@ -734,7 +742,7 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         else if(liftGrabberState == 4) {
             currentGrabberTime = getRuntime();
-            if (LiftMotor.getCurrentPosition() > (int)(liftHeight * (4 * countsPerInch) + (liftOffset-(1 * countsPerInch)))) {
+            if (LiftMotor.getCurrentPosition() > (int)(liftHeight * (4 * countsPerInch) + (liftOffset-(0 * countsPerInch)))) {
                 liftGrabberState++;
             }
         }
