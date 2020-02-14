@@ -552,6 +552,14 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void checkGrabber() {
+        telemetry.addData("liftGrabberState", liftGrabberState);
+        telemetry.addData("grabberReturnState", grabberReturnState);
+        telemetry.addData("EmergencyStoneEjectState", emergencyStoneEjectState);
+        telemetry.addData("capstoneState", capstoneState);
+        telemetry.addData("readyToRelease", readyToRelease);
+        telemetry.addData("readyToReleaseFromDelivery", readyToReleaseFromDelivery);
+
+
         slapCurrentTime = getRuntime();
         if (slapCurrentTime - slapStartTime > 1 && slapServoButton < .5) {
             LiftSlapServo.setPower(slapDownPower);
@@ -572,7 +580,7 @@ public class PowerSurgeTeleOp extends OpMode {
         if (liftEncoderState) {
             telemetry.addData("readyToGrab", readyToGrab);
 
-            if (liftGrabberState == 0 && grabberReturnState == 0 && emergencyStoneEjectState == 0 && capstoneState == 0 && !readyToRelease && !readyToReleaseFromDelivery) {
+            if (liftGrabberState == 0 && grabberReturnState == 0 && emergencyStoneEjectState == 0 && !readyToRelease && !readyToReleaseFromDelivery) {
                 if (grabStoneButton > .5) {
                     if (firstPressRightTrigger) {
                         LiftMotor.setPower(.75);
@@ -972,7 +980,7 @@ public class PowerSurgeTeleOp extends OpMode {
             firstPressBumpers = true;
         }
 
-        if (autoRemoveFoundationButton) {
+        /*if (autoRemoveFoundationButton) {
             if (firstRunRemoveFoundation) {
                 lowerFoundationator();
                 StartingFoundationXPosition = RobotXPosition;
@@ -1008,9 +1016,9 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         else {
             firstRunRemoveFoundation = true;
-        }
+        }*/
 
-        if (deliverStoneButton < -.5) {
+        if (deliverStoneButton < -.5 || autoRemoveFoundationButton) {
             if (readyToGrab) {
                 if (firstDeliverStoneButton) {
                     LiftMotor.setPower(.75);
