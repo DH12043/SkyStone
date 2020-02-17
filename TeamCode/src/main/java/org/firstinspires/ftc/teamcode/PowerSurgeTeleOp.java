@@ -321,7 +321,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
         switchPositionButton = gamepad2.right_bumper;
 
-        if (switchPositionButton) {
+        /*if (switchPositionButton) {
             if (firstSwitchPositionButton) {
                 switchIsInverted = !switchIsInverted;
                 firstSwitchPositionButton = false;
@@ -329,7 +329,7 @@ public class PowerSurgeTeleOp extends OpMode {
         }
         else {
             firstSwitchPositionButton = true;
-        }
+        }*/
 
         if (!switchIsInverted) {
             if (AllianceSwitch.isPressed()) {
@@ -482,6 +482,7 @@ public class PowerSurgeTeleOp extends OpMode {
             else {
                 firstPressLiftRaiseOrLower = true;
             }
+            telemetry.addData("globalLiftOffset", globalLiftOffset);
 
             LiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             LiftMotor.setPower(1);
@@ -737,7 +738,12 @@ public class PowerSurgeTeleOp extends OpMode {
         if(liftGrabberState == 1) {
             if (LiftMotor.getCurrentPosition() < (int)(.25*countsPerInch) + (int)(globalLiftOffset * countsPerInch)) {
                 startGrabberTime = getRuntime();
-                GrabberServo.setPosition(grabberClosedPosition);
+                if (switchPositionButton) {
+                    GrabberServo.setPosition(grabberOpenPosition);
+                }
+                else {
+                    GrabberServo.setPosition(grabberClosedPosition);
+                }
                 liftGrabberState++;
             }
         }
