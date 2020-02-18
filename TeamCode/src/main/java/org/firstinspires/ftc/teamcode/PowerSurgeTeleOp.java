@@ -972,8 +972,8 @@ public class PowerSurgeTeleOp extends OpMode {
         else if(autoDeliverStoneState == 3) {
             currentGrabberTime = getRuntime();
             LiftMotor.setPower(1);
-            LiftMotor.setTargetPosition((int)((10 * countsPerInch) + (int)(globalLiftOffset * countsPerInch) + liftOffset));
-            if(LiftMotor.getCurrentPosition() > (int)((9 * countsPerInch) + (int)(globalLiftOffset * countsPerInch) + liftOffset)) {
+            LiftMotor.setTargetPosition((int)((9 * countsPerInch) + (int)(globalLiftOffset * countsPerInch) + liftOffset));
+            if(LiftMotor.getCurrentPosition() > (int)((8 * countsPerInch) + (int)(globalLiftOffset * countsPerInch) + liftOffset)) {
                 MoveArmServo.setPosition(armOutsidePosition);
                 if (currentGrabberTime - startGrabberTime > 1.5) {
                     LiftMotor.setPower(.25);

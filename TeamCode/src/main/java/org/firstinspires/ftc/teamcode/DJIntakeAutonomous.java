@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class DJIntakeAutonomous extends LinearOpMode {
     private Servo IntakeReleaseServo;
 
-    private double intakeNotReleased = .6;
-    private double intakeReleased = .15;
+    private double intakeNotReleased = 0;
+    private double intakeReleased = .6;
 
     @Override
     public void runOpMode() {
