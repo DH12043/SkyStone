@@ -57,9 +57,9 @@ public class PowerSurgeTeleOp extends OpMode {
 
     final double COUNTS_PER_INCH = 307.699557;
 
-    private static final double DECELERATION_START_POINT = 48;
+    private static final double DECELERATION_START_POINT = 24;
     private static final double DECELERATION_ZERO_POINT = -6;
-    private static final double TURNING_DECELERATION_START_POINT = 180;
+    private static final double TURNING_DECELERATION_START_POINT = 100;
     private static final double TURNING_DECELERATION_ZERO_POINT = -5;
     private static final double X_SPEED_MULTIPLIER = 1;
 
@@ -191,7 +191,7 @@ public class PowerSurgeTeleOp extends OpMode {
     static final double liftOffset = (2.5 * countsPerInch);
     private double globalLiftOffset = 0.0;
 
-    static final double bottomLiftPosition = 2.5; //measured in inches was 2.5
+    static final double bottomLiftPosition = 3; //measured in inches was 2.5
 
     // ORIENTER STUFF
 
@@ -702,6 +702,7 @@ public class PowerSurgeTeleOp extends OpMode {
         else {
             if (grabberManualButton) {
                 if (firstPressGrabberManual) {
+                    startGrabberTime = getRuntime();
                     firstPressGrabberManual = false;
                     if (grabberManualClosed) {
                         GrabberServo.setPosition(grabberOpenPosition);
@@ -710,6 +711,10 @@ public class PowerSurgeTeleOp extends OpMode {
                         GrabberServo.setPosition(grabberClosedPosition);
                     }
                     grabberManualClosed = !grabberManualClosed;
+                }
+                currentGrabberTime = getRuntime();
+                if (currentGrabberTime - startGrabberTime > 1.5) {
+                    GrabberServo.setPosition(grabberWideOpenPosition);
                 }
             }
             else {
