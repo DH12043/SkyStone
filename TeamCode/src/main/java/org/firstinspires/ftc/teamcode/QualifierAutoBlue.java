@@ -259,7 +259,6 @@ public class QualifierAutoBlue extends OpMode {
         IntakeReleaseServo.setPosition(.6);
         LiftFinishDown();
 
-        //skyStoneCheck();
         goToPositionByTime(StartingXPosition, StartingYPosition + 10, StartingRotation, .5, INIT_STATE, FIRST_MOVE_TO_SKYSTONE_STATE);
         lowerLiftDuringState(INIT_STATE);
         IntakeOn();

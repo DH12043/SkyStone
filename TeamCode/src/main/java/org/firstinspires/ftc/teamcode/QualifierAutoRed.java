@@ -280,12 +280,12 @@ public class QualifierAutoRed extends OpMode {
         releaseStoneAtBeginningOfState(BUILD_SITE_STATE2);
         goToPositionByTime(124, 0, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 270, 2.5, BUILD_SITE_STATE2, SECOND_SKYSTONE_STATE);
         FoundationUp();
-        goToPositionByTime(124, 38, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 270, 1.8, SECOND_SKYSTONE_STATE, PARK_STATE);           //TODO CHANGE TO SECOND_SKYSTONE_TAKE Instead of PARK_STATE
+        goToPositionByTime(124, 40, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 270, 1, SECOND_SKYSTONE_STATE, SECOND_SKYSTONE_TAKE);           //TODO CHANGE TO SECOND_SKYSTONE_TAKE Instead of PARK_STATE
         lowerLiftDuringState(SECOND_SKYSTONE_TAKE);
         goToPositionByTime(SkyStonePosition - 10, 35, .7, .7, 270, 2, SECOND_SKYSTONE_TAKE, SECOND_SKYSTONE_TAKE2);
         goToPositionByTime(SkyStonePosition - 22, 35, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 330, .7, SECOND_SKYSTONE_TAKE2, SECOND_SKYSTONE_TAKE3);
         goToPositionByTime(SkyStonePosition - 22, 47, .2, .5, 330, 2, SECOND_SKYSTONE_TAKE3, PARK_STATE);
-        goToPositionByTime(76,35, .5, .7, 270, 1.5, PARK_STATE, PARK_STATE);
+        goToPositionByTime(76,40, .5, .7, 270, 1.5, PARK_STATE, PARK_STATE);
 //        goToPositionByTime(20, 0, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.2, SECOND_SKYSTONE_PLACE, SECON
         lowerLiftDuringState(PARK_STATE);
     }
@@ -316,10 +316,10 @@ public class QualifierAutoRed extends OpMode {
 //            } else if (positionSkystone.equals("Right")) {
 //                SkyStonePosition = 82;
 //            } else {
-                SkyStonePosition = 49;
+        SkyStonePosition = 49;
 //            }
-        }
-//    }
+    }
+    //    }
     private void IntakeOn() {
         IntakeMotor.setPower(1);
     }
