@@ -675,7 +675,7 @@ public class PowerSurgeTeleOp extends OpMode {
             emergencyStoneEject();
 
             if (quickUpDownButton > .5) {
-                if (liftGrabberState == 0 &&grabberReturnType == 0 && !readyToRelease && emergencyStoneEjectState == 0) {
+                if (liftGrabberState == 0 && grabberReturnState == 0 && !readyToRelease && !readyToReleaseFromDelivery && emergencyStoneEjectState == 0) {
                     if (firstPressQuickUpDown) {
                         quickUpDownState = 1;
                         firstPressQuickUpDown = false;
@@ -820,8 +820,8 @@ public class PowerSurgeTeleOp extends OpMode {
                 else {
                     if (currentGrabberTime - startGrabberTime > .75) {
                         LiftMotor.setPower(1);
-                        LiftMotor.setTargetPosition((int) ((liftHeight * (4 * countsPerInch)) + (int)(globalLiftOffset * countsPerInch) + liftOffset + (4 * countsPerInch)));
-                        if (LiftMotor.getCurrentPosition() > (int) (liftHeight * (4 * countsPerInch) + (int)(globalLiftOffset * countsPerInch) + liftOffset + (3 * countsPerInch))) {
+                        LiftMotor.setTargetPosition((int) ((liftHeight * (4 * countsPerInch)) + (int)(globalLiftOffset * countsPerInch) + liftOffset + (2 * countsPerInch)));
+                        if (LiftMotor.getCurrentPosition() > (int) (liftHeight * (4 * countsPerInch) + (int)(globalLiftOffset * countsPerInch) + liftOffset + (.75 * countsPerInch))) {
                             grabberReturnState++;
                             startGrabberTime = getRuntime();
                         }
@@ -1065,9 +1065,9 @@ public class PowerSurgeTeleOp extends OpMode {
         if (!autoDriveButton && !autoRemoveFoundationButton) {
             movement_y = DeadModifier(-gamepad1.left_stick_y);
             movement_x = DeadModifier(gamepad1.left_stick_x);
-            movement_turn = DeadModifier(gamepad1.right_stick_x);
+            movement_turn = DeadModifier(.75 * gamepad1.right_stick_x);
 
-            if (halfSpeedDriveButton || readyToRelease || liftGrabberState >= 1 || emergencyStoneEjectState >= 1 || !isWaffleStateRaised) {
+            if (halfSpeedDriveButton || readyToRelease || liftGrabberState >= 1 || !isWaffleStateRaised) {
                 movement_y = movement_y / 3;
                 movement_x = movement_x / 3;
                 movement_turn = movement_turn / 3;
@@ -1467,11 +1467,10 @@ public class PowerSurgeTeleOp extends OpMode {
 
         if(actualRightTime > targetTime) {
             OrientationServoRight.setPosition(rDisengage);
-            firstRightRun = true;
+            //firstRightRun = true;
         }
 
-        if (actualRightTime > targetTime*2) {
-            OrientationServoRight.setPosition(rDisengage);
+        if (actualRightTime > targetTime*2.5) {
             firstRightRun = true;
             straightenerBusy = false;
         }
@@ -1495,7 +1494,7 @@ public class PowerSurgeTeleOp extends OpMode {
             firstLeftRun = true;
         }
 
-        if (actualLeftTime > targetTime*2) {
+        if (actualLeftTime > targetTime*2.5) {
             OrientationServoLeft.setPosition(lDisengage);
             firstLeftRun = true;
             straightenerBusy = false;
