@@ -3,13 +3,14 @@ package org.firstinspires.ftc.teamcode;
 import android.os.SystemClock;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 @Autonomous (name= "FoundationAutoRedBridge", group= "None")
-public class FoundationAutoRedBridge extends SkystoneVuforiaNew {
+public class FoundationAutoRedBridge extends OpMode {
 
     DcMotor verticalRight, verticalLeft, horizontal;
 
@@ -61,7 +62,7 @@ public class FoundationAutoRedBridge extends SkystoneVuforiaNew {
 
     @Override
     public void init() {
-        super.init();
+        //super.init();
         msStuckDetectStart = 300000;
         FrontRight = hardwareMap.dcMotor.get("FrontRight");
         FrontLeft = hardwareMap.dcMotor.get("FrontLeft");

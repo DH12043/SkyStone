@@ -268,7 +268,7 @@ public class QualifierAutoRed extends OpMode {
         goToPositionByTime(StartingXPosition, StartingYPosition + 10, StartingRotation, .5, INIT_STATE, FIRST_MOVE_TO_SKYSTONE_STATE);
         lowerLiftDuringState(INIT_STATE);
         IntakeOn();
-        goToPositionByTime(SkyStonePosition, 41, .2, .5, 0, 1.8, FIRST_MOVE_TO_SKYSTONE_STATE, FIRST_SKYSTONE_PLACE);   //Slowing Down to Grab Stone
+        goToPositionByTime(SkyStonePosition, 41, .2, .5, 0, 2.3, FIRST_MOVE_TO_SKYSTONE_STATE, FIRST_SKYSTONE_PLACE);   //Slowing Down to Grab Stone
         goToPositionByTime(SkyStonePosition, 28, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 280, .7, FIRST_SKYSTONE_PLACE, ALIGN_FOUNDATION_STATE);
         goToPositionByTime(118, 33, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 270, 1.3, ALIGN_FOUNDATION_STATE, FOUNDATION_STATE);
         lowerLiftDuringState(ALIGN_FOUNDATION_STATE);
