@@ -194,6 +194,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     // ORIENTER STUFF
 
+    private int flipCounter = 0;
     private String stoneOrientation = "empty";
     private String lCurrentPosition = "lDisengage";
     private String rCurrentPosition = "rDisengage";
@@ -730,6 +731,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     private void grabRotateRaiseStone() {
         if(liftGrabberState == 1) {
+            flipCounter = 0;
             if (LiftMotor.getCurrentPosition() < (int)(.25*countsPerInch) + (int)(globalLiftOffset * countsPerInch)) {
                 startGrabberTime = getRuntime();
                 if (switchPositionButton) {
@@ -1456,11 +1458,12 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void runRightServo() {
-        if(firstRightRun && !straightenerBusy && !isSkyStoneInView) {
+        if(firstRightRun && !straightenerBusy && !isSkyStoneInView && flipCounter <= 2) {
             OrientationServoRight.setPosition(rEngage);
             startRightTime = getRuntime();
             firstRightRun = false;
             straightenerBusy = true;
+            flipCounter++;
         }
         currentRightTime = getRuntime();
         actualRightTime = (currentRightTime-startRightTime);
@@ -1473,6 +1476,7 @@ public class PowerSurgeTeleOp extends OpMode {
         if (actualRightTime > targetTime*2.5) {
             firstRightRun = true;
             straightenerBusy = false;
+
         }
         else {
             straightenerBusy = true;
@@ -1480,11 +1484,12 @@ public class PowerSurgeTeleOp extends OpMode {
     }
 
     private void runLeftServo() {
-        if(firstLeftRun && !straightenerBusy && !isSkyStoneInView) {
+        if(firstLeftRun && !straightenerBusy && !isSkyStoneInView && flipCounter <= 2) {
             OrientationServoLeft.setPosition(lEngage);
             startLeftTime = getRuntime();
             firstLeftRun = false;
             straightenerBusy = true;
+            flipCounter++;
         }
         currentLeftTime = getRuntime();
         actualLeftTime = (currentLeftTime-startLeftTime);

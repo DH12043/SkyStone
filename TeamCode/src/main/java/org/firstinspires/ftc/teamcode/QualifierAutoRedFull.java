@@ -276,8 +276,8 @@ public class QualifierAutoRedFull extends OpMode {
         goToPositionByTime(StartingXPosition, StartingYPosition + 10, StartingRotation, .2, INIT_STATE, FIRST_MOVE_TO_SKYSTONE_STATE);
         lowerLiftDuringState(INIT_STATE);
         IntakeOn();
-        goToPositionByTime(SkyStonePosition, 41, .2, .5, 0, 1.8, FIRST_MOVE_TO_SKYSTONE_STATE, FIRST_SKYSTONE_PLACE);   //Slowing Down to Grab Stone
-        goToPositionByTime(SkyStonePosition, 28, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 280, .7, FIRST_SKYSTONE_PLACE, ALIGN_FOUNDATION_STATE);
+        goToPositionByTime(SkyStonePosition, 41, .4, .5, 0, 1.8, FIRST_MOVE_TO_SKYSTONE_STATE, FIRST_SKYSTONE_PLACE);   //Slowing Down to Grab Stone
+        goToPositionByTime(SkyStonePosition, 28, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 280, .5, FIRST_SKYSTONE_PLACE, ALIGN_FOUNDATION_STATE);
         goToPositionByTime(118, 33, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 270, 1.3, ALIGN_FOUNDATION_STATE, FOUNDATION_STATE);
         lowerLiftDuringState(ALIGN_FOUNDATION_STATE);
         goToPositionByTime(128, 20, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 180, .9, FOUNDATION_STATE, SECOND_FOUNDATION_STATE);
@@ -286,7 +286,7 @@ public class QualifierAutoRedFull extends OpMode {
         grabRotateStoneAtBeginningOfState(BUILD_SITE_STATE);
         goToPositionByTime(114, 15, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 270, 2.5, BUILD_SITE_STATE, BUILD_SITE_STATE2);
         releaseStoneAtBeginningOfState(BUILD_SITE_STATE2);
-        goToPositionByTime(124, 0, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 270, 1, BUILD_SITE_STATE2, SECOND_SKYSTONE_STATE);
+        goToPositionByTime(124, 0, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 270, 1.5, BUILD_SITE_STATE2, SECOND_SKYSTONE_STATE);
         CheckStone(SECOND_SKYSTONE_STATE, SECOND_SKYSTONE_PLACE3);
         FoundationUp();
         goToPositionByTime(124, 38, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 270, .8, SECOND_SKYSTONE_STATE, SECOND_SKYSTONE_TAKE);           //TODO CHANGE TO SECOND_SKYSTONE_TAKE Instead of PARK_STATE
@@ -793,7 +793,7 @@ public class QualifierAutoRedFull extends OpMode {
         }
         if(liftGrabberState == 2) {
             currentGrabberTime = getRuntime();
-            if (currentGrabberTime - startGrabberTime > .5) {
+            if (currentGrabberTime - startGrabberTime > .35) {
                 liftGrabberState++;
                 startGrabberTime = getRuntime();
             }
@@ -850,7 +850,7 @@ public class QualifierAutoRedFull extends OpMode {
         if (grabberReturnState == 3) {
             currentGrabberTime = getRuntime();
 
-            if(currentGrabberTime - startGrabberTime > .5) {
+            if(currentGrabberTime - startGrabberTime > 1) {
                 if (liftHeight <= 1) {
                     LiftMotor.setPower(1);
                     LiftMotor.setTargetPosition((int)((6 * countsPerInch) + liftOffset));
