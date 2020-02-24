@@ -83,7 +83,8 @@ public class QualifierAutoBlueFull extends OpMode {
     private static final int NO_STATE = -2;
     private static final int INIT_STATE = -1;
     private static final int FIRST_MOVE_TO_SKYSTONE_STATE = 0;
-    private static final int FIRST_SKYSTONE_PLACE = 1;
+    private static final int FIRST_MOVE_TO_SKYSTONE_STATE2 = 1;
+    private static final int FIRST_SKYSTONE_PLACE = 2;
     private static final int ALIGN_FOUNDATION_STATE = 10;
     private static final int ALIGN_FOUNDATION_STATE2 = 11;
     private static final int FOUNDATION_STATE = 20;
@@ -261,10 +262,8 @@ public class QualifierAutoBlueFull extends OpMode {
         telemetry.addData("RobotYPosition", RobotYPosition);
         checkStraightener();
         skyStoneCheck();
-        if (LiftShouldBeUp) {
-            checkVerticalLift();
-            checkGrabber();
-        }
+        checkVerticalLift();
+        checkGrabber();
         checkOdometry();
         currentTime = getRuntime();
         IntakeAssistMotor.setPower(-1);
@@ -273,11 +272,12 @@ public class QualifierAutoBlueFull extends OpMode {
 
         goToPositionByTime(StartingXPosition - 2, StartingYPosition + 10, StartingRotation, .5, INIT_STATE, FIRST_MOVE_TO_SKYSTONE_STATE);
         IntakeOn();
-        goToPositionByTime(SkyStonePosition - 14, 41, .4, .5, 0, 1.5, FIRST_MOVE_TO_SKYSTONE_STATE, FIRST_SKYSTONE_PLACE);   //Slowing Down to Grab Stone
+        hoverLiftState(FIRST_MOVE_TO_SKYSTONE_STATE, FIRST_MOVE_TO_SKYSTONE_STATE2, 5);
+        goToPositionByTime(SkyStonePosition - 14, 41, .4, .5, 0, 1.5, FIRST_MOVE_TO_SKYSTONE_STATE2, FIRST_SKYSTONE_PLACE);   //Slowing Down to Grab Stone
         goToPositionByTime(SkyStonePosition - 10, 28, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 80, .5, FIRST_SKYSTONE_PLACE, ALIGN_FOUNDATION_STATE);
         lowerLiftState(ALIGN_FOUNDATION_STATE, ALIGN_FOUNDATION_STATE2);
         goToPositionByTime(26, 27, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.3, ALIGN_FOUNDATION_STATE2, FOUNDATION_STATE);
-        hoverLiftState(FOUNDATION_STATE, FOUNDATION_STATE2, .3);
+        hoverLiftState(FOUNDATION_STATE, FOUNDATION_STATE2, 5);
         goToPositionByTime(16, 20, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 180, .9, FOUNDATION_STATE2, SECOND_FOUNDATION_STATE);
         FoundationDown();
         grabRotateStoneAtBeginningOfState(SECOND_FOUNDATION_STATE, BUILD_SITE_STATE);
