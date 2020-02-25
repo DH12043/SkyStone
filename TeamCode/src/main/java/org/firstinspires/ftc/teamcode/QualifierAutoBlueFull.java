@@ -100,13 +100,16 @@ public class QualifierAutoBlueFull extends OpMode {
     private static final int SECOND_SKYSTONE_TAKE3 = 90;
     private static final int SECOND_SKYSTONE_TAKE4 = 91;
     private static final int SECOND_SKYSTONE_TAKE5 = 92;
+    private static final int SECOND_SKYSTONE_TAKE6 = 93;
     private static final int SECOND_SKYSTONE_PLACE = 100;
     private static final int SECOND_SKYSTONE_PLACE2 = 110;
     private static final int SECOND_SKYSTONE_PLACE3 = 120;
     private static final int PARK_STATE = 130;
+    private static final int PARK_STATE2 = 131;
 
     private static final int FIRST_STONE_FAIL_STATE = 140;
     private static final int FIRST_STONE_FAIL_STATE2 = 150;
+    private static final int FIRST_STONE_FAIL_STATE3 = 160;
     private long lastUpdateTime = 0;
 
     static final double countsPerMotor          = 383.6;
@@ -161,7 +164,7 @@ public class QualifierAutoBlueFull extends OpMode {
     private double armOutsidePosition = 0;
     private double programStart;
     private boolean grabRotateStoneCommand = false;
-    private boolean releaseStoneCommand;
+    private boolean releaseStoneCommand = false;
     private boolean releaseStoneReady = true;
     private NormalizedColorSensor SkyStoneSensor;
 
@@ -257,9 +260,7 @@ public class QualifierAutoBlueFull extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addData("LiftShouldBeUp", LiftShouldBeUp);
-        telemetry.addData("LastAutoState", lastAutoState);
-        telemetry.addData("RobotYPosition", RobotYPosition);
+        telemetry.addData("GrabberReturnState", grabberReturnState);
         checkStraightener();
         skyStoneCheck();
         checkVerticalLift();
@@ -291,17 +292,18 @@ public class QualifierAutoBlueFull extends OpMode {
         goToPositionByTime(40, 40, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, .15, SECOND_SKYSTONE_TAKE2, SECOND_SKYSTONE_TAKE3);
         CheckStone(SECOND_SKYSTONE_TAKE2, FIRST_STONE_FAIL_STATE);
         lowerLiftState(SECOND_SKYSTONE_TAKE3, SECOND_SKYSTONE_TAKE4);
-        goToPositionByTime(SkyStonePosition - 8, 30, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.5, SECOND_SKYSTONE_TAKE4, SECOND_SKYSTONE_TAKE5);
-        goToPositionByTime(SkyStonePosition + 8, 76, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1, SECOND_SKYSTONE_TAKE5, SECOND_SKYSTONE_PLACE);
+        goToPositionByTime(SkyStonePosition - 8, 30, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.5, SECOND_SKYSTONE_TAKE4, SECOND_SKYSTONE_TAKE6);
+//        hoverLiftState(SECOND_SKYSTONE_TAKE5, SECOND_SKYSTONE_TAKE6, 5);
+        goToPositionByTime(SkyStonePosition + 8, 76, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1, SECOND_SKYSTONE_TAKE6, SECOND_SKYSTONE_PLACE);
         retractArmDuringState(SECOND_SKYSTONE_PLACE, SECOND_SKYSTONE_PLACE2);
         goToPositionByTime(SkyStonePosition + 14, 76, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.5, SECOND_SKYSTONE_PLACE2, SECOND_SKYSTONE_PLACE3);
-        goToPositionByTime(SkyStonePosition + 14, 35, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, .7, SECOND_SKYSTONE_PLACE3, PARK_STATE);
-        goToPositionByTime(64,30, .5, .7, 90, 1.5, PARK_STATE, PARK_STATE);
+        goToPositionByTime(SkyStonePosition + 14, 40, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, .7, SECOND_SKYSTONE_PLACE3, PARK_STATE);
+        goToPositionByTime(64,40, .5, .7, 90, 1.5, PARK_STATE2, PARK_STATE2);
 //        goToPositionByTime(20, 0, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.2, SECOND_SKYSTONE_PLACE, SECON
-        lowerLiftState(PARK_STATE, PARK_STATE);
+        lowerLiftState(PARK_STATE, PARK_STATE2);
 
         retractArmDuringState(FIRST_STONE_FAIL_STATE, FIRST_STONE_FAIL_STATE2);
-        goToPositionByTime(RobotXPosition, 35, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2.5, FIRST_STONE_FAIL_STATE2, PARK_STATE);
+        goToPositionByTime(RobotXPosition, 40, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2.5, FIRST_STONE_FAIL_STATE2, PARK_STATE);
     }
 
     private void LiftFinishDown() {
@@ -392,8 +394,10 @@ public class QualifierAutoBlueFull extends OpMode {
             autoState = nextState;
         }
         else {
-            grabRotateStoneCommand = false;
+            releaseStoneCommand = false;
         }
+        checkVerticalLift();
+        checkGrabber();
     }
 
     private void grabRotateStoneAtBeginningOfState(int state, int nextState) {
@@ -404,6 +408,8 @@ public class QualifierAutoBlueFull extends OpMode {
         else {
             grabRotateStoneCommand = false;
         }
+        checkVerticalLift();
+        checkGrabber();
     }
 //        if (autoState == state) {
 //            if(RobotXPosition < 68) {
