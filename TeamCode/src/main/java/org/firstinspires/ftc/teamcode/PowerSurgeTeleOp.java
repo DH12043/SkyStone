@@ -185,7 +185,7 @@ public class PowerSurgeTeleOp extends OpMode {
 
     static final double countsPerMotor          = 383.6;
     static final double gearReduction           = 1.0 ;
-    static final double wheelDiameter           = 1.72;
+    static final double wheelDiameter           = 1.76; //1.72
     static final double countsPerInch           = (countsPerMotor * gearReduction) / (wheelDiameter * Math.PI);
     static final double liftOffset = (2.5 * countsPerInch);
     private double globalLiftOffset = 0.0;
@@ -688,6 +688,14 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             quickUpDownLift();
 
+            if ((grabberManualButton || armManualButton) && liftGrabberState == 0 && grabberReturnState == 0 && !readyToRelease && !readyToReleaseFromDelivery && emergencyStoneEjectState == 0 && quickUpDownState == 0) {
+                LiftMotor.setPower(.7);
+                LiftMotor.setTargetPosition(0);
+            }
+            else if (liftGrabberState == 0 && grabberReturnState == 0 && !readyToRelease && !readyToReleaseFromDelivery && emergencyStoneEjectState == 0 && quickUpDownState == 0){
+                LiftMotor.setPower(.7);
+                LiftMotor.setTargetPosition((int)((bottomLiftPosition * countsPerInch) + (globalLiftOffset * countsPerInch)));
+            }
         }
         else {
             if (grabberManualButton) {
