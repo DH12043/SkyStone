@@ -578,13 +578,13 @@ public class PowerSurgeTeleOp extends OpMode {
         telemetry.addData("readyToReleaseFromDelivery", readyToReleaseFromDelivery);
 
 
-        slapCurrentTime = getRuntime();
+        /*slapCurrentTime = getRuntime();
         if (slapCurrentTime - slapStartTime > 1 && slapServoButton < .5) {
             LiftSlapServo.setPosition(slapDownPosition);
         }
         else {
             LiftSlapServo.setPosition(slapUpPosition);
-        }
+        }*/
 
         if (liftEncoderState) {
             telemetry.addData("readyToGrab", readyToGrab);
@@ -1362,8 +1362,13 @@ public class PowerSurgeTeleOp extends OpMode {
         if (stoneDistance < 1.5) {
             IntakeMotor.setPower(0);
         }
-
-        orientStone();
+        if (slapServoButton > .5) {
+            OrientationServoLeft.setPosition(lDisengage);
+            OrientationServoRight.setPosition(rDisengage);
+        }
+        else {
+            orientStone();
+        }
         manualOverride();
     }
 
