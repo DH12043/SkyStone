@@ -688,11 +688,11 @@ public class PowerSurgeTeleOp extends OpMode {
             }
             quickUpDownLift();
 
-            if ((grabberManualButton || armManualButton) && liftGrabberState == 0 && grabberReturnState == 0 && !readyToRelease && !readyToReleaseFromDelivery && emergencyStoneEjectState == 0 && quickUpDownState == 0) {
+            if ((grabberManualButton || armManualButton) && liftGrabberState == 0 && grabberReturnState == 0 && autoDeliverStoneState == 0 && !readyToRelease && !readyToReleaseFromDelivery && emergencyStoneEjectState == 0 && quickUpDownState == 0) {
                 LiftMotor.setPower(.7);
                 LiftMotor.setTargetPosition(0);
             }
-            else if (liftGrabberState == 0 && grabberReturnState == 0 && !readyToRelease && !readyToReleaseFromDelivery && emergencyStoneEjectState == 0 && quickUpDownState == 0){
+            else if (liftGrabberState == 0 && grabberReturnState == 0 && !readyToRelease && !readyToReleaseFromDelivery && autoDeliverStoneState == 0 && emergencyStoneEjectState == 0 && quickUpDownState == 0){
                 LiftMotor.setPower(.7);
                 LiftMotor.setTargetPosition((int)((bottomLiftPosition * countsPerInch) + (globalLiftOffset * countsPerInch)));
             }
