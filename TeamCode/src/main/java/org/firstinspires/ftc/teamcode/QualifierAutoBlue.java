@@ -262,7 +262,7 @@ public class QualifierAutoBlue extends OpMode {
         goToPositionByTime(StartingXPosition, StartingYPosition + 10, StartingRotation, .5, INIT_STATE, FIRST_MOVE_TO_SKYSTONE_STATE);
         lowerLiftDuringState(INIT_STATE);
         IntakeOn();
-        goToPositionByTime(SkyStonePosition - 2, 41, .2, .5, 0, 2.3, FIRST_MOVE_TO_SKYSTONE_STATE, FIRST_SKYSTONE_PLACE);   //Slowing Down to Grab Stone
+        goToPositionByTime(SkyStonePosition - 2, 41, .4, .5, 0, 1.5, FIRST_MOVE_TO_SKYSTONE_STATE, FIRST_SKYSTONE_PLACE);   //Slowing Down to Grab Stone
         goToPositionByTime(SkyStonePosition, 28, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 80, .5, FIRST_SKYSTONE_PLACE, ALIGN_FOUNDATION_STATE);
         goToPositionByTime(26, 27, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.3, ALIGN_FOUNDATION_STATE, FOUNDATION_STATE);
         lowerLiftDuringState(ALIGN_FOUNDATION_STATE);
