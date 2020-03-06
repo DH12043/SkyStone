@@ -313,6 +313,11 @@ public class QualifierAutoRedFull extends OpMode {
         goToPositionByTime(RobotXPosition, 35, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 270, 2.5, FIRST_STONE_FAIL_STATE2, PARK_STATE);
     }
 
+    @Override
+    public void stop() {
+        globalPositionUpdate.stop();
+    }
+
     private void LiftFinishDown() {
         if (currentTime > programStart + 29) {
             LiftMotor.setTargetPosition((int)(0 * countsPerInch));

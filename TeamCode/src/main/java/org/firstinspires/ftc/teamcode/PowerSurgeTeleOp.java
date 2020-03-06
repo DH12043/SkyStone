@@ -190,7 +190,7 @@ public class PowerSurgeTeleOp extends OpMode {
     static final double liftOffset = (2.5 * countsPerInch);
     private double globalLiftOffset = 0.0;
 
-    static final double bottomLiftPosition = 3; //measured in inches was 2.5
+    static final double bottomLiftPosition = 4; //measured in inches was 2.5
 
     // ORIENTER STUFF
 
@@ -235,7 +235,7 @@ public class PowerSurgeTeleOp extends OpMode {
     private double grabberOpenPosition = .45;
     private double grabberClosedPosition = 0;
     private double armInsidePosition = 1;
-    private double armOutsidePosition = 0;
+    private double armOutsidePosition = 0.02;
     private double slapDownPosition = .3;
     private double slapUpPosition = .7;
     private boolean grabberManualClosed = false;
@@ -396,6 +396,11 @@ public class PowerSurgeTeleOp extends OpMode {
         telemetry.update();
     }
 
+
+    @Override
+    public void stop() {
+        globalPositionUpdate.stop();
+    }
     //
     // VERTICAL LIFT
     //

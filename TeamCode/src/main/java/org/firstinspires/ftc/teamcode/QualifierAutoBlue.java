@@ -284,6 +284,11 @@ public class QualifierAutoBlue extends OpMode {
         lowerLiftDuringState(PARK_STATE);
     }
 
+    @Override
+    public void stop() {
+        globalPositionUpdate.stop();
+    }
+
     private void LiftFinishDown() {
         if (currentTime > programStart + 29) {
             LiftMotor.setTargetPosition((int)(0 * countsPerInch));
