@@ -101,6 +101,7 @@ public class QualifierAutoBlueFull extends OpMode {
     private static final int SECOND_SKYSTONE_TAKE4 = 91;
     private static final int SECOND_SKYSTONE_TAKE5 = 92;
     private static final int SECOND_SKYSTONE_TAKE6 = 93;
+    private static final int SECOND_SKYSTONE_TAKE7 = 94;
     private static final int SECOND_SKYSTONE_PLACE = 100;
     private static final int SECOND_SKYSTONE_PLACE2 = 110;
     private static final int SECOND_SKYSTONE_PLACE3 = 120;
@@ -108,10 +109,23 @@ public class QualifierAutoBlueFull extends OpMode {
     private static final int PARK_STATE2 = 131;
     private static final int PARK_STATE3 = 132;
     private static final int PARK_STATE4 = 133;
+    private static final int PARK_STATE5 = 134;
+    private static final int PARK_STATE6 = 135;
+    private static final int PARK_STATE7 = 136;
+    private static final int PARK_STATE8 = 137;
+    private static final int PARK_STATE9 = 138;
+
+    private static final int THIRD_SKYSTONE_TAKE = 150;
+    private static final int THIRD_SKYSTONE_TAKE2 = 151;
+    private static final int THIRD_SKYSTONE_TAKE3 = 152;
 
     private static final int FIRST_STONE_FAIL_STATE = 140;
     private static final int FIRST_STONE_FAIL_STATE2 = 150;
     private static final int FIRST_STONE_FAIL_STATE3 = 160;
+
+    private static final int SECOND_STONE_FAIL_STATE = 180;
+    private static final int SECOND_STONE_FAIL_STATE2 = 190;
+
     private long lastUpdateTime = 0;
 
     static final double countsPerMotor          = 383.6;
@@ -285,8 +299,8 @@ public class QualifierAutoBlueFull extends OpMode {
         FoundationDown();
         grabRotateStoneAtBeginningOfState(SECOND_FOUNDATION_STATE, BUILD_SITE_STATE);
         goToPositionByTime(16, 45, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 180, 1, BUILD_SITE_STATE, BUILD_SITE_STATE2);
-        goToPositionByTime(30, 0, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2.5, BUILD_SITE_STATE2, BUILD_SITE_STATE3);
-        goToPositionByTime(30, 35, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, .1, BUILD_SITE_STATE3, SECOND_SKYSTONE_STATE);
+        goToPositionByTime(32, -1, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2, BUILD_SITE_STATE2, BUILD_SITE_STATE3);
+        goToPositionByTime(28, 35, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, .1, BUILD_SITE_STATE3, SECOND_SKYSTONE_STATE);
         putLiftDownDuringState(SECOND_SKYSTONE_STATE, SECOND_SKYSTONE_STATE2);
         FoundationUp();
         goToPositionByTime(30, 44, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.4, SECOND_SKYSTONE_STATE2, SECOND_SKYSTONE_TAKE);
@@ -294,19 +308,33 @@ public class QualifierAutoBlueFull extends OpMode {
         goToPositionByTime(48, 40, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, .15, SECOND_SKYSTONE_TAKE2, SECOND_SKYSTONE_TAKE3);
         CheckStone(SECOND_SKYSTONE_TAKE2, FIRST_STONE_FAIL_STATE);
         lowerLiftState(SECOND_SKYSTONE_TAKE3, SECOND_SKYSTONE_TAKE4);
-        goToPositionByTime(SkyStonePosition - 0, 27, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.5, SECOND_SKYSTONE_TAKE4, SECOND_SKYSTONE_TAKE6);
-//        goToPositionByTime(SkyStonePosition + 8, 70, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1, SECOND_SKYSTONE_TAKE6, SECOND_SKYSTONE_PLACE);
-//        retractArmDuringState(SECOND_SKYSTONE_PLACE, SECOND_SKYSTONE_PLACE2);
-//        goToPositionByTime(SkyStonePosition + 14, 70, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.5, SECOND_SKYSTONE_PLACE2, SECOND_SKYSTONE_PLACE3);
-//        goToPositionByTime(SkyStonePosition + 14, 35, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, .7, SECOND_SKYSTONE_PLACE3, PARK_STATE);
-//        lowerLiftState(PARK_STATE, PARK_STATE2);
-//        goToPositionByTime(94,43, .5, .7, 90, 1, PARK_STATE2, PARK_STATE3);
-//        goToPositionByTime(34,43, .5, .7, 90, 3, PARK_STATE3, PARK_STATE4);
-//        goToPositionByTime(64,43, .5, .7, 90, 5, PARK_STATE4, PARK_STATE4);
-//        lowerLiftState(PARK_STATE2, PARK_STATE2);
+        goToPositionByTime(SkyStonePosition + 11, 36, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.75, SECOND_SKYSTONE_TAKE4, SECOND_SKYSTONE_TAKE5);
+        retractArmDuringState(SECOND_SKYSTONE_TAKE5, SECOND_SKYSTONE_TAKE6);
+        goToPositionByTime(SkyStonePosition + 11, 36, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 350, 1.25, SECOND_SKYSTONE_TAKE6, SECOND_SKYSTONE_TAKE7);
+        goToPositionByTime(SkyStonePosition + 11, 60, .3, .3, 350, 1, SECOND_SKYSTONE_TAKE7, SECOND_SKYSTONE_PLACE);
+        hoverLiftState(SECOND_SKYSTONE_PLACE, SECOND_SKYSTONE_PLACE2, 5);
+        goToPositionByTime(SkyStonePosition + 11, 36, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 350, 1, SECOND_SKYSTONE_PLACE2, SECOND_SKYSTONE_PLACE3);
+        goToPositionByTime(SkyStonePosition - 15, 36, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1, SECOND_SKYSTONE_PLACE3, PARK_STATE);
+        lowerLiftState(PARK_STATE, PARK_STATE2);
+        goToPositionByTime(40,42, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 1.25, PARK_STATE2, PARK_STATE3);
+        grabRotateStoneAtBeginningOfState(PARK_STATE3, PARK_STATE4);
+        goToPositionByTime(20,30, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2, PARK_STATE4, PARK_STATE5);
+        releaseStoneAtBeginningOfState(PARK_STATE5, PARK_STATE6);
+        goToPositionByTime(20,43, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2, PARK_STATE6, PARK_STATE7);
+        CheckStone(PARK_STATE7, SECOND_STONE_FAIL_STATE);
+        lowerLiftState(PARK_STATE7, PARK_STATE7);
+        goToPositionByTime(SkyStonePosition - 5,41, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2, PARK_STATE7, PARK_STATE8);
+        retractArmDuringState(PARK_STATE8, PARK_STATE9);
+        goToPositionByTime(SkyStonePosition - 5,44, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2, PARK_STATE9, THIRD_SKYSTONE_TAKE);
+        lowerLiftState(THIRD_SKYSTONE_TAKE, THIRD_SKYSTONE_TAKE);
+        goToPositionByTime(SkyStonePosition - 30,44, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2, THIRD_SKYSTONE_TAKE, THIRD_SKYSTONE_TAKE2);
+
 
         retractArmDuringState(FIRST_STONE_FAIL_STATE, FIRST_STONE_FAIL_STATE2);
         goToPositionByTime(RobotXPosition, 40, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2.5, FIRST_STONE_FAIL_STATE2, PARK_STATE);
+
+        retractArmDuringState(SECOND_STONE_FAIL_STATE, SECOND_STONE_FAIL_STATE2);
+        goToPositionByTime(RobotXPosition, 40, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2.5, SECOND_STONE_FAIL_STATE2, PARK_STATE);
     }
 
     @Override
