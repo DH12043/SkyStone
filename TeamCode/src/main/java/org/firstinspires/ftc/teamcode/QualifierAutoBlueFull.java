@@ -323,7 +323,7 @@ public class QualifierAutoBlueFull extends OpMode {
         grabRotateStoneAtBeginningOfState(PARK_STATE3, PARK_STATE4);
         goToPositionByTime(20,40, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, .25, PARK_STATE4, PARK_STATE5);
         releaseStoneAtBeginningOfState(PARK_STATE5, PARK_STATE6);
-        goToPositionByTime(20,42, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2, PARK_STATE6, PARK_STATE7);
+        goToPositionByTime(20,42, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2, PARK_STATE6, SECOND_STONE_FAIL_STATE);//Second variable was PARK_STATE7
         CheckStone(PARK_STATE7, SECOND_STONE_FAIL_STATE);
         goToPositionByTime(30,42, DEFAULT_MOVEMENT_SPEED, DEFAULT_TURN_SPEED, 90, 2, PARK_STATE7, PARK_STATE7_8);
         lowerLiftState(PARK_STATE7_8, PARK_STATE7_8);

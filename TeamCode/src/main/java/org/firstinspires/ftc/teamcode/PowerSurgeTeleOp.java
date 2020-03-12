@@ -844,9 +844,11 @@ public class PowerSurgeTeleOp extends OpMode {
                 }
             }
             if (grabberReturnState == 3) {
+                readyToRelease = false;
                 currentGrabberTime = getRuntime();
                 if (currentGrabberTime - startGrabberTime > .5) {
-                    readyToRelease = false;
+                    //readyToRelease = false;
+
                     if (liftHeight <= 1) {
                         LiftMotor.setPower(1);
                         LiftMotor.setTargetPosition((int) ((6 * countsPerInch) + (int)(globalLiftOffset * countsPerInch) + liftOffset));
@@ -1349,7 +1351,7 @@ public class PowerSurgeTeleOp extends OpMode {
         else {
             if ((stoneDistance < 1.5 && stoneDistance != 0.0) || !isWaffleStateRaised) {
                 IntakeMotor.setPower(0);
-            } else if (!readyToGrab && liftGrabberState == 0 && emergencyStoneEjectState == 0 && (grabberReturnState >= 2 || (!readyToRelease && grabberReturnState == 0))) { // removed && !readyToRelease
+            } else if (!readyToGrab && liftGrabberState == 0 && emergencyStoneEjectState == 0 && (grabberReturnState >= 2 || (!readyToRelease && grabberReturnState == 0))) {
                 IntakeMotor.setPower(1);
             }
         }
