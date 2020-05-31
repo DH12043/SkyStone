@@ -181,6 +181,16 @@ public class PowerSurgeTeleOp extends OpMode {
     private int intakeReleaseState = 1;
     private int liftHeight = -1;
 
+    private int intakeEncoderPosition = 0;
+    private int lastIntakeEncoderPosition = 0;
+    private int jammedIntakeLoopCounter = 0;
+
+    private boolean firstRunIntakeReverse = false;
+    private boolean runIntakeReverse = false;
+
+    private double firstIntakeReverseTime;
+    private double intakeReverseTime;
+
     // LIFT STUFF
 
     static final double countsPerMotor          = 383.6;
@@ -1338,22 +1348,69 @@ public class PowerSurgeTeleOp extends OpMode {
                     }
                     firstPressDpadUp = false;
                 }
-            } else {
+            }
+            else {
                 firstPressDpadUp = true;
             }
+
             if (outtakeButton) {
                 IntakeMotor.setPower(-1);
             }
-            else if (intakeButton) {
+            else {
                 IntakeMotor.setPower(1);
             }
         }
         else {
             if ((stoneDistance < 1.5 && stoneDistance != 0.0) || !isWaffleStateRaised) {
                 IntakeMotor.setPower(0);
-            } else if (!readyToGrab && liftGrabberState == 0 && emergencyStoneEjectState == 0 && (grabberReturnState >= 2 || (!readyToRelease && grabberReturnState == 0))) {
-                IntakeMotor.setPower(1);
             }
+            else if (!readyToGrab && liftGrabberState == 0 && emergencyStoneEjectState == 0 && (grabberReturnState >= 2 || (!readyToRelease && grabberReturnState == 0))) {
+                if (checkForJammedStone()) {
+                    firstRunIntakeReverse = true;
+                }
+
+                if (firstRunIntakeReverse) {
+                    firstIntakeReverseTime = getRuntime();
+                    runIntakeReverse = true;
+                    firstRunIntakeReverse = false;
+                }
+                if (runIntakeReverse) {
+                    intakeReverseTime = getRuntime();
+
+                    if (intakeReverseTime - firstIntakeReverseTime >= .25) {
+                        runIntakeReverse = false;
+                    }
+                    else {
+                        IntakeMotor.setPower(-1);
+                    }
+                }
+                else {
+                    IntakeMotor.setPower(1);
+                }
+            }
+        }
+    }
+
+    private boolean checkForJammedStone() {
+        lastIntakeEncoderPosition = intakeEncoderPosition;
+        intakeEncoderPosition = IntakeMotor.getCurrentPosition();
+        telemetry.addData("IntakeEncoderPosition", intakeEncoderPosition);
+        telemetry.addData("IntakeEncoderDifference", intakeEncoderPosition - lastIntakeEncoderPosition);
+
+        if (intakeEncoderPosition - lastIntakeEncoderPosition < 30 && !runIntakeReverse) {
+            jammedIntakeLoopCounter++;
+        }
+        else {
+            jammedIntakeLoopCounter = 0;
+        }
+        telemetry.addData("JammedIntakeLoopCounter", jammedIntakeLoopCounter);
+
+        if (jammedIntakeLoopCounter >= 3) {
+            jammedIntakeLoopCounter = 0;
+            return true;
+        }
+        else {
+            return false;
         }
     }
 
